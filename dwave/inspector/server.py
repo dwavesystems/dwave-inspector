@@ -24,7 +24,7 @@ except ImportError:
     # use a backport for python_version < 3.7
     import importlib_resources
 
-from flask import Flask
+from flask import Flask, send_from_directory
 
 try:
     import dwave._inspectorapp as appdata
@@ -72,10 +72,12 @@ class WSGIAsyncServer(threading.Thread):
         self.join()
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=None)
 
 @app.route('/')
-def _root():
-    return 'root'
+@app.route('/<path:path>')
+def send_static(path='index.html'):
+    with importlib_resources.path(appdata, 'build') as basedir:
+        return send_from_directory(basedir, path)
 
 app_server = WSGIAsyncServer(host='127.0.0.1', port=8000, app=app)
