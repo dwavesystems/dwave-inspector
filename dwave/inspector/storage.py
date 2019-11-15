@@ -14,5 +14,13 @@
 
 from __future__ import absolute_import
 
+from collections import OrderedDict
 
-problem_store = {}
+
+problem_store = OrderedDict()
+
+
+def push_problem(problem_data):
+    id_ = problem_data['details']['id']
+    problem_store[id_] = problem_data
+    return id_
