@@ -17,7 +17,8 @@ from __future__ import absolute_import
 import webbrowser
 
 from dwave.inspector.server import app_server
-from dwave.inspector.adapters import from_qmi_response, from_bqm_response
+from dwave.inspector.adapters import (
+    from_qmi_response, from_bqm_response, from_bqm_sampleset)
 from dwave.inspector.storage import push_problem
 
 
@@ -29,7 +30,7 @@ def open_problem(problem_id):
     return url
 
 
-def show_qmi(problem, response, embedding=None):
+def show_qmi(problem, response, embedding=None, warnings=None):
     problem = from_qmi_response(problem, response, embedding)
     id_ = push_problem(problem)
     return open_problem(id_)
@@ -37,5 +38,11 @@ def show_qmi(problem, response, embedding=None):
 
 def show_bqm_response(bqm, embedding, response, warnings=None):
     problem = from_bqm_response(bqm, embedding, response, warnings)
+    id_ = push_problem(problem)
+    return open_problem(id_)
+
+
+def show_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None):
+    problem = from_bqm_sampleset(bqm, sampleset, sampler, embedding, warnings)
     id_ = push_problem(problem)
     return open_problem(id_)
