@@ -17,9 +17,17 @@ from __future__ import absolute_import
 import uuid
 
 import dimod
+import dwave.cloud
 from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get
 from dwave.embedding import embed_bqm
 from dwave.embedding.utils import edgelist_to_adjacency
+
+__all__ = [
+    'from_qmi_response',
+    'from_bqm_response',
+    'from_bqm_sampleset',
+    'from_objects',
+]
 
 
 class ProblemData(object):
@@ -301,3 +309,47 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None):
     }
 
     return data
+
+
+def from_objects(*args, **kwargs):
+    """Based on positional argument types and keyword arguments, select the
+    best adapter match and constructs the problem data.
+
+    See :meth:`.from_qmi_response`, :meth:`.from_bqm_response`,
+    :meth:`.from_bqm_sampleset` for details on possible arguments.
+    """
+
+    bqm_cls = dimod.BinaryQuadraticModel
+    sampleset_cls = dimod.SampleSet
+    sampler_cls = (dimod.Sampler, dimod.ComposedSampler)
+    response_cls = dwave.cloud.Future
+
+    bqms = list(filter(lambda arg: isinstance(arg, bqm_cls), args))
+    samplesets = list(filter(lambda arg: isinstance(arg, sampleset_cls), args))
+    samplers = list(filter(lambda arg: isinstance(arg, sampler_cls), args))
+    responses = list(filter(lambda arg: isinstance(arg, response_cls), args))
+
+    maybe_pop = lambda ls: ls.pop() if len(ls) else None
+
+    bqm = kwargs.get('bqm', maybe_pop(bqms))
+    sampleset = kwargs.get('sampleset', maybe_pop(samplesets))
+    sampler = kwargs.get('sampler', maybe_pop(samplers))
+    response = kwargs.get('response', maybe_pop(responses))
+
+    # problem, embedding and warnings are (can be) ambiguous,
+    # so we don't allow them as positional args
+    problem = kwargs.get('problem')
+    embedding = kwargs.get('embedding')
+    warnings = kwargs.get('warnings')
+
+    # in order of preference (most explicit form first):
+    if problem is not None and response is not None:
+        return from_qmi_response(problem, response, embedding, warnings)
+
+    if bqm is not None and embedding is not None and response is not None:
+        return from_bqm_response(bqm, embedding, response, warnings)
+
+    if bqm is not None and sampleset is not None and sampler is not None:
+        return from_bqm_sampleset(bqm, sampleset, sampler, embedding, warnings)
+
+    raise ValueError("invalid combination of arguments")
