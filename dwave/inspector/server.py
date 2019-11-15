@@ -61,8 +61,8 @@ class WSGIAsyncServer(threading.Thread):
     separate thread).
     """
 
-    def __init__(self, host, port, app):
-        super(WSGIAsyncServer, self).__init__(daemon=True)
+    def __init__(self, host, port, app, daemon=False):
+        super(WSGIAsyncServer, self).__init__(daemon=daemon)
 
         self.server = make_server(
             host, port, app, handler_class=SilentWSGIRequestHandler)
