@@ -74,6 +74,13 @@ class WSGIAsyncServer(threading.Thread):
         self.server.shutdown()
         self.join()
 
+    def ensure_started(self):
+        if not self.is_alive():
+            self.start()
+
+    def ensure_stopped(self):
+        if self.is_alive():
+            self.stop()
 
 app = Flask(__name__, static_folder=None)
 
