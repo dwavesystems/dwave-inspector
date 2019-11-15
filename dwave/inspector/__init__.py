@@ -17,15 +17,25 @@ from __future__ import absolute_import
 import webbrowser
 
 from dwave.inspector.server import app_server
-from dwave.inspector.adapters import from_objects
-from dwave.inspector.storage import problem_store
+from dwave.inspector.adapters import from_logicbqm_response, from_qmi_response
+from dwave.inspector.storage import push_problem
+
+
+def open_problem(problem_id):
+    """Open problem_id from storage in the Inspector web app."""
+    app_server.ensure_started()
+    url = "http://localhost:8000/?testId={}".format(problem_id)
+    webbrowser.open_new_tab(url)
+    return url
 
 
 def show(bqm=None, embedding=None, response=None, warnings=None):
-    problem = from_objects(bqm, embedding, response, warnings)
-    id_ = problem['details']['id']
-    problem_store[id_] = problem
+    problem = from_logicbqm_response(bqm, embedding, response, warnings)
+    id_ = push_problem(problem)
+    return open_problem(id_)
 
-    app_server.ensure_started()
 
-    webbrowser.open_new_tab("http://localhost:8000/?testId={}".format(id_))
+def show_qmi(problem, response, embedding=None):
+    problem = from_qmi_response(problem, response, embedding)
+    id_ = push_problem(problem)
+    return open_problem(id_)
