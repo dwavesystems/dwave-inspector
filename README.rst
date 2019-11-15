@@ -20,7 +20,7 @@ Installation or Building
 
 .. installation-start-marker
 
-Install closed-source dependencies:
+Install closed-source dependencies::
 
     pip install dwave-inspectorapp --extra-index=https://pypi.dwavesys.com/simple
 
@@ -48,7 +48,6 @@ Example
     import dimod
     import dwave.inspector
     from dwave.system import DWaveSampler, EmbeddingComposite
-
 
     # define problem
     bqm = dimod.BQM.from_ising({}, {'ab': 1, 'bc': 1, 'ca': 1})
