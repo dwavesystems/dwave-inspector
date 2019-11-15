@@ -25,6 +25,7 @@ except ImportError:
     import importlib_resources
 
 from flask import Flask, send_from_directory
+from werkzeug.exceptions import NotFound
 
 try:
     import dwave._inspectorapp as appdata
@@ -32,6 +33,8 @@ except ImportError:
     # TODO: demote to warning only and use a dummy server in this case
     raise RuntimeError("Can't use the Inspector without 'dwave-inspectorapp' "
                        "package. Consult the docs for install instructions.")
+
+from dwave.inspector.storage import problem_store
 
 
 # suppress logging from Flask app
@@ -79,5 +82,14 @@ app = Flask(__name__, static_folder=None)
 def send_static(path='index.html'):
     with importlib_resources.path(appdata, 'build') as basedir:
         return send_from_directory(basedir, path)
+
+@app.route('/mocks/test/<problem_id>.json')
+@app.route('/mocks/sapi/problems/<problem_id>.json')
+def send_problem(problem_id):
+    try:
+        return problem_store[problem_id]
+    except KeyError:
+        raise NotFound
+
 
 app_server = WSGIAsyncServer(host='127.0.0.1', port=8000, app=app)
