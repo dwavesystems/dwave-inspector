@@ -68,6 +68,13 @@ Example
 .. example-end-marker
 
 
+Known Issues
+============
+
+- Only one instance of the Inspector can be active at a time. If running examples, exit each before running the next one.
+- Warnings not available yet. Pending changes in `dwave-system`.
+- Debug/error output of the background HTTP server not always suppressed.
+
 License
 =======
 
