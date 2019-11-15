@@ -20,7 +20,7 @@ Installation or Building
 
 .. installation-start-marker
 
-Install closed-source dependencies::
+Install the closed-source dependencies::
 
     pip install dwave-inspectorapp --extra-index=https://pypi.dwavesys.com/simple
 
@@ -29,6 +29,10 @@ Then, install from package on PyPI::
     pip install dwave-inspector
 
 or from source::
+
+    pip install git+ssh://git@github.com/dwavesystems/dwave-inspector.git
+
+Alternatively, clone and build from source::
 
     git clone https://github.com/dwavesystems/dwave-inspector.git
     cd dwave-inspector
