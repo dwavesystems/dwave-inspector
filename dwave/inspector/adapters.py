@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 
 import uuid
+import logging
 
 import dimod
 import dwave.cloud
@@ -28,6 +29,8 @@ __all__ = [
     'from_bqm_sampleset',
     'from_objects',
 ]
+
+logger = logging.getLogger(__name__)
 
 
 class ProblemData(object):
@@ -63,6 +66,19 @@ def _details_dict(response):
         "submitted_on": response.time_received.isoformat(),
         "solved_on": response.time_solved.isoformat()
     }
+
+def _validated_embedding(emb):
+    "Basic types validation/conversion."
+
+    try:
+        keys = map(str, emb.keys())
+        values = map(list, emb.values())
+        return dict(zip(keys, values))
+
+    except Exception as e:
+        msg = "invalid embedding structure"
+        logger.warning(msg)
+        raise ValueError(msg)
 
 
 def from_qmi_response(problem, response, embedding=None, warnings=None):
@@ -116,7 +132,7 @@ def from_qmi_response(problem, response, embedding=None, warnings=None):
 
     # include optional embedding
     if embedding is not None:
-        problem_data['embedding'] = embedding
+        problem_data['embedding'] = _validated_embedding(embedding)
 
     data = {
         "ready": True,
@@ -188,7 +204,7 @@ def from_bqm_response(bqm, embedding, response, warnings=None):
         "quad": [quad.get((q1,q2), 0)
                  for (q1,q2) in solver._encoding_couplers
                  if q1 in variables and q2 in variables],
-        "embedding": embedding
+        "embedding": _validated_embedding(embedding)
     }
 
     data = {
@@ -287,7 +303,7 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None):
         "quad": [quad.get((q1,q2), 0)
                  for (q1,q2) in solver._encoding_couplers
                  if q1 in variables and q2 in variables],
-        "embedding": embedding
+        "embedding": _validated_embedding(embedding)
     }
 
     # problem id not available, auto-generate some
