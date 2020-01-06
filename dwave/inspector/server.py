@@ -14,6 +14,7 @@
 
 from __future__ import absolute_import
 
+import time
 import logging
 import threading
 from wsgiref.simple_server import make_server, WSGIRequestHandler
@@ -24,6 +25,7 @@ except ImportError:
     # use a backport for python_version < 3.7
     import importlib_resources
 
+import requests
 from flask import Flask, send_from_directory
 from werkzeug.exceptions import NotFound
 
@@ -74,13 +76,29 @@ class WSGIAsyncServer(threading.Thread):
         self.server.shutdown()
         self.join()
 
+    def _ensure_accessible(self, sleep=0.1, tries=100, timeout=10):
+        """Ping the canary URL (app root) until the app becomes accessible."""
+
+        canary = 'http://{}:{}/'.format(*self.server.server_address)
+
+        for _ in range(tries):
+            try:
+                requests.get(canary, timeout=timeout).raise_for_status()
+                return True
+            except:
+                time.sleep(sleep)
+
+        return False
+
     def ensure_started(self):
         if not self.is_alive():
             self.start()
+            self._ensure_accessible()
 
     def ensure_stopped(self):
         if self.is_alive():
             self.stop()
+
 
 app = Flask(__name__, static_folder=None)
 
