@@ -8,7 +8,7 @@ bqm = dimod.BQM.from_ising({}, {'ab': 1, 'bc': 1, 'ca': 1})
 
 # get sampler
 print("sampler init")
-sampler = EmbeddingComposite(DWaveSampler(solver='DW_2000Q_2_1'))
+sampler = EmbeddingComposite(DWaveSampler(solver=dict(qpu=True)))
 
 # sample -> sampleset + embedding (+ warnings)
 print("sampling")

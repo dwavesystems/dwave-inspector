@@ -6,7 +6,7 @@ import dwave.inspector
 # get solver
 print("solver init")
 client = dwave.cloud.Client.from_config()
-solver = client.get_solver(name='DW_2000Q_2_1')
+solver = client.get_solver(qpu=True)
 
 # define problem (over first n qubits)
 n = 100
