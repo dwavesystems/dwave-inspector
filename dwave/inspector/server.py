@@ -46,6 +46,25 @@ logger = logging.getLogger(__name__)
 logging.getLogger('werkzeug').addHandler(logging.NullHandler(logging.DEBUG))
 
 
+class LoggingStream(object):
+    """Provide file-like interface to a logger."""
+
+    def __init__(self, logger, level):
+        self.logger = logger
+        self.level = level
+
+    def write(self, message):
+        for line in message.split('\n'):
+            if line:
+                self.logger.log(self.level, line)
+
+    def flush(self):
+        pass
+
+# stream interface to our local logger
+logging_stream = LoggingStream(logger, logging.DEBUG)
+
+
 class LoggingWSGIRequestHandler(WSGIRequestHandler):
     """WSGIRequestHandler subclass that logs to our logger, instead of to
     ``sys.stderr`` (as hardcoded in ``http.server.BaseHTTPRequestHandler``).
@@ -53,6 +72,9 @@ class LoggingWSGIRequestHandler(WSGIRequestHandler):
 
     def log_message(self, format, *args):
         logger.info(format, *args)
+
+    def get_stderr(self):
+        return logging_stream
 
 
 class WSGIAsyncServer(threading.Thread):
