@@ -39,9 +39,6 @@ except ImportError:
 from dwave.inspector.storage import problem_store
 
 
-# suppress logging from Flask app
-logging.getLogger(__name__).addHandler(logging.NullHandler(logging.DEBUG))
-
 # suppress logging from Werkzeug
 logging.getLogger('werkzeug').addHandler(logging.NullHandler(logging.DEBUG))
 
