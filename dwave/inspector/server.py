@@ -39,20 +39,20 @@ except ImportError:
 from dwave.inspector.storage import problem_store
 
 
+# get local server/app logger
+logger = logging.getLogger(__name__)
+
 # suppress logging from Werkzeug
 logging.getLogger('werkzeug').addHandler(logging.NullHandler(logging.DEBUG))
 
 
-class SilentWSGIRequestHandler(WSGIRequestHandler):
-    """WSGIRequestHandler subclass with logging to ``sys.stderr`` suppressed.
-    Alternatively, we can use 'logging' machinery instead.
+class LoggingWSGIRequestHandler(WSGIRequestHandler):
+    """WSGIRequestHandler subclass that logs to our logger, instead of to
+    ``sys.stderr`` (as hardcoded in ``http.server.BaseHTTPRequestHandler``).
     """
 
-    # Note: this essentially fixes a design decision in the standard lib's
-    # ``http.server.BaseHTTPRequestHandler`` to hardcode logging to stderr.
-
     def log_message(self, format, *args):
-        pass
+        logger.info(format, *args)
 
 
 class WSGIAsyncServer(threading.Thread):
@@ -64,7 +64,7 @@ class WSGIAsyncServer(threading.Thread):
         super(WSGIAsyncServer, self).__init__(daemon=daemon)
 
         self.server = make_server(
-            host, port, app, handler_class=SilentWSGIRequestHandler)
+            host, port, app, handler_class=LoggingWSGIRequestHandler)
 
     def run(self):
         self.server.serve_forever()
