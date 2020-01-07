@@ -14,10 +14,12 @@
 
 from __future__ import absolute_import
 
+import sys
 import time
 import logging
+import traceback
 import threading
-from wsgiref.simple_server import make_server, WSGIRequestHandler
+from wsgiref.simple_server import make_server, WSGIRequestHandler, WSGIServer
 
 try:
     import importlib.resources as importlib_resources
@@ -77,6 +79,15 @@ class LoggingWSGIRequestHandler(WSGIRequestHandler):
         return logging_stream
 
 
+class LoggingWSGIServer(WSGIServer):
+    """WSGIServer subclass that logs to our logger, instead of to ``sys.stderr``
+    (as hardcoded in ``socketserver.BaseServer.handle_error``).
+    """
+
+    def handle_error(self, request, client_address):
+        traceback.print_exception(*sys.exc_info(), file=logging_stream)
+
+
 class WSGIAsyncServer(threading.Thread):
     """WSGI server container for a wsgi app that runs asynchronously (in a
     separate thread).
@@ -85,8 +96,9 @@ class WSGIAsyncServer(threading.Thread):
     def __init__(self, host, port, app, daemon=False):
         super(WSGIAsyncServer, self).__init__(daemon=daemon)
 
-        self.server = make_server(
-            host, port, app, handler_class=LoggingWSGIRequestHandler)
+        self.server = make_server(host, port, app,
+                                  server_class=LoggingWSGIServer,
+                                  handler_class=LoggingWSGIRequestHandler)
 
     def run(self):
         self.server.serve_forever()
