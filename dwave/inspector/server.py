@@ -14,10 +14,12 @@
 
 from __future__ import absolute_import
 
+import sys
 import time
 import logging
+import traceback
 import threading
-from wsgiref.simple_server import make_server, WSGIRequestHandler
+from wsgiref.simple_server import make_server, WSGIRequestHandler, WSGIServer
 
 try:
     import importlib.resources as importlib_resources
@@ -39,23 +41,51 @@ except ImportError:
 from dwave.inspector.storage import problem_store
 
 
-# suppress logging from Flask app
-logging.getLogger(__name__).addHandler(logging.NullHandler(logging.DEBUG))
+# get local server/app logger
+logger = logging.getLogger(__name__)
 
 # suppress logging from Werkzeug
 logging.getLogger('werkzeug').addHandler(logging.NullHandler(logging.DEBUG))
 
 
-class SilentWSGIRequestHandler(WSGIRequestHandler):
-    """WSGIRequestHandler subclass with logging to ``sys.stderr`` suppressed.
-    Alternatively, we can use 'logging' machinery instead.
+class LoggingStream(object):
+    """Provide file-like interface to a logger."""
+
+    def __init__(self, logger, level):
+        self.logger = logger
+        self.level = level
+
+    def write(self, message):
+        for line in message.split('\n'):
+            if line:
+                self.logger.log(self.level, line)
+
+    def flush(self):
+        pass
+
+# stream interface to our local logger
+logging_stream = LoggingStream(logger, logging.DEBUG)
+
+
+class LoggingWSGIRequestHandler(WSGIRequestHandler):
+    """WSGIRequestHandler subclass that logs to our logger, instead of to
+    ``sys.stderr`` (as hardcoded in ``http.server.BaseHTTPRequestHandler``).
     """
 
-    # Note: this essentially fixes a design decision in the standard lib's
-    # ``http.server.BaseHTTPRequestHandler`` to hardcode logging to stderr.
-
     def log_message(self, format, *args):
-        pass
+        logger.info(format, *args)
+
+    def get_stderr(self):
+        return logging_stream
+
+
+class LoggingWSGIServer(WSGIServer):
+    """WSGIServer subclass that logs to our logger, instead of to ``sys.stderr``
+    (as hardcoded in ``socketserver.BaseServer.handle_error``).
+    """
+
+    def handle_error(self, request, client_address):
+        traceback.print_exception(*sys.exc_info(), file=logging_stream)
 
 
 class WSGIAsyncServer(threading.Thread):
@@ -66,8 +96,9 @@ class WSGIAsyncServer(threading.Thread):
     def __init__(self, host, port, app, daemon=False):
         super(WSGIAsyncServer, self).__init__(daemon=daemon)
 
-        self.server = make_server(
-            host, port, app, handler_class=SilentWSGIRequestHandler)
+        self.server = make_server(host, port, app,
+                                  server_class=LoggingWSGIServer,
+                                  handler_class=LoggingWSGIRequestHandler)
 
     def run(self):
         self.server.serve_forever()
