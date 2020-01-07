@@ -14,8 +14,11 @@
 
 from __future__ import absolute_import
 
+import os
 import logging
 import webbrowser
+
+from dwave.cloud.utils import set_loglevel
 
 from dwave.inspector.server import app_server
 from dwave.inspector.adapters import (
@@ -23,7 +26,7 @@ from dwave.inspector.adapters import (
 from dwave.inspector.storage import push_problem
 
 
-def _configure_logging():
+def _configure_logging(loglevel):
     """Configure `dwave.inspector` root logger."""
     # TODO: move to dwave "common utils" module
 
@@ -32,10 +35,12 @@ def _configure_logging():
     handler.setFormatter(formatter)
 
     logger = logging.getLogger(__name__)
-    logger.setLevel(logging.WARNING)
     logger.addHandler(handler)
 
-_configure_logging()
+    set_loglevel(logger, loglevel)
+
+# configure root logger and apply `DWAVE_INSPECTOR_LOG_LEVEL`
+_configure_logging(os.getenv('DWAVE_INSPECTOR_LOG_LEVEL'))
 
 
 def open_problem(problem_id):
