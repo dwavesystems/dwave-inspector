@@ -14,12 +14,28 @@
 
 from __future__ import absolute_import
 
+import logging
 import webbrowser
 
 from dwave.inspector.server import app_server
 from dwave.inspector.adapters import (
     from_qmi_response, from_bqm_response, from_bqm_sampleset, from_objects)
 from dwave.inspector.storage import push_problem
+
+
+def _configure_logging():
+    """Configure `dwave.inspector` root logger."""
+    # TODO: move to dwave "common utils" module
+
+    formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(threadName)s %(message)s')
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.WARNING)
+    logger.addHandler(handler)
+
+_configure_logging()
 
 
 def open_problem(problem_id):
