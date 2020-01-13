@@ -124,7 +124,7 @@ class WSGIAsyncServer(threading.Thread):
     def ensure_started(self):
         if not self.is_alive():
             self.start()
-            self._ensure_accessible()
+            return self._ensure_accessible()
 
     def ensure_stopped(self):
         if self.is_alive():
