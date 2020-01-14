@@ -20,7 +20,7 @@ import logging
 import dimod
 import dimod.views.bqm
 import dwave.cloud
-from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get
+from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get, active_qubits
 from dwave.embedding import embed_bqm
 from dwave.embedding.utils import edgelist_to_adjacency
 
@@ -122,21 +122,27 @@ def from_qmi_response(problem, response, embedding=None, warnings=None):
     problem_type = response.problem_type
 
     variables = list(response.variables)
-    num_variables = len(solver.variables)
+    active = active_qubits(linear, quadratic)
+
+    # sanity check
+    active_variables = response['active_variables']
+    assert set(active) == set(active_variables)
 
     solutions = response['solutions']
     energies = response['energies']
     num_occurrences = response['num_occurrences']
+    num_variables = response['num_variables']
     timing = response.timing
 
     # note: we can't use encode_problem_as_qp(solver, linear, quadratic) because
-    # visualizer accepts decoded lists
+    # visualizer accepts decoded lists (and nulls instead of NaNs)
     problem_data = {
         "format": "qp",         # SAPI non-conforming (nulls vs nans)
-        "lin": [uniform_get(linear, v) for v in solver._encoding_qubits],
-        "quad": [quadratic.get((q1,q2), 0)
+        "lin": [uniform_get(linear, v, 0 if v in active else None)
+                for v in solver._encoding_qubits],
+        "quad": [quadratic.get((q1,q2), 0) + quadratic.get((q2,q1), 0)
                  for (q1,q2) in solver._encoding_couplers
-                 if q1 in response.variables and q2 in response.variables]
+                 if q1 in active and q2 in active]
     }
 
     # include optional embedding
