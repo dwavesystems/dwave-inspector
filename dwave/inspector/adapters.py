@@ -16,6 +16,7 @@ from __future__ import absolute_import
 
 import uuid
 import logging
+from operator import itemgetter
 
 import dimod
 import dimod.views.bqm
@@ -128,7 +129,7 @@ def from_qmi_response(problem, response, embedding=None, warnings=None):
     active_variables = response['active_variables']
     assert set(active) == set(active_variables)
 
-    solutions = response['solutions']
+    solutions = list(map(itemgetter(*active_variables), response['solutions']))
     energies = response['energies']
     num_occurrences = response['num_occurrences']
     num_variables = response['num_variables']
@@ -153,7 +154,7 @@ def from_qmi_response(problem, response, embedding=None, warnings=None):
         "ready": True,
         "details": _details_dict(response),
         "data": _problem_dict(solver_id, problem_type, problem_data),
-        "answer": _answer_dict(solutions, variables, energies, num_occurrences, timing, num_variables),
+        "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
 
         # TODO
         "messages": [],
