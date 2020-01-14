@@ -105,7 +105,7 @@ def from_qmi_response(problem, response, embedding=None, warnings=None):
     try:
         linear, quadratic = problem
     except:
-        linear, quadratic = reformat_qubo_as_ising(qubo)
+        linear, quadratic = reformat_qubo_as_ising(problem)
 
     solver = response.solver
     solver_id = solver.id
