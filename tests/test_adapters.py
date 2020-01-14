@@ -54,6 +54,8 @@ class TestAdapters(unittest.TestCase):
         self.ising_embedded = self.bqm_embedded.to_ising()
         self.problem = self.ising_embedded[:2]
 
+        self.params = dict(num_reads=100)
+
     def verify_data_encoding(self, problem, response, solver, params, data):
         # make sure data correct after JSON decoding
         data = json.loads(json.dumps(data))
@@ -96,19 +98,37 @@ class TestAdapters(unittest.TestCase):
 
     @rec.use_cassette('triangle.yaml')
     def test_from_qmi_response(self):
-        params = dict(num_reads=100)
+        """Inspector data is correctly encoded for a simple Ising triangle problem."""
 
         # sample
         with Client.from_config() as client:
             solver = client.get_solver(qpu=True)
-            response = solver.sample_ising(*self.problem, **params)
+            response = solver.sample_ising(*self.problem, **self.params)
 
         # convert
         data = from_qmi_response(self.problem, response)
 
         # validate data encoding
         self.verify_data_encoding(problem=self.problem, response=response,
-                                  solver=solver, params=params, data=data)
+                                  solver=solver, params=self.params, data=data)
+
+    @rec.use_cassette('triangle.yaml')
+    def test_from_qmi_response__couplings_only(self):
+        """Problem/solutions are correctly encoded when qubits are referenced via couplings only."""
+
+        problem = ({}, self.ising_embedded[1])
+
+        # sample
+        with Client.from_config() as client:
+            solver = client.get_solver(qpu=True)
+            response = solver.sample_ising(*problem, **self.params)
+
+        # convert
+        data = from_qmi_response(problem, response)
+
+        # validate data encoding
+        self.verify_data_encoding(problem=self.problem, response=response,
+                                  solver=solver, params=self.params, data=data)
 
     @rec.use_cassette('triangle.yaml')
     def test_from_bqm_response(self):
