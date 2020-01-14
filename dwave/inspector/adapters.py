@@ -18,6 +18,7 @@ import uuid
 import logging
 
 import dimod
+import dimod.views.bqm
 import dwave.cloud
 from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get
 from dwave.embedding import embed_bqm
@@ -88,6 +89,8 @@ def from_qmi_response(problem, response, embedding=None, warnings=None):
     Args:
         problem ((list/dict, dict[(int, int), float]) or dict[(int, int), float]):
             Problem in Ising or QUBO form, conforming to solver graph.
+            Note: the problem is always assumed to be in Ising space (even if
+            given as QUBO dict), with zero energy offset.
 
         response (:class:`dwave.cloud.computation.Future`):
             Sampling response, as returned by the low-level sampling interface
@@ -106,6 +109,12 @@ def from_qmi_response(problem, response, embedding=None, warnings=None):
         linear, quadratic = problem
     except:
         linear, quadratic = reformat_qubo_as_ising(problem)
+
+    # make sure lin/quad are not dimod views (that handle directed edges)
+    if isinstance(linear, dimod.views.bqm.BQMView):
+        linear = dict(linear)
+    if isinstance(quadratic, dimod.views.bqm.BQMView):
+        quadratic = dict(quadratic)
 
     solver = response.solver
     solver_id = solver.id
@@ -241,7 +250,7 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None):
 
         embedding (dict, optional):
             An embedding of the logical problem onto the solver's graph. It is
-            optional only if ``sampleset.info`` containes the embedding (see
+            optional only if ``sampleset.info`` contains the embedding (see
             `return_embedding` argument of
             :meth:`~dwave.system.composites.embedding.EmbeddingComposite`).
 
