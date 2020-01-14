@@ -90,8 +90,9 @@ def from_qmi_response(problem, response, embedding=None, warnings=None):
     Args:
         problem ((list/dict, dict[(int, int), float]) or dict[(int, int), float]):
             Problem in Ising or QUBO form, conforming to solver graph.
-            Note: the problem is always assumed to be in Ising space (even if
-            given as QUBO dict), with zero energy offset.
+            Note: if problem is given as tuple, it is assumed to be in Ising
+            variable space, and if given as a dict, Binary variable space is
+            assumed. Zero energy offset is always implied.
 
         response (:class:`dwave.cloud.computation.Future`):
             Sampling response, as returned by the low-level sampling interface

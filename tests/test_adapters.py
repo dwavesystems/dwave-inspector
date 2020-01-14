@@ -22,7 +22,7 @@ from dwave.cloud import Client
 from dwave.system import DWaveSampler, FixedEmbeddingComposite
 from dwave.embedding import embed_bqm
 from dwave.embedding.utils import edgelist_to_adjacency
-from dwave.cloud.utils import active_qubits, uniform_get
+from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get, active_qubits
 
 from dwave.inspector.adapters import (
     from_qmi_response, from_bqm_response, from_bqm_sampleset)
@@ -39,7 +39,7 @@ rec = vcr.VCR(
 
 class TestAdapters(unittest.TestCase):
 
-    @rec.use_cassette('triangle.yaml')
+    @rec.use_cassette('triangle-ising.yaml')
     def setUp(self):
         with Client.from_config() as client:
             self.solver = client.get_solver(qpu=True)
@@ -74,7 +74,13 @@ class TestAdapters(unittest.TestCase):
         # XXX: params not supported yet
         #self.assertEqual(data['data']['params'], params)
 
-        linear, quadratic = problem
+        if response.problem_type == 'ising':
+            linear, quadratic = problem
+        elif response.problem_type == 'qubo':
+            linear, quadratic = reformat_qubo_as_ising(problem)
+        else:
+            self.fail("Unknown problem type")
+
         active_variables = response['active_variables']
         problem_data = {
             "format": "qp",
@@ -96,8 +102,8 @@ class TestAdapters(unittest.TestCase):
         self.assertEqual(data['answer']['energies'], response['energies'])
         self.assertEqual(data['answer']['timing'], response['timing'])
 
-    @rec.use_cassette('triangle.yaml')
-    def test_from_qmi_response(self):
+    @rec.use_cassette('triangle-ising.yaml')
+    def test_from_qmi_response__ising(self):
         """Inspector data is correctly encoded for a simple Ising triangle problem."""
 
         # sample
@@ -112,7 +118,32 @@ class TestAdapters(unittest.TestCase):
         self.verify_data_encoding(problem=self.problem, response=response,
                                   solver=solver, params=self.params, data=data)
 
-    @rec.use_cassette('triangle.yaml')
+    @rec.use_cassette('triangle-qubo.yaml')
+    def test_from_qmi_response__qubo(self):
+        """Inspector data is correctly encoded for a simple QUBO triangle problem."""
+
+        # vars = (0, 1, 4, 5)
+        # h = {}, J = {(0, 4): 1, (0, 5): 1, (1, 5): -1, (4, 1): 1}
+        problem = {
+            (0, 0): 0,   (0, 1): 0,    (0, 4): 0.5, (0, 5): 0.5,
+            (1, 0): 0,   (1, 1): 0,    (1, 4): 0.5, (1, 5): -0.5,
+            (4, 0): 0.5, (4, 1): 0.5,  (4, 4): 0,   (4, 5): 0,
+            (5, 0): 0.5, (5, 1): -0.5, (5, 4): 0,   (5, 5): 0,
+        }
+
+        # sample
+        with Client.from_config() as client:
+            solver = client.get_solver(qpu=True)
+            response = solver.sample_qubo(problem, **self.params)
+
+        # convert
+        data = from_qmi_response(problem, response)
+
+        # validate data encoding
+        self.verify_data_encoding(problem=problem, response=response,
+                                  solver=solver, params=self.params, data=data)
+
+    @rec.use_cassette('triangle-ising.yaml')
     def test_from_qmi_response__couplings_only(self):
         """Problem/solutions are correctly encoded when qubits are referenced via couplings only."""
 
@@ -127,10 +158,10 @@ class TestAdapters(unittest.TestCase):
         data = from_qmi_response(problem, response)
 
         # validate data encoding
-        self.verify_data_encoding(problem=self.problem, response=response,
+        self.verify_data_encoding(problem=problem, response=response,
                                   solver=solver, params=self.params, data=data)
 
-    @rec.use_cassette('triangle.yaml')
+    @rec.use_cassette('triangle-ising.yaml')
     def test_from_bqm_response(self):
         # sample
         with Client.from_config() as client:
@@ -144,7 +175,7 @@ class TestAdapters(unittest.TestCase):
         self.assertEqual(data['details']['solver'], solver.id)
         self.assertEqual(sum(data['answer']['num_occurrences']), 100)
 
-    @rec.use_cassette('triangle.yaml')
+    @rec.use_cassette('triangle-ising.yaml')
     def test_from_bqm_sampleset(self):
         # sample
         qpu = DWaveSampler(solver=dict(qpu=True))
