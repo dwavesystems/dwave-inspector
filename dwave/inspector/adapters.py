@@ -83,7 +83,7 @@ def _validated_embedding(emb):
         raise ValueError(msg)
 
 
-def from_qmi_response(problem, response, embedding=None, warnings=None):
+def from_qmi_response(problem, response, embedding=None, warnings=None, params=None):
     """Construct problem data for visualization based on the low-level sampling
     problem definition and the low-level response.
 
@@ -104,6 +104,9 @@ def from_qmi_response(problem, response, embedding=None, warnings=None):
 
         warnings (list[dict], optional):
             Optional list of warnings. Not implemented yet.
+
+        params (dict, optional):
+            Sampling parameters used.
 
     """
 
@@ -151,10 +154,14 @@ def from_qmi_response(problem, response, embedding=None, warnings=None):
     if embedding is not None:
         problem_data['embedding'] = _validated_embedding(embedding)
 
+    # try to reconstruct sampling params
+    if params is None:
+        params = {'num_reads': len(solutions)}
+
     data = {
         "ready": True,
         "details": _details_dict(response),
-        "data": _problem_dict(solver_id, problem_type, problem_data),
+        "data": _problem_dict(solver_id, problem_type, problem_data, params),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
 
         # TODO
