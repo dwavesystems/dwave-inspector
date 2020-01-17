@@ -47,6 +47,31 @@ Example
 
 .. example-start-marker
 
+The canonical way to use the Inspector is with samples in physical/qubit space.
+
+.. code-block:: python
+
+    import dwave.cloud
+    import dwave.inspector
+
+    # define problem
+    h = {}
+    J = {(0, 4): 1, (0, 5): 1, (4, 1): 1, (1, 5): -1}
+
+    # get solver
+    client = dwave.cloud.Client.from_config()
+    solver = client.get_solver(qpu=True)
+
+    # sample
+    response = solver.sample_ising(h, J, num_reads=100)
+
+    # inspect
+    dwave.inspector.show_qmi((h, J), response)
+
+It is possible to inspect QMIs given only samples in logical space, but the exact
+response reconstruction is not possible in that case. Namely, chain breaks will
+not be visible.
+
 .. code-block:: python
 
     import dimod
@@ -67,14 +92,6 @@ Example
 
 .. example-end-marker
 
-
-Known Issues
-============
-
-- Only one instance of the Inspector can be active at a time. If running examples, exit each before running the next one.
-- Warnings not available yet. Pending changes in `dwave-system`.
-- Debug/error output of the background HTTP server not always suppressed.
-- Only Leap solvers can be used (2000Q).
 
 License
 =======
