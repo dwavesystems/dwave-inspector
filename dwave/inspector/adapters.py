@@ -260,6 +260,15 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None,
     In order for the embedded problem/response to be reconstructed, an embedding
     is required in either the sampleset, or as a standalone argument.
 
+    Note:
+        This adapter can only provide best-effort estimate of the submitted
+        problem and received samples. Namely, because values of logical
+        variables in `sampleset` are produced by a chain break resolution
+        method, information about individual physical qubit values is lost.
+
+        Please have in mind you will never see "broken chains" when using this
+        adapter.
+
     Args:
         bqm (:class:`dimod.BinaryQuadraticModel`):
             Problem in logical (unembedded) space, given as a BQM.
