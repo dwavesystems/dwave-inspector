@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import json
+import mock
 import unittest
 
 import vcr
@@ -44,17 +45,20 @@ class TestAdapters(unittest.TestCase):
         with Client.from_config() as client:
             self.solver = client.get_solver(qpu=True)
 
-        self.ising = ({}, {'ab': 1, 'bc': 1, 'ca': 1})
-        self.bqm = dimod.BQM.from_ising(*self.ising)
-        self.embedding = {'a': [0], 'b': [4], 'c': [1, 5]}
+            self.ising = ({}, {'ab': 1, 'bc': 1, 'ca': 1})
+            self.bqm = dimod.BQM.from_ising(*self.ising)
+            self.embedding = {'a': [0], 'b': [4], 'c': [1, 5]}
 
-        target_edgelist = [[0, 4], [0, 5], [1, 4], [1, 5]]
-        target_adjacency = edgelist_to_adjacency(target_edgelist)
-        self.bqm_embedded = embed_bqm(self.bqm, self.embedding, target_adjacency)
-        self.ising_embedded = self.bqm_embedded.to_ising()
-        self.problem = self.ising_embedded[:2]
+            target_edgelist = [[0, 4], [0, 5], [1, 4], [1, 5]]
+            target_adjacency = edgelist_to_adjacency(target_edgelist)
+            self.bqm_embedded = embed_bqm(self.bqm, self.embedding, target_adjacency)
+            self.ising_embedded = self.bqm_embedded.to_ising()
+            self.problem = self.ising_embedded[:2]
 
-        self.params = dict(num_reads=100)
+            self.params = dict(num_reads=100)
+
+            # get the expected response (from VCR)
+            self.response = self.solver.sample_ising(*self.problem, **self.params)
 
     def verify_data_encoding(self, problem, response, solver, params, data, embedding=None):
         # make sure data correct after JSON decoding
@@ -65,7 +69,7 @@ class TestAdapters(unittest.TestCase):
         self.assertTrue(all(k in data for k in 'details data answer warnings'.split()))
 
         # .details
-        self.assertEqual(data['details']['id'], response.id)
+        self.assertIn('id', data['details'])
         self.assertEqual(data['details']['solver'], solver.id)
 
         # .problem
@@ -182,14 +186,32 @@ class TestAdapters(unittest.TestCase):
         # sample
         qpu = DWaveSampler(solver=dict(qpu=True))
         sampler = FixedEmbeddingComposite(qpu, self.embedding)
-        sampleset = sampler.sample(self.bqm, num_reads=100, return_embedding=True)
+        sampleset = sampler.sample(self.bqm, return_embedding=True, **self.params)
 
         # convert
-        data = from_bqm_sampleset(self.bqm, sampleset, sampler, self.embedding)
+        data = from_bqm_sampleset(self.bqm, sampleset, sampler, params=self.params)
 
-        # validate
-        self.assertEqual(data['details']['solver'], qpu.solver.id)
-        self.assertEqual(sum(data['answer']['num_occurrences']), 100)
+        # construct (unembedded) response with chain breaks resolved
+        # NOTE: for bqm/sampleset adapter, this is the best we can expect :(
+
+        # inverse the embedding
+        var_to_idx = {var: idx for idx, var in enumerate(sampleset.variables)}
+        unembedding = {q: var_to_idx[v] for v, qs in self.embedding.items() for q in qs}
+
+        # embed sampleset
+        solutions_without_chain_breaks = [
+            [int(sample[unembedding[q]]) if q in unembedding else val
+                for q, val in enumerate(solution)]
+            for solution, sample in zip(
+                self.response['solutions'], sampleset.record.sample)]
+
+        with mock.patch.dict(self.response._result,
+                             {'solutions': solutions_without_chain_breaks}):
+
+            # validate data encoding
+            self.verify_data_encoding(problem=self.problem, response=self.response,
+                                    solver=self.solver, params=self.params, data=data,
+                                    embedding=self.embedding)
 
     def test_from_objects(self):
         pass
