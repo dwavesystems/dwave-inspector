@@ -56,7 +56,7 @@ class TestAdapters(unittest.TestCase):
 
         self.params = dict(num_reads=100)
 
-    def verify_data_encoding(self, problem, response, solver, params, data):
+    def verify_data_encoding(self, problem, response, solver, params, data, embedding=None):
         # make sure data correct after JSON decoding
         data = json.loads(json.dumps(data))
 
@@ -90,6 +90,8 @@ class TestAdapters(unittest.TestCase):
                     for (q1,q2) in solver._encoding_couplers
                     if q1 in active_variables and q2 in active_variables]
         }
+        if embedding is not None:
+            problem_data['embedding'] = embedding
         self.assertEqual(data['data']['data'], problem_data)
 
         # .answer
@@ -171,9 +173,10 @@ class TestAdapters(unittest.TestCase):
         # convert
         data = from_bqm_response(self.bqm, self.embedding, response)
 
-        # validate
-        self.assertEqual(data['details']['solver'], solver.id)
-        self.assertEqual(sum(data['answer']['num_occurrences']), 100)
+        # validate data encoding
+        self.verify_data_encoding(problem=self.problem, response=response,
+                                  solver=solver, params=self.params, data=data,
+                                  embedding=self.embedding)
 
     @rec.use_cassette('triangle-ising.yaml')
     def test_from_bqm_sampleset(self):
