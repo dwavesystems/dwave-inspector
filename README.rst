@@ -24,9 +24,9 @@ Install the closed-source dependencies::
 
     pip install dwave-inspectorapp --extra-index=https://pypi.dwavesys.com/simple
 
-Then, install from package on PyPI::
+Then, install from package on D-Wave's PyPI::
 
-    pip install dwave-inspector
+    pip install dwave-inspector --extra-index=https://pypi.dwavesys.com/simple
 
 or from source::
 
