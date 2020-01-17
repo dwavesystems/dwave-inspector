@@ -335,9 +335,11 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None,
 
     def expand_sample(sample):
         return [int(sample[unembedding[q]]) for q in active_variables]
-
     solutions = [expand_sample(sample) for sample in sampleset.record.sample]
-    energies = list(map(float, sampleset.record.energy))
+
+    # adjust energies to values returned by SAPI (offset embedding)
+    energies = list(map(float, sampleset.record.energy - bqm_embedded.offset))
+
     num_occurrences = list(map(int, sampleset.record.num_occurrences))
     num_variables = solver.num_qubits
     timing = sampleset.info.get('timing')
