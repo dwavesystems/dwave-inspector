@@ -70,9 +70,7 @@ class TestAdapters(unittest.TestCase):
 
         # .problem
         self.assertEqual(data['data']['type'], response.problem_type)
-
-        # XXX: params not supported yet
-        #self.assertEqual(data['data']['params'], params)
+        self.assertEqual(data['data']['params'], params)
 
         if response.problem_type == 'ising':
             linear, quadratic = problem
@@ -114,7 +112,7 @@ class TestAdapters(unittest.TestCase):
             response = solver.sample_ising(*self.problem, **self.params)
 
         # convert
-        data = from_qmi_response(self.problem, response)
+        data = from_qmi_response(self.problem, response, params=self.params)
 
         # validate data encoding
         self.verify_data_encoding(problem=self.problem, response=response,
@@ -139,7 +137,7 @@ class TestAdapters(unittest.TestCase):
             response = solver.sample_qubo(problem, **self.params)
 
         # convert
-        data = from_qmi_response(problem, response)
+        data = from_qmi_response(problem, response, params=self.params)
 
         # validate data encoding
         self.verify_data_encoding(problem=problem, response=response,
@@ -157,7 +155,7 @@ class TestAdapters(unittest.TestCase):
             response = solver.sample_ising(*problem, **self.params)
 
         # convert
-        data = from_qmi_response(problem, response)
+        data = from_qmi_response(problem, response, params=self.params)
 
         # validate data encoding
         self.verify_data_encoding(problem=problem, response=response,
@@ -168,10 +166,11 @@ class TestAdapters(unittest.TestCase):
         # sample
         with Client.from_config() as client:
             solver = client.get_solver(qpu=True)
-            response = solver.sample_ising(*self.problem, num_reads=100)
+            response = solver.sample_ising(*self.problem, **self.params)
 
         # convert
-        data = from_bqm_response(self.bqm, self.embedding, response)
+        data = from_bqm_response(self.bqm, self.embedding, response,
+                                 params=self.params)
 
         # validate data encoding
         self.verify_data_encoding(problem=self.problem, response=response,

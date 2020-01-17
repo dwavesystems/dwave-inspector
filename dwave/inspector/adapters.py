@@ -172,7 +172,7 @@ def from_qmi_response(problem, response, embedding=None, warnings=None, params=N
     return data
 
 
-def from_bqm_response(bqm, embedding, response, warnings=None):
+def from_bqm_response(bqm, embedding, response, warnings=None, params=None):
     """Construct problem data for visualization based on the unembedded BQM,
     the embedding used when submitting, and the low-level sampling response.
 
@@ -190,6 +190,9 @@ def from_bqm_response(bqm, embedding, response, warnings=None):
 
         warnings (list[dict], optional):
             Optional list of warnings. Not implemented yet.
+
+        params (dict, optional):
+            Sampling parameters used.
 
     """
 
@@ -221,13 +224,7 @@ def from_bqm_response(bqm, embedding, response, warnings=None):
     bqm_embedded = embed_bqm(bqm, embedding, target_adjacency,
                              smear_vartype=dimod.SPIN)
 
-    linear, quadratic = bqm_embedded.linear, bqm_embedded.quadratic
-    # make sure lin/quad are not dimod views (that handle directed edges)
-    if isinstance(linear, dimod.views.bqm.BQMView):
-        linear = dict(linear)
-    if isinstance(quadratic, dimod.views.bqm.BQMView):
-        quadratic = dict(quadratic)
-
+    linear, quadratic, offset = bqm_embedded.to_ising()
     problem_data = {
         "format": "qp",         # SAPI non-conforming (nulls vs nans)
         "lin": [uniform_get(linear, v, 0 if v in active else None)
@@ -238,10 +235,14 @@ def from_bqm_response(bqm, embedding, response, warnings=None):
         "embedding": _validated_embedding(embedding)
     }
 
+    # try to reconstruct sampling params
+    if params is None:
+        params = {'num_reads': len(solutions)}
+
     data = {
         "ready": True,
         "details": _details_dict(response),
-        "data": _problem_dict(solver_id, problem_type, problem_data),
+        "data": _problem_dict(solver_id, problem_type, problem_data, params),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
 
         # TODO
