@@ -198,15 +198,13 @@ def from_bqm_response(bqm, embedding, response, warnings=None):
     problem_type = response.problem_type
 
     variables = list(response.variables)
-    num_variables = len(solver.variables)
+    active_variables = response['active_variables']
+    active = set(active_variables)
 
-    def expand_sample(sample):
-        m = dict(zip(variables, sample))
-        return [int(m.get(v, 0)) for v in range(solver.num_qubits)]
-
-    solutions = [expand_sample(sample) for sample in response.samples]
-    energies = list(map(float, response.energies))
-    num_occurrences = list(map(int, response.occurrences))
+    solutions = list(map(itemgetter(*active_variables), response['solutions']))
+    energies = response['energies']
+    num_occurrences = response['num_occurrences']
+    num_variables = response['num_variables']
     timing = response.timing
 
     # bqm vartype must match response vartype
@@ -219,15 +217,24 @@ def from_bqm_response(bqm, embedding, response, warnings=None):
     source_edgelist = list(bqm.quadratic) + [(v, v) for v in bqm.linear]
     target_edgelist = solver.edges
     target_adjacency = edgelist_to_adjacency(target_edgelist)
-    bqm_embedded = embed_bqm(bqm, embedding, target_adjacency)
+    # TODO: find out `chain_strength` used
+    bqm_embedded = embed_bqm(bqm, embedding, target_adjacency,
+                             smear_vartype=dimod.SPIN)
 
-    lin, quad = bqm_embedded.linear, bqm_embedded.quadratic
+    linear, quadratic = bqm_embedded.linear, bqm_embedded.quadratic
+    # make sure lin/quad are not dimod views (that handle directed edges)
+    if isinstance(linear, dimod.views.bqm.BQMView):
+        linear = dict(linear)
+    if isinstance(quadratic, dimod.views.bqm.BQMView):
+        quadratic = dict(quadratic)
+
     problem_data = {
         "format": "qp",         # SAPI non-conforming (nulls vs nans)
-        "lin": [lin.get(v) for v in solver._encoding_qubits],
-        "quad": [quad.get((q1,q2), 0)
+        "lin": [uniform_get(linear, v, 0 if v in active else None)
+                for v in solver._encoding_qubits],
+        "quad": [quadratic.get((q1,q2), 0) + quadratic.get((q2,q1), 0)
                  for (q1,q2) in solver._encoding_couplers
-                 if q1 in variables and q2 in variables],
+                 if q1 in active and q2 in active],
         "embedding": _validated_embedding(embedding)
     }
 
@@ -235,7 +242,7 @@ def from_bqm_response(bqm, embedding, response, warnings=None):
         "ready": True,
         "details": _details_dict(response),
         "data": _problem_dict(solver_id, problem_type, problem_data),
-        "answer": _answer_dict(solutions, variables, energies, num_occurrences, timing, num_variables),
+        "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
 
         # TODO
         "messages": [],
