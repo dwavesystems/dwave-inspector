@@ -11,8 +11,8 @@ solver = client.get_solver(qpu=True)
 # define problem (over first n qubits)
 n = 100
 linear = {u: random.uniform(-1, 1) for u in sorted(solver.nodes)[:n]}
-quadratic = {(u,v): random.uniform(-1, 1) for u,v in solver.edges 
-                                          if u in linear and u in linear}
+quadratic = {(u,v): random.uniform(-1, 1) for u,v in solver.undirected_edges
+                                          if u in linear and v in linear}
 problem = (linear, quadratic)
 
 # sample

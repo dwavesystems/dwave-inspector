@@ -16,10 +16,12 @@ from __future__ import absolute_import
 
 import uuid
 import logging
+from operator import itemgetter
 
 import dimod
+import dimod.views.bqm
 import dwave.cloud
-from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get
+from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get, active_qubits
 from dwave.embedding import embed_bqm
 from dwave.embedding.utils import edgelist_to_adjacency
 
@@ -81,13 +83,16 @@ def _validated_embedding(emb):
         raise ValueError(msg)
 
 
-def from_qmi_response(problem, response, embedding=None, warnings=None):
+def from_qmi_response(problem, response, embedding=None, warnings=None, params=None):
     """Construct problem data for visualization based on the low-level sampling
     problem definition and the low-level response.
 
     Args:
         problem ((list/dict, dict[(int, int), float]) or dict[(int, int), float]):
             Problem in Ising or QUBO form, conforming to solver graph.
+            Note: if problem is given as tuple, it is assumed to be in Ising
+            variable space, and if given as a dict, Binary variable space is
+            assumed. Zero energy offset is always implied.
 
         response (:class:`dwave.cloud.computation.Future`):
             Sampling response, as returned by the low-level sampling interface
@@ -100,12 +105,21 @@ def from_qmi_response(problem, response, embedding=None, warnings=None):
         warnings (list[dict], optional):
             Optional list of warnings. Not implemented yet.
 
+        params (dict, optional):
+            Sampling parameters used.
+
     """
 
     try:
         linear, quadratic = problem
     except:
-        linear, quadratic = reformat_qubo_as_ising(qubo)
+        linear, quadratic = reformat_qubo_as_ising(problem)
+
+    # make sure lin/quad are not dimod views (that handle directed edges)
+    if isinstance(linear, dimod.views.bqm.BQMView):
+        linear = dict(linear)
+    if isinstance(quadratic, dimod.views.bqm.BQMView):
+        quadratic = dict(quadratic)
 
     solver = response.solver
     solver_id = solver.id
@@ -113,32 +127,42 @@ def from_qmi_response(problem, response, embedding=None, warnings=None):
     problem_type = response.problem_type
 
     variables = list(response.variables)
-    num_variables = len(solver.variables)
+    active = active_qubits(linear, quadratic)
 
-    solutions = response['solutions']
+    # sanity check
+    active_variables = response['active_variables']
+    assert set(active) == set(active_variables)
+
+    solutions = list(map(itemgetter(*active_variables), response['solutions']))
     energies = response['energies']
     num_occurrences = response['num_occurrences']
+    num_variables = solver.num_qubits
     timing = response.timing
 
     # note: we can't use encode_problem_as_qp(solver, linear, quadratic) because
-    # visualizer accepts decoded lists
+    # visualizer accepts decoded lists (and nulls instead of NaNs)
     problem_data = {
         "format": "qp",         # SAPI non-conforming (nulls vs nans)
-        "lin": [uniform_get(linear, v) for v in solver._encoding_qubits],
-        "quad": [quadratic.get((q1,q2), 0)
+        "lin": [uniform_get(linear, v, 0 if v in active else None)
+                for v in solver._encoding_qubits],
+        "quad": [quadratic.get((q1,q2), 0) + quadratic.get((q2,q1), 0)
                  for (q1,q2) in solver._encoding_couplers
-                 if q1 in response.variables and q2 in response.variables]
+                 if q1 in active and q2 in active]
     }
 
     # include optional embedding
     if embedding is not None:
         problem_data['embedding'] = _validated_embedding(embedding)
 
+    # try to reconstruct sampling params
+    if params is None:
+        params = {'num_reads': len(solutions)}
+
     data = {
         "ready": True,
         "details": _details_dict(response),
-        "data": _problem_dict(solver_id, problem_type, problem_data),
-        "answer": _answer_dict(solutions, variables, energies, num_occurrences, timing, num_variables),
+        "data": _problem_dict(solver_id, problem_type, problem_data, params),
+        "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
 
         # TODO
         "messages": [],
@@ -148,7 +172,7 @@ def from_qmi_response(problem, response, embedding=None, warnings=None):
     return data
 
 
-def from_bqm_response(bqm, embedding, response, warnings=None):
+def from_bqm_response(bqm, embedding, response, warnings=None, params=None):
     """Construct problem data for visualization based on the unembedded BQM,
     the embedding used when submitting, and the low-level sampling response.
 
@@ -167,22 +191,22 @@ def from_bqm_response(bqm, embedding, response, warnings=None):
         warnings (list[dict], optional):
             Optional list of warnings. Not implemented yet.
 
+        params (dict, optional):
+            Sampling parameters used.
+
     """
 
     solver = response.solver
     solver_id = solver.id
     problem_type = response.problem_type
 
-    variables = list(response.variables)
-    num_variables = len(solver.variables)
+    active_variables = response['active_variables']
+    active = set(active_variables)
 
-    def expand_sample(sample):
-        m = dict(zip(variables, sample))
-        return [int(m.get(v, 0)) for v in range(solver.num_qubits)]
-
-    solutions = [expand_sample(sample) for sample in response.samples]
-    energies = list(map(float, response.energies))
-    num_occurrences = list(map(int, response.occurrences))
+    solutions = list(map(itemgetter(*active_variables), response['solutions']))
+    energies = response['energies']
+    num_occurrences = response['num_occurrences']
+    num_variables = solver.num_qubits
     timing = response.timing
 
     # bqm vartype must match response vartype
@@ -195,23 +219,30 @@ def from_bqm_response(bqm, embedding, response, warnings=None):
     source_edgelist = list(bqm.quadratic) + [(v, v) for v in bqm.linear]
     target_edgelist = solver.edges
     target_adjacency = edgelist_to_adjacency(target_edgelist)
-    bqm_embedded = embed_bqm(bqm, embedding, target_adjacency)
+    # TODO: find out `chain_strength` used
+    bqm_embedded = embed_bqm(bqm, embedding, target_adjacency,
+                             smear_vartype=dimod.SPIN)
 
-    lin, quad = bqm_embedded.linear, bqm_embedded.quadratic
+    linear, quadratic, offset = bqm_embedded.to_ising()
     problem_data = {
         "format": "qp",         # SAPI non-conforming (nulls vs nans)
-        "lin": [lin.get(v) for v in solver._encoding_qubits],
-        "quad": [quad.get((q1,q2), 0)
+        "lin": [uniform_get(linear, v, 0 if v in active else None)
+                for v in solver._encoding_qubits],
+        "quad": [quadratic.get((q1,q2), 0) + quadratic.get((q2,q1), 0)
                  for (q1,q2) in solver._encoding_couplers
-                 if q1 in variables and q2 in variables],
+                 if q1 in active and q2 in active],
         "embedding": _validated_embedding(embedding)
     }
+
+    # try to reconstruct sampling params
+    if params is None:
+        params = {'num_reads': len(solutions)}
 
     data = {
         "ready": True,
         "details": _details_dict(response),
-        "data": _problem_dict(solver_id, problem_type, problem_data),
-        "answer": _answer_dict(solutions, variables, energies, num_occurrences, timing, num_variables),
+        "data": _problem_dict(solver_id, problem_type, problem_data, params),
+        "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
 
         # TODO
         "messages": [],
@@ -221,12 +252,22 @@ def from_bqm_response(bqm, embedding, response, warnings=None):
     return data
 
 
-def from_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None):
+def from_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None,
+                       params=None):
     """Construct problem data for visualization based on the BQM and sampleset
     in logical space (both unembedded).
 
     In order for the embedded problem/response to be reconstructed, an embedding
     is required in either the sampleset, or as a standalone argument.
+
+    Note:
+        This adapter can only provide best-effort estimate of the submitted
+        problem and received samples. Namely, because values of logical
+        variables in `sampleset` are produced by a chain break resolution
+        method, information about individual physical qubit values is lost.
+
+        Please have in mind you will never see "broken chains" when using this
+        adapter.
 
     Args:
         bqm (:class:`dimod.BinaryQuadraticModel`):
@@ -241,12 +282,15 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None):
 
         embedding (dict, optional):
             An embedding of the logical problem onto the solver's graph. It is
-            optional only if ``sampleset.info`` containes the embedding (see
+            optional only if ``sampleset.info`` contains the embedding (see
             `return_embedding` argument of
             :meth:`~dwave.system.composites.embedding.EmbeddingComposite`).
 
         warnings (list[dict], optional):
             Optional list of warnings. Not implemented yet.
+
+        params (dict, optional):
+            Sampling parameters used.
 
     """
 
@@ -282,32 +326,50 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None):
     source_edgelist = list(bqm.quadratic) + [(v, v) for v in bqm.linear]
     target_edgelist = solver.edges
     target_adjacency = edgelist_to_adjacency(target_edgelist)
-    bqm_embedded = embed_bqm(bqm, embedding, target_adjacency)
+    # TODO: find out `chain_strength` used
+    bqm_embedded = embed_bqm(bqm, embedding, target_adjacency,
+                             smear_vartype=dimod.SPIN)
 
-    variables = list(bqm_embedded.variables)
-    num_variables = len(solver.variables)
+    # best effort reconstruction of (unembedded/qmi) response/solutions
+    # NOTE: we **can not** reconstruct physical qubit values from logical variables
+    # (sampleset we have access to has variable values after chain breaks resolved!)
+    active_variables = sorted(list(bqm_embedded.variables))
+    active_variables_set = set(active_variables)
+    logical_variables = list(sampleset.variables)
+    var_to_idx = {var: idx for idx, var in enumerate(logical_variables)}
+    unembedding = {q: var_to_idx[v] for v, qs in embedding.items() for q in qs}
+
+    # sanity check
+    assert set(unembedding) == active_variables_set
 
     def expand_sample(sample):
-        m = dict(zip(variables, sample))
-        return [int(m.get(v, 0)) for v in range(solver.num_qubits)]
-
+        return [int(sample[unembedding[q]]) for q in active_variables]
     solutions = [expand_sample(sample) for sample in sampleset.record.sample]
-    energies = list(map(float, sampleset.record.energy))
+
+    # adjust energies to values returned by SAPI (offset embedding)
+    energies = list(map(float, sampleset.record.energy - bqm_embedded.offset))
+
     num_occurrences = list(map(int, sampleset.record.num_occurrences))
+    num_variables = solver.num_qubits
     timing = sampleset.info.get('timing')
 
-    lin, quad = bqm_embedded.linear, bqm_embedded.quadratic
+    linear, quadratic, offset = bqm_embedded.to_ising()
     problem_data = {
         "format": "qp",         # SAPI non-conforming (nulls vs nans)
-        "lin": [lin.get(v) for v in solver._encoding_qubits],
-        "quad": [quad.get((q1,q2), 0)
+        "lin": [uniform_get(linear, v, 0 if v in active_variables_set else None)
+                for v in solver._encoding_qubits],
+        "quad": [quadratic.get((q1,q2), 0) + quadratic.get((q2,q1), 0)
                  for (q1,q2) in solver._encoding_couplers
-                 if q1 in variables and q2 in variables],
+                 if q1 in active_variables_set and q2 in active_variables_set],
         "embedding": _validated_embedding(embedding)
     }
 
     # problem id not available, auto-generate some
     problem_id = "local-%s" % uuid.uuid4()
+
+    # try to reconstruct sampling params
+    if params is None:
+        params = {'num_reads': len(solutions)}
 
     data = {
         "ready": True,
@@ -316,8 +378,8 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None):
             "type": problem_type,
             "solver": solver.id
         },
-        "data": _problem_dict(solver_id, problem_type, problem_data),
-        "answer": _answer_dict(solutions, variables, energies, num_occurrences, timing, num_variables),
+        "data": _problem_dict(solver_id, problem_type, problem_data, params),
+        "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
 
         # TODO
         "messages": [],
