@@ -24,6 +24,8 @@ import dwave.cloud
 from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get, active_qubits
 from dwave.embedding import embed_bqm
 from dwave.embedding.utils import edgelist_to_adjacency
+from dwave.system.composites import EmbeddingComposite
+from dwave.system.warnings import WarningAction
 
 __all__ = [
     'from_qmi_response',
@@ -35,9 +37,24 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
-class ProblemData(object):
-    solver_id = None
-    solver_data = None
+def enable_data_capture():
+    """Enable logging of submitted problems/answers, embedding parameters,
+    embedding/sampling warnings, etc. across the Ocean stack.
+    """
+
+    # TODO: enable problem/answer logging in dwave-cloud-client
+
+    # save all warnings during embedding by default (equivalent to setting
+    # `warnings=WarningAction.SAVE` during sampling)
+    EmbeddingComposite.warnings_default = WarningAction.SAVE
+
+    # return embedding map/parameters (equivalent to setting
+    # `return_embedding=True` during sampling)
+    EmbeddingComposite.return_embedding_default = True
+
+
+# enable inspector data capture on import!
+enable_data_capture()
 
 
 def _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables):
