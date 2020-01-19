@@ -48,10 +48,14 @@ class TestAdapters(unittest.TestCase):
             self.ising = ({}, {'ab': 1, 'bc': 1, 'ca': 1})
             self.bqm = dimod.BQM.from_ising(*self.ising)
             self.embedding = {'a': [0], 'b': [4], 'c': [1, 5]}
+            self.chain_strength = 1.0
+            self.embedding_context = dict(embedding=self.embedding,
+                                          chain_strength=self.chain_strength)
 
             target_edgelist = [[0, 4], [0, 5], [1, 4], [1, 5]]
             target_adjacency = edgelist_to_adjacency(target_edgelist)
-            self.bqm_embedded = embed_bqm(self.bqm, self.embedding, target_adjacency)
+            self.bqm_embedded = embed_bqm(self.bqm, self.embedding, target_adjacency,
+                                          chain_strength=self.chain_strength)
             self.ising_embedded = self.bqm_embedded.to_ising()
             self.problem = self.ising_embedded[:2]
 
@@ -60,7 +64,7 @@ class TestAdapters(unittest.TestCase):
             # get the expected response (from VCR)
             self.response = self.solver.sample_ising(*self.problem, **self.params)
 
-    def verify_data_encoding(self, problem, response, solver, params, data, embedding=None):
+    def verify_data_encoding(self, problem, response, solver, params, data, embedding_context=None):
         # make sure data correct after JSON decoding
         data = json.loads(json.dumps(data))
 
@@ -92,8 +96,8 @@ class TestAdapters(unittest.TestCase):
                     for (q1,q2) in solver._encoding_couplers
                     if q1 in active_variables and q2 in active_variables]
         }
-        if embedding is not None:
-            problem_data['embedding'] = embedding
+        if embedding_context is not None:
+            problem_data['embedding'] = embedding_context['embedding']
         self.assertEqual(data['data']['data'], problem_data)
 
         # .answer
@@ -173,13 +177,13 @@ class TestAdapters(unittest.TestCase):
             response = solver.sample_ising(*self.problem, **self.params)
 
         # convert
-        data = from_bqm_response(self.bqm, self.embedding, response,
+        data = from_bqm_response(self.bqm, self.embedding_context, response,
                                  params=self.params)
 
         # validate data encoding
         self.verify_data_encoding(problem=self.problem, response=response,
                                   solver=solver, params=self.params, data=data,
-                                  embedding=self.embedding)
+                                  embedding_context=self.embedding_context)
 
     @rec.use_cassette('triangle-ising.yaml')
     def test_from_bqm_sampleset(self):
@@ -211,7 +215,7 @@ class TestAdapters(unittest.TestCase):
             # validate data encoding
             self.verify_data_encoding(problem=self.problem, response=self.response,
                                     solver=self.solver, params=self.params, data=data,
-                                    embedding=self.embedding)
+                                    embedding_context=self.embedding_context)
 
     def test_from_objects(self):
         pass

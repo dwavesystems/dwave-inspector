@@ -51,21 +51,27 @@ def open_problem(problem_id):
     return url
 
 
-def show_qmi(problem, response, embedding=None, warnings=None):
-    problem = from_qmi_response(problem, response, embedding)
-    id_ = push_problem(problem)
+def show_qmi(problem, response, embedding_context=None, warnings=None, params=None):
+    data = from_qmi_response(problem=problem, response=response,
+                             embedding_context=embedding_context,
+                             warnings=warnings, params=params)
+    id_ = push_problem(data)
     return open_problem(id_)
 
 
-def show_bqm_response(bqm, embedding, response, warnings=None):
-    problem = from_bqm_response(bqm, embedding, response, warnings)
-    id_ = push_problem(problem)
+def show_bqm_response(bqm, embedding_context, response, warnings=None, params=None):
+    data = from_bqm_response(bqm=bqm, embedding_context=embedding_context,
+                             response=response, warnings=warnings, params=params)
+    id_ = push_problem(data)
     return open_problem(id_)
 
 
-def show_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None):
-    problem = from_bqm_sampleset(bqm, sampleset, sampler, embedding, warnings)
-    id_ = push_problem(problem)
+def show_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
+                       warnings=None, params=None):
+    data = from_bqm_sampleset(bqm=bqm, sampleset=sampleset, sampler=sampler,
+                              embedding_context=embedding_context,
+                              warnings=warnings, params=params)
+    id_ = push_problem(data)
     return open_problem(id_)
 
 
@@ -73,6 +79,6 @@ def show(*args, **kwargs):
     """Auto-detect the optimal `show_*` method based on arguments provided and
     forward the call.
     """
-    problem = from_objects(*args, **kwargs)
-    id_ = push_problem(problem)
+    data = from_objects(*args, **kwargs)
+    id_ = push_problem(data)
     return open_problem(id_)

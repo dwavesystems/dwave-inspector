@@ -24,6 +24,8 @@ import dwave.cloud
 from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get, active_qubits
 from dwave.embedding import embed_bqm
 from dwave.embedding.utils import edgelist_to_adjacency
+from dwave.system.composites import EmbeddingComposite
+from dwave.system.warnings import WarningAction
 
 __all__ = [
     'from_qmi_response',
@@ -35,9 +37,24 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
-class ProblemData(object):
-    solver_id = None
-    solver_data = None
+def enable_data_capture():
+    """Enable logging of submitted problems/answers, embedding parameters,
+    embedding/sampling warnings, etc. across the Ocean stack.
+    """
+
+    # TODO: enable problem/answer logging in dwave-cloud-client
+
+    # save all warnings during embedding by default (equivalent to setting
+    # `warnings=WarningAction.SAVE` during sampling)
+    EmbeddingComposite.warnings_default = WarningAction.SAVE
+
+    # return embedding map/parameters (equivalent to setting
+    # `return_embedding=True` during sampling)
+    EmbeddingComposite.return_embedding_default = True
+
+
+# enable inspector data capture on import!
+enable_data_capture()
 
 
 def _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables):
@@ -69,6 +86,17 @@ def _details_dict(response):
         "solved_on": response.time_solved.isoformat()
     }
 
+def _warnings(warnings):
+    if not warnings:
+        return []
+
+    # translate warning classes (given for type) to string names
+    data = warnings.copy()
+    for warning in data:
+        if issubclass(warning['type'], Warning):
+            warning.update(type=warning['type'].__name__)
+    return data
+
 def _validated_embedding(emb):
     "Basic types validation/conversion."
 
@@ -83,7 +111,8 @@ def _validated_embedding(emb):
         raise ValueError(msg)
 
 
-def from_qmi_response(problem, response, embedding=None, warnings=None, params=None):
+def from_qmi_response(problem, response, embedding_context=None, warnings=None,
+                      params=None):
     """Construct problem data for visualization based on the low-level sampling
     problem definition and the low-level response.
 
@@ -99,11 +128,13 @@ def from_qmi_response(problem, response, embedding=None, warnings=None, params=N
             in the Cloud Client (e.g. :meth:`dwave.cloud.solver.sample_ising`
             for Ising problems).
 
-        embedding (dict, optional):
-            An embedding of logical problem onto the solver's graph.
+        embedding_context (dict, optional):
+            A map containing an embedding of logical problem onto the
+            solver's graph (the ``embedding`` key) and embedding parameters
+            used (e.g. ``chain_strength``).
 
         warnings (list[dict], optional):
-            Optional list of warnings. Not implemented yet.
+            Optional list of warnings.
 
         params (dict, optional):
             Sampling parameters used.
@@ -151,8 +182,9 @@ def from_qmi_response(problem, response, embedding=None, warnings=None, params=N
     }
 
     # include optional embedding
-    if embedding is not None:
-        problem_data['embedding'] = _validated_embedding(embedding)
+    if embedding_context is not None and 'embedding' in embedding_context:
+        problem_data['embedding'] = \
+            _validated_embedding(embedding_context['embedding'])
 
     # try to reconstruct sampling params
     if params is None:
@@ -163,16 +195,17 @@ def from_qmi_response(problem, response, embedding=None, warnings=None, params=N
         "details": _details_dict(response),
         "data": _problem_dict(solver_id, problem_type, problem_data, params),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
+        "warnings": _warnings(warnings),
 
         # TODO
         "messages": [],
-        "warnings": [],
     }
 
     return data
 
 
-def from_bqm_response(bqm, embedding, response, warnings=None, params=None):
+def from_bqm_response(bqm, embedding_context, response, warnings=None,
+                      params=None):
     """Construct problem data for visualization based on the unembedded BQM,
     the embedding used when submitting, and the low-level sampling response.
 
@@ -180,8 +213,10 @@ def from_bqm_response(bqm, embedding, response, warnings=None, params=None):
         bqm (:class:`dimod.BinaryQuadraticModel`):
             Problem in logical (unembedded) space, given as a BQM.
 
-        embedding (dict):
-            An embedding of logical problem onto the solver's graph.
+        embedding_context (dict):
+            A map containing an embedding of logical problem onto the
+            solver's graph (the ``embedding`` key) and embedding parameters
+            used (e.g. ``chain_strength``).
 
         response (:class:`dwave.cloud.computation.Future`):
             Sampling response, as returned by the low-level sampling interface
@@ -189,7 +224,7 @@ def from_bqm_response(bqm, embedding, response, warnings=None, params=None):
             for Ising problems).
 
         warnings (list[dict], optional):
-            Optional list of warnings. Not implemented yet.
+            Optional list of warnings.
 
         params (dict, optional):
             Sampling parameters used.
@@ -215,12 +250,19 @@ def from_bqm_response(bqm, embedding, response, warnings=None, params=None):
     else:
         bqm = bqm.change_vartype(dimod.BINARY, inplace=False)
 
+    # get embedding parameters
+    if 'embedding' not in embedding_context:
+        raise ValueError("embedding not given")
+    embedding = embedding_context.get('embedding')
+    chain_strength = embedding_context.get('chain_strength', 1.0)
+    chain_break_method = embedding_context.get('chain_break_method')
+
     # get embedded bqm
     source_edgelist = list(bqm.quadratic) + [(v, v) for v in bqm.linear]
     target_edgelist = solver.edges
     target_adjacency = edgelist_to_adjacency(target_edgelist)
-    # TODO: find out `chain_strength` used
     bqm_embedded = embed_bqm(bqm, embedding, target_adjacency,
+                             chain_strength=chain_strength,
                              smear_vartype=dimod.SPIN)
 
     linear, quadratic, offset = bqm_embedded.to_ising()
@@ -243,17 +285,17 @@ def from_bqm_response(bqm, embedding, response, warnings=None, params=None):
         "details": _details_dict(response),
         "data": _problem_dict(solver_id, problem_type, problem_data, params),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
+        "warnings": _warnings(warnings),
 
         # TODO
         "messages": [],
-        "warnings": [],
     }
 
     return data
 
 
-def from_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None,
-                       params=None):
+def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
+                       warnings=None, params=None):
     """Construct problem data for visualization based on the BQM and sampleset
     in logical space (both unembedded).
 
@@ -280,14 +322,15 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None,
             The :class:`~dwave.system.samplers.dwave_sampler.DWaveSampler`-
             derived sampler used to produce the sampleset off the bqm.
 
-        embedding (dict, optional):
-            An embedding of the logical problem onto the solver's graph. It is
-            optional only if ``sampleset.info`` contains the embedding (see
-            `return_embedding` argument of
+        embedding_context (dict, optional):
+            A map containing an embedding of logical problem onto the
+            solver's graph (the ``embedding`` key) and embedding parameters
+            used (e.g. ``chain_strength``). It is optional only if
+            ``sampleset.info`` contains it (see `return_embedding` argument of
             :meth:`~dwave.system.composites.embedding.EmbeddingComposite`).
 
         warnings (list[dict], optional):
-            Optional list of warnings. Not implemented yet.
+            Optional list of warnings.
 
         params (dict, optional):
             Sampling parameters used.
@@ -297,10 +340,16 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None,
     if not isinstance(sampler, dimod.Sampler):
         raise TypeError("dimod.Sampler instance expected for 'sampler'")
 
-    if embedding is None:
-        embedding = sampleset.info.get('embedding')
+    # get embedding parameters
+    if embedding_context is None:
+        embedding_context = sampleset.info.get('embedding_context', {})
+    if embedding_context is None:
+        raise ValueError("embedding_context not given")
+    embedding = embedding_context.get('embedding')
     if embedding is None:
         raise ValueError("embedding not given")
+    chain_strength = embedding_context.get('chain_strength', 1.0)
+    chain_break_method = embedding_context.get('chain_break_method')
 
     def find_solver(sampler):
         if hasattr(sampler, 'solver'):
@@ -326,8 +375,8 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None,
     source_edgelist = list(bqm.quadratic) + [(v, v) for v in bqm.linear]
     target_edgelist = solver.edges
     target_adjacency = edgelist_to_adjacency(target_edgelist)
-    # TODO: find out `chain_strength` used
     bqm_embedded = embed_bqm(bqm, embedding, target_adjacency,
+                             chain_strength=chain_strength,
                              smear_vartype=dimod.SPIN)
 
     # best effort reconstruction of (unembedded/qmi) response/solutions
@@ -364,12 +413,18 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None,
         "embedding": _validated_embedding(embedding)
     }
 
-    # problem id not available, auto-generate some
-    problem_id = "local-%s" % uuid.uuid4()
+    # try to get problem id. if not available, auto-generate one
+    problem_id = sampleset.info.get('problem_id')
+    if problem_id is None:
+        problem_id = "local-%s" % uuid.uuid4()
 
     # try to reconstruct sampling params
     if params is None:
         params = {'num_reads': len(solutions)}
+
+    # try to get warnings from sampleset.info
+    if warnings is None:
+        warnings = sampleset.info.get('warnings')
 
     data = {
         "ready": True,
@@ -380,10 +435,10 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None,
         },
         "data": _problem_dict(solver_id, problem_type, problem_data, params),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
+        "warnings": _warnings(warnings),
 
-        # TODO
+        # TODO:
         "messages": [],
-        "warnings": [],
     }
 
     return data
@@ -417,17 +472,23 @@ def from_objects(*args, **kwargs):
     # problem, embedding and warnings are (can be) ambiguous,
     # so we don't allow them as positional args
     problem = kwargs.get('problem')
-    embedding = kwargs.get('embedding')
+    embedding_context = kwargs.get('embedding_context')
     warnings = kwargs.get('warnings')
 
     # in order of preference (most explicit form first):
     if problem is not None and response is not None:
-        return from_qmi_response(problem, response, embedding, warnings)
+        return from_qmi_response(
+            problem=problem, response=response,
+            embedding_context=embedding_context, warnings=warnings)
 
-    if bqm is not None and embedding is not None and response is not None:
-        return from_bqm_response(bqm, embedding, response, warnings)
+    if bqm is not None and embedding_context is not None and response is not None:
+        return from_bqm_response(
+            bqm=bqm, embedding_context=embedding_context,
+            response=response, warnings=warnings)
 
     if bqm is not None and sampleset is not None and sampler is not None:
-        return from_bqm_sampleset(bqm, sampleset, sampler, embedding, warnings)
+        return from_bqm_sampleset(
+            bqm=bqm, sampleset=sampleset, sampler=sampler,
+            embedding_context=embedding_context, warnings=warnings)
 
     raise ValueError("invalid combination of arguments")
