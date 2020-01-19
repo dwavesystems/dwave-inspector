@@ -413,8 +413,10 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
         "embedding": _validated_embedding(embedding)
     }
 
-    # problem id not available, auto-generate some
-    problem_id = "local-%s" % uuid.uuid4()
+    # try to get problem id. if not available, auto-generate one
+    problem_id = sampleset.info.get('problem_id')
+    if problem_id is None:
+        problem_id = "local-%s" % uuid.uuid4()
 
     # try to reconstruct sampling params
     if params is None:
