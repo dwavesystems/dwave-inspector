@@ -69,6 +69,17 @@ def _details_dict(response):
         "solved_on": response.time_solved.isoformat()
     }
 
+def _warnings(warnings):
+    if not warnings:
+        return []
+
+    # translate warning classes (given for type) to string names
+    data = warnings.copy()
+    for warning in data:
+        if issubclass(warning['type'], Warning):
+            warning.update(type=warning['type'].__name__)
+    return data
+
 def _validated_embedding(emb):
     "Basic types validation/conversion."
 
@@ -83,7 +94,8 @@ def _validated_embedding(emb):
         raise ValueError(msg)
 
 
-def from_qmi_response(problem, response, embedding_context=None, warnings=None, params=None):
+def from_qmi_response(problem, response, embedding_context=None, warnings=None,
+                      params=None):
     """Construct problem data for visualization based on the low-level sampling
     problem definition and the low-level response.
 
@@ -105,7 +117,7 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None, 
             used (e.g. ``chain_strength``).
 
         warnings (list[dict], optional):
-            Optional list of warnings. Not implemented yet.
+            Optional list of warnings.
 
         params (dict, optional):
             Sampling parameters used.
@@ -166,16 +178,17 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None, 
         "details": _details_dict(response),
         "data": _problem_dict(solver_id, problem_type, problem_data, params),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
+        "warnings": _warnings(warnings),
 
         # TODO
         "messages": [],
-        "warnings": [],
     }
 
     return data
 
 
-def from_bqm_response(bqm, embedding_context, response, warnings=None, params=None):
+def from_bqm_response(bqm, embedding_context, response, warnings=None,
+                      params=None):
     """Construct problem data for visualization based on the unembedded BQM,
     the embedding used when submitting, and the low-level sampling response.
 
@@ -194,7 +207,7 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None, params=No
             for Ising problems).
 
         warnings (list[dict], optional):
-            Optional list of warnings. Not implemented yet.
+            Optional list of warnings.
 
         params (dict, optional):
             Sampling parameters used.
@@ -255,10 +268,10 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None, params=No
         "details": _details_dict(response),
         "data": _problem_dict(solver_id, problem_type, problem_data, params),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
+        "warnings": _warnings(warnings),
 
         # TODO
         "messages": [],
-        "warnings": [],
     }
 
     return data
@@ -300,7 +313,7 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
             :meth:`~dwave.system.composites.embedding.EmbeddingComposite`).
 
         warnings (list[dict], optional):
-            Optional list of warnings. Not implemented yet.
+            Optional list of warnings.
 
         params (dict, optional):
             Sampling parameters used.
@@ -390,6 +403,10 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
     if params is None:
         params = {'num_reads': len(solutions)}
 
+    # try to get warnings from sampleset.info
+    if warnings is None:
+        warnings = sampleset.info.get('warnings')
+
     data = {
         "ready": True,
         "details": {
@@ -399,10 +416,10 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
         },
         "data": _problem_dict(solver_id, problem_type, problem_data, params),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
+        "warnings": _warnings(warnings),
 
-        # TODO
+        # TODO:
         "messages": [],
-        "warnings": [],
     }
 
     return data
