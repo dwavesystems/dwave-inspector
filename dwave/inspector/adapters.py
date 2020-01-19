@@ -298,7 +298,8 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding=None, warnings=None,
         raise TypeError("dimod.Sampler instance expected for 'sampler'")
 
     if embedding is None:
-        embedding = sampleset.info.get('embedding')
+        embedding_context = sampleset.info.get('embedding_context')
+        embedding = embedding_context.get('embedding')
     if embedding is None:
         raise ValueError("embedding not given")
 
