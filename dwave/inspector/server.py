@@ -38,7 +38,7 @@ except ImportError:
     raise RuntimeError("Can't use the Inspector without 'dwave-inspectorapp' "
                        "package. Consult the docs for install instructions.")
 
-from dwave.inspector.storage import problem_store
+from dwave.inspector.storage import problem_store, problem_access_sem
 
 
 # get local server/app logger
@@ -130,6 +130,21 @@ class WSGIAsyncServer(threading.Thread):
         if self.is_alive():
             self.stop()
 
+    def wait_shutdown(self):
+        self.join()
+
+    def wait_problem_accessed(self, problem_id, timeout=None):
+        """Blocks until problem access semaphore is notified.
+
+        Problem semaphore is created on access, so this method can be called
+        even before the problem is created, or access is notified.
+        """
+        problem_access_sem[problem_id].acquire(blocking=True, timeout=timeout)
+
+    def notify_problem_accessed(self, problem_id):
+        """Notifies problem access semaphore of one access (load)."""
+        problem_access_sem[problem_id].release()
+
 
 app = Flask(__name__, static_folder=None)
 
@@ -143,7 +158,9 @@ def send_static(path='index.html'):
 @app.route('/mocks/sapi/problems/<problem_id>.json')
 def send_problem(problem_id):
     try:
-        return problem_store[problem_id]
+        problem_data = problem_store[problem_id]
+        app_server.notify_problem_accessed(problem_id)
+        return problem_data
     except KeyError:
         raise NotFound
 

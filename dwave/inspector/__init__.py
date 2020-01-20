@@ -17,6 +17,7 @@ from __future__ import absolute_import
 import os
 import logging
 import webbrowser
+import enum
 
 from dwave.cloud.utils import set_loglevel
 
@@ -43,11 +44,24 @@ def _configure_logging(loglevel):
 _configure_logging(os.getenv('DWAVE_INSPECTOR_LOG_LEVEL'))
 
 
-def open_problem(problem_id):
+class Block(enum.Enum):
+    NEVER = 'never'
+    ONCE = 'once'
+    FOREVER = 'forever'
+
+
+def open_problem(problem_id, block=Block.ONCE):
     """Open problem_id from storage in the Inspector web app."""
     app_server.ensure_started()
     url = "http://localhost:8000/?testId={}".format(problem_id)
+
+    # open url and block
     webbrowser.open_new_tab(url)
+    if block is Block.ONCE:
+        app_server.wait_problem_accessed(problem_id)
+    elif block is Block.FOREVER:
+        app_server.wait_shutdown()
+
     return url
 
 
@@ -79,6 +93,7 @@ def show(*args, **kwargs):
     """Auto-detect the optimal `show_*` method based on arguments provided and
     forward the call.
     """
+    block = kwargs.pop('block', Block.ONCE)
     data = from_objects(*args, **kwargs)
     id_ = push_problem(data)
-    return open_problem(id_)
+    return open_problem(id_, block=block)
