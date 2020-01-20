@@ -16,6 +16,7 @@ from __future__ import absolute_import
 
 import sys
 import time
+import random
 import logging
 import traceback
 import threading
@@ -93,12 +94,36 @@ class WSGIAsyncServer(threading.Thread):
     separate thread).
     """
 
+    def _safe_make_server(self, host, base_port, app, tries=20):
+        """Instantiate a http server. Discover available port starting with
+        `base_port` (use linear and random search).
+        """
+
+        def ports(start, linear=5):
+            """Server port proposal generator. Starts with a linear search, then
+            converts to a random look up.
+            """
+            for port in range(start, start + linear):
+                yield port
+            while True:
+                yield random.randint(port + 1, (1<<16) - 1)
+
+        for _, port in zip(range(tries), ports(start=base_port)):
+            try:
+                return make_server(host, port, app,
+                                   server_class=LoggingWSGIServer,
+                                   handler_class=LoggingWSGIRequestHandler)
+            except OSError as exc:
+                # handle only "[Errno 98] Address already in use"
+                if exc.errno != 98:
+                    raise
+
+        raise RuntimeError("unable to find available port to bind local "
+                           "webserver to even after {} tries".format(tries))
+
     def __init__(self, host, port, app):
         super(WSGIAsyncServer, self).__init__(daemon=True)
-
-        self.server = make_server(host, port, app,
-                                  server_class=LoggingWSGIServer,
-                                  handler_class=LoggingWSGIRequestHandler)
+        self.server = self._safe_make_server(host, port, app)
 
     def run(self):
         self.server.serve_forever()
@@ -106,6 +131,10 @@ class WSGIAsyncServer(threading.Thread):
     def stop(self):
         self.server.shutdown()
         self.join()
+
+    def get_inspect_url(self, problem_id):
+        return 'http://{}:{}/?testId={}'.format(
+            *self.server.server_address, problem_id)
 
     def _ensure_accessible(self, sleep=0.1, tries=100, timeout=10):
         """Ping the canary URL (app root) until the app becomes accessible."""

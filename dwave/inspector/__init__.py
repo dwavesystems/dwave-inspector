@@ -52,8 +52,9 @@ class Block(enum.Enum):
 
 def open_problem(problem_id, block=Block.ONCE):
     """Open problem_id from storage in the Inspector web app."""
+
     app_server.ensure_started()
-    url = "http://localhost:8000/?testId={}".format(problem_id)
+    url = app_server.get_inspect_url(problem_id)
 
     # open url and block
     webbrowser.open_new_tab(url)
