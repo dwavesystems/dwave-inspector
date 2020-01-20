@@ -217,7 +217,7 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
         embedding_context (dict):
             A map containing an embedding of logical problem onto the
             solver's graph (the ``embedding`` key) and embedding parameters
-            used (e.g. ``chain_strength``).
+            used (e.g. ``chain_strength``, ``chain_break_method``, etc).
 
         response (:class:`dwave.cloud.computation.Future`):
             Sampling response, as returned by the low-level sampling interface
@@ -280,6 +280,9 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
     # try to reconstruct sampling params
     if params is None:
         params = {'num_reads': len(solutions)}
+
+    # TODO: if warnings are missing, calculate them here (since we have the
+    # low-level response)
 
     data = {
         "ready": True,

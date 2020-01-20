@@ -66,7 +66,7 @@ The canonical way to use the Inspector is with samples in physical/qubit space.
     response = solver.sample_ising(h, J, num_reads=100)
 
     # inspect
-    dwave.inspector.show_qmi((h, J), response)
+    dwave.inspector.show((h, J), response)
 
 It is possible to inspect QMIs given only samples in logical space, but the exact
 response reconstruction is not possible in that case. Namely, chain breaks will
@@ -85,7 +85,7 @@ not be visible.
     sampler = EmbeddingComposite(DWaveSampler(solver=dict(qpu=True)))
 
     # sample
-    sampleset = sampler.sample(bqm, return_embedding=True)
+    sampleset = sampler.sample(bqm)
 
     # inspect
     dwave.inspector.show(bqm, sampleset, sampler)
