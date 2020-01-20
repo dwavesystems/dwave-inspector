@@ -14,10 +14,15 @@
 
 from __future__ import absolute_import
 
-from collections import OrderedDict
+import threading
+from collections import OrderedDict, defaultdict
 
 
+# dict[problem_id: str, problem_data: dict]
 problem_store = OrderedDict()
+
+# dict[problem_id: str, accessed: threading.Semaphore]
+problem_access_sem = defaultdict(lambda: threading.Semaphore(value=0))
 
 
 def push_problem(problem_data):

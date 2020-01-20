@@ -21,4 +21,4 @@ response = solver.sample_ising(*problem, num_reads=100)
 
 # inspect
 print("inspecting")
-dwave.inspector.show_qmi(problem, response)
+dwave.inspector.show(problem, response)

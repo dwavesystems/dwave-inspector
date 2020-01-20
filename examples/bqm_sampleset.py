@@ -10,13 +10,10 @@ bqm = dimod.BQM.from_ising({}, {'ab': 1, 'bc': 1, 'ca': 1})
 print("sampler init")
 sampler = EmbeddingComposite(DWaveSampler(solver=dict(qpu=True)))
 
-# sample -> sampleset + embedding (+ warnings)
+# sample
 print("sampling")
 sampleset = sampler.sample(bqm, num_reads=1)
 
 # inspect
 print("inspecting")
-dwave.inspector.show_bqm_sampleset(bqm, sampleset, sampler)
-
-# or simply:
-# dwave.inspector.show(bqm, sampleset, sampler)
+dwave.inspector.show(bqm, sampleset, sampler)

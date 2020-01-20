@@ -17,6 +17,7 @@ from __future__ import absolute_import
 import uuid
 import logging
 from operator import itemgetter
+from collections import abc
 
 import dimod
 import dimod.views.bqm
@@ -216,7 +217,7 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
         embedding_context (dict):
             A map containing an embedding of logical problem onto the
             solver's graph (the ``embedding`` key) and embedding parameters
-            used (e.g. ``chain_strength``).
+            used (e.g. ``chain_strength``, ``chain_break_method``, etc).
 
         response (:class:`dwave.cloud.computation.Future`):
             Sampling response, as returned by the low-level sampling interface
@@ -279,6 +280,9 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
     # try to reconstruct sampling params
     if params is None:
         params = {'num_reads': len(solutions)}
+
+    # TODO: if warnings are missing, calculate them here (since we have the
+    # low-level response)
 
     data = {
         "ready": True,
@@ -456,11 +460,26 @@ def from_objects(*args, **kwargs):
     sampleset_cls = dimod.SampleSet
     sampler_cls = (dimod.Sampler, dimod.ComposedSampler)
     response_cls = dwave.cloud.Future
+    is_embedding_ctx = lambda x: isinstance(x, abc.Mapping) and 'embedding' in x
+    is_warnings = \
+        lambda x: isinstance(x, abc.Sequence) and len(x) > 0 \
+                  and isinstance(x[0], abc.Mapping) and 'message' in x[0]
+    is_ising_problem = \
+        lambda x: isinstance(x, abc.Sequence) and len(x) == 2 \
+                and isinstance(x[0], (abc.Sequence, abc.Mapping)) \
+                and isinstance(x[1], abc.Mapping)
+    is_qubo_problem = \
+        lambda x: isinstance(x, abc.Mapping) \
+                  and all(isinstance(k, abc.Sequence) and len(k) == 2 for k in x)
+    is_problem = lambda x: is_ising_problem(x) or is_qubo_problem(x)
 
     bqms = list(filter(lambda arg: isinstance(arg, bqm_cls), args))
     samplesets = list(filter(lambda arg: isinstance(arg, sampleset_cls), args))
     samplers = list(filter(lambda arg: isinstance(arg, sampler_cls), args))
     responses = list(filter(lambda arg: isinstance(arg, response_cls), args))
+    embedding_contexts = list(filter(is_embedding_ctx, args))
+    warnings_candidates = list(filter(is_warnings, args))
+    problems = list(filter(is_problem, args))
 
     maybe_pop = lambda ls: ls.pop() if len(ls) else None
 
@@ -468,12 +487,9 @@ def from_objects(*args, **kwargs):
     sampleset = kwargs.get('sampleset', maybe_pop(samplesets))
     sampler = kwargs.get('sampler', maybe_pop(samplers))
     response = kwargs.get('response', maybe_pop(responses))
-
-    # problem, embedding and warnings are (can be) ambiguous,
-    # so we don't allow them as positional args
-    problem = kwargs.get('problem')
-    embedding_context = kwargs.get('embedding_context')
-    warnings = kwargs.get('warnings')
+    embedding_context = kwargs.get('embedding_context', maybe_pop(embedding_contexts))
+    warnings = kwargs.get('warnings', maybe_pop(warnings_candidates))
+    problem = kwargs.get('problem', maybe_pop(problems))
 
     # in order of preference (most explicit form first):
     if problem is not None and response is not None:

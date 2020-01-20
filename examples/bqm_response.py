@@ -37,4 +37,4 @@ sampleset = unembed_sampleset(sampleset_embedded, embedding, bqm)
 
 # inspect
 print("inspecting")
-dwave.inspector.show_bqm_response(bqm, embedding, response)
+dwave.inspector.show(bqm, dict(embedding=embedding), response)

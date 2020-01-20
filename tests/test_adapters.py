@@ -21,12 +21,13 @@ import vcr
 import dimod
 from dwave.cloud import Client
 from dwave.system import DWaveSampler, FixedEmbeddingComposite
+from dwave.system.testing import MockDWaveSampler
 from dwave.embedding import embed_bqm
 from dwave.embedding.utils import edgelist_to_adjacency
 from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get, active_qubits
 
 from dwave.inspector.adapters import (
-    from_qmi_response, from_bqm_response, from_bqm_sampleset)
+    from_qmi_response, from_bqm_response, from_bqm_sampleset, from_objects)
 
 
 rec = vcr.VCR(
@@ -217,5 +218,30 @@ class TestAdapters(unittest.TestCase):
                                     solver=self.solver, params=self.params, data=data,
                                     embedding_context=self.embedding_context)
 
-    def test_from_objects(self):
-        pass
+    @mock.patch('dwave.inspector.adapters.from_qmi_response', return_value='qmi_response')
+    @mock.patch('dwave.inspector.adapters.from_bqm_response', return_value='bqm_response')
+    @mock.patch('dwave.inspector.adapters.from_bqm_sampleset', return_value='bqm_sampleset')
+    def test_from_objects(self, m1, m2, m3):
+        # qmi
+        self.assertEqual(from_objects(self.problem, self.response), 'qmi_response')
+        self.assertEqual(from_objects(self.response, self.problem), 'qmi_response')
+        self.assertEqual(from_objects(response=self.response, problem=self.problem), 'qmi_response')
+        self.assertEqual(from_objects(self.embedding_context, response=self.response, problem=self.problem), 'qmi_response')
+        self.assertEqual(from_objects(self.bqm, response=self.response, problem=self.problem), 'qmi_response')
+        self.assertEqual(from_objects({(0, 0): 1, (0, 1): 0}, self.response), 'qmi_response')
+
+        # qmi takes precedence
+        self.assertEqual(from_objects(self.bqm, self.embedding_context, response=self.response, problem=self.problem), 'qmi_response')
+
+        # bqm/response
+        self.assertEqual(from_objects(self.response, self.bqm, self.embedding_context), 'bqm_response')
+        self.assertEqual(from_objects(self.embedding_context, response=self.response, bqm=self.bqm), 'bqm_response')
+        self.assertEqual(from_objects(response=self.response, bqm=self.bqm, embedding_context=self.embedding_context), 'bqm_response')
+
+        # bqm/sampleset
+        sampler = MockDWaveSampler()
+        sampleset = self.response.sampleset
+        warnings = [{'message': 'test'}]
+        self.assertEqual(from_objects(self.bqm, sampleset, sampler), 'bqm_sampleset')
+        self.assertEqual(from_objects(self.bqm, sampleset, sampler, warnings), 'bqm_sampleset')
+        self.assertEqual(from_objects(sampler, warnings, sampleset=sampleset, bqm=self.bqm), 'bqm_sampleset')
