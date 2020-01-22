@@ -481,6 +481,7 @@ def from_objects(*args, **kwargs):
         lambda x: isinstance(x, abc.Mapping) \
                   and all(isinstance(k, abc.Sequence) and len(k) == 2 for k in x)
     is_problem = lambda x: is_ising_problem(x) or is_qubo_problem(x)
+    is_problem_id = lambda x: isinstance(x, str)
 
     bqms = list(filter(lambda arg: isinstance(arg, bqm_cls), args))
     samplesets = list(filter(lambda arg: isinstance(arg, sampleset_cls), args))
@@ -489,6 +490,7 @@ def from_objects(*args, **kwargs):
     embedding_contexts = list(filter(is_embedding_ctx, args))
     warnings_candidates = list(filter(is_warnings, args))
     problems = list(filter(is_problem, args))
+    problem_ids = list(filter(is_problem_id, args))
 
     maybe_pop = lambda ls: ls.pop() if len(ls) else None
 
@@ -499,8 +501,29 @@ def from_objects(*args, **kwargs):
     embedding_context = kwargs.get('embedding_context', maybe_pop(embedding_contexts))
     warnings = kwargs.get('warnings', maybe_pop(warnings_candidates))
     problem = kwargs.get('problem', maybe_pop(problems))
+    problem_id = kwargs.get('problem_id', maybe_pop(problem_ids))
 
-    # in order of preference (most explicit form first):
+    # read problem_id from sampleset or response
+    if sampleset is not None:
+        problem_id = sampleset.info.get('problem_id')
+    if response is not None:
+        problem_id = response.id
+
+    # read embedding_context and warnings from sampleset
+    if sampleset is not None:
+        embedding_context = sampleset.info.get('embedding_context', {})
+        warnings = sampleset.info.get('warnings')
+
+    # in order of preference (most desirable form first):
+    if problem_id is not None:
+        pd = storage.get_problem(problem_id)
+        # TODO: fix ising/qubo forms
+        # XXX: for now assume type=='ising'!
+        problem = (pd.problem['linear'], pd.problem['quadratic'])
+        return from_qmi_response(problem=problem, response=pd.response,
+            embedding_context=embedding_context, warnings=warnings,
+            params=pd.problem['params'])
+
     if problem is not None and response is not None:
         return from_qmi_response(
             problem=problem, response=response,
