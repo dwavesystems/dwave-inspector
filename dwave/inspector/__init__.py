@@ -51,7 +51,23 @@ class Block(enum.Enum):
 
 
 def open_problem(problem_id, block=Block.ONCE):
-    """Open problem_id from storage in the Inspector web app."""
+    """Open problem_id from storage in the Inspector web app.
+
+    Args:
+        problem_id (str):
+            Submitted problem id, as returned by SAPI.
+
+        block (:class:`Block`/str/bool, optional, default=:obj:`Block.ONCE`):
+            Blocking behavior after opening up the web browser preview. In
+            between the obvious edge cases (:obj:`Block.NEVER`/'never'/:obj:`False`
+            and :obj:`Block.FOREVER`/'forever'/:obj:`True`), a value of
+            :obj:`Block.ONCE`/'once' will block the return until the problem has
+            been loaded from the inspector web server exactly once.
+
+    """
+    # accept string name for `block`
+    if isinstance(block, str):
+        block = Block(block.lower())
 
     app_server.ensure_started()
     url = app_server.get_inspect_url(problem_id)
@@ -60,7 +76,7 @@ def open_problem(problem_id, block=Block.ONCE):
     webbrowser.open_new_tab(url)
     if block is Block.ONCE:
         app_server.wait_problem_accessed(problem_id)
-    elif block is Block.FOREVER:
+    elif block is Block.FOREVER or block is True:
         app_server.wait_shutdown()
 
     return url
