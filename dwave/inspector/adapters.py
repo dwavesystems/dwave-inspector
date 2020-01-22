@@ -23,10 +23,13 @@ import dimod
 import dimod.views.bqm
 import dwave.cloud
 from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get, active_qubits
+from dwave.cloud.events import add_handler
 from dwave.embedding import embed_bqm
 from dwave.embedding.utils import edgelist_to_adjacency
 from dwave.system.composites import EmbeddingComposite
 from dwave.system.warnings import WarningAction
+
+from dwave.inspector import storage
 
 __all__ = [
     'from_qmi_response',
@@ -43,7 +46,13 @@ def enable_data_capture():
     embedding/sampling warnings, etc. across the Ocean stack.
     """
 
-    # TODO: enable problem/answer logging in dwave-cloud-client
+    def capture_qmi_response(data):
+        logger.debug("after_sample captured", data)
+        storage.add_problem(
+            problem=data['args'], solver=data['self'], response=data['return_value'])
+
+    # subscribe to problems sampled and results returned in the cloud client
+    add_handler('after_sample', capture_qmi_response)
 
     # save all warnings during embedding by default (equivalent to setting
     # `warnings=WarningAction.SAVE` during sampling)
