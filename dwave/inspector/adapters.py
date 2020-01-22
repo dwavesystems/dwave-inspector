@@ -47,10 +47,10 @@ def enable_data_capture():
     embedding/sampling warnings, etc. across the Ocean stack.
     """
 
-    def capture_qmi_response(data):
-        logger.debug("'after_sample' captured: %r", data)
-        storage.add_problem(
-            problem=data['args'], solver=data['self'], response=data['return_value'])
+    def capture_qmi_response(event, obj, args, return_value):
+        logger.debug("{!s}(obj={!r}, args={!r}, return_value={!r})".format(
+            event, obj, args, return_value))
+        storage.add_problem(problem=args, solver=obj, response=return_value)
 
     # subscribe to problems sampled and results returned in the cloud client
     add_handler('after_sample', capture_qmi_response)
