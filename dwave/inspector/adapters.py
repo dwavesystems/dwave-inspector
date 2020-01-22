@@ -36,6 +36,7 @@ __all__ = [
     'from_bqm_response',
     'from_bqm_sampleset',
     'from_objects',
+    'enable_data_capture',
 ]
 
 logger = logging.getLogger(__name__)
@@ -47,7 +48,7 @@ def enable_data_capture():
     """
 
     def capture_qmi_response(data):
-        logger.debug("after_sample captured", data)
+        logger.debug("'after_sample' captured: %r", data)
         storage.add_problem(
             problem=data['args'], solver=data['self'], response=data['return_value'])
 
@@ -62,9 +63,7 @@ def enable_data_capture():
     # `return_embedding=True` during sampling)
     EmbeddingComposite.return_embedding_default = True
 
-
-# enable inspector data capture on import!
-enable_data_capture()
+    logger.debug("Data capture enabled for embeddings, warnings and QMIs")
 
 
 def _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables):
@@ -150,6 +149,9 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
             Sampling parameters used.
 
     """
+    logger.debug("from_qmi_response({!r})".format(
+        dict(problem=problem, response=response, response_energies=response['energies'],
+             embedding_context=embedding_context, warnings=warnings, params=params)))
 
     try:
         linear, quadratic = problem
@@ -211,6 +213,8 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
         "messages": [],
     }
 
+    logger.trace("from_qmi_response returned %r", data)
+
     return data
 
 
@@ -240,6 +244,9 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
             Sampling parameters used.
 
     """
+    logger.debug("from_bqm_response({!r})".format(
+        dict(bqm=bqm, response=response, response_energies=response['energies'],
+             embedding_context=embedding_context, warnings=warnings, params=params)))
 
     solver = response.solver
     solver_id = solver.id
@@ -304,6 +311,8 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
         "messages": [],
     }
 
+    logger.trace("from_bqm_response returned %r", data)
+
     return data
 
 
@@ -349,6 +358,9 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
             Sampling parameters used.
 
     """
+    logger.debug("from_bqm_sampleset({!r})".format(
+        dict(bqm=bqm, sampleset=sampleset, sampler=sampler, warnings=warnings,
+             embedding_context=embedding_context, params=params)))
 
     if not isinstance(sampler, dimod.Sampler):
         raise TypeError("dimod.Sampler instance expected for 'sampler'")
@@ -454,6 +466,8 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
         "messages": [],
     }
 
+    logger.trace("from_bqm_sampleset returned %r", data)
+
     return data
 
 
@@ -464,6 +478,7 @@ def from_objects(*args, **kwargs):
     See :meth:`.from_qmi_response`, :meth:`.from_bqm_response`,
     :meth:`.from_bqm_sampleset` for details on possible arguments.
     """
+    logger.debug("from_objects(*{!r}, **{!r})".format(args, kwargs))
 
     bqm_cls = dimod.BinaryQuadraticModel
     sampleset_cls = dimod.SampleSet
@@ -513,6 +528,11 @@ def from_objects(*args, **kwargs):
     if sampleset is not None:
         embedding_context = sampleset.info.get('embedding_context', {})
         warnings = sampleset.info.get('warnings')
+
+    logger.debug("from_objects detected {!r}".format(
+        dict(bqm=bqm, sampleset=sampleset, sampler=sampler, response=response,
+             embedding_context=embedding_context, warnings=warnings,
+             problem=problem, problem_id=problem_id)))
 
     # in order of preference (most desirable form first):
     if problem_id is not None:
