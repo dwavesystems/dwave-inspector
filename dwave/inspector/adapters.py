@@ -189,7 +189,7 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
 
     # try to reconstruct sampling params
     if params is None:
-        params = {'num_reads': len(solutions)}
+        params = {'num_reads': sum(num_occurrences)}
 
     data = {
         "ready": True,
@@ -279,7 +279,7 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
 
     # try to reconstruct sampling params
     if params is None:
-        params = {'num_reads': len(solutions)}
+        params = {'num_reads': sum(num_occurrences)}
 
     # TODO: if warnings are missing, calculate them here (since we have the
     # low-level response)
@@ -424,7 +424,7 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
 
     # try to reconstruct sampling params
     if params is None:
-        params = {'num_reads': len(solutions)}
+        params = {'num_reads': sum(num_occurrences)}
 
     # try to get warnings from sampleset.info
     if warnings is None:
