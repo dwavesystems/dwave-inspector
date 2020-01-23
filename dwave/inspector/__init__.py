@@ -116,6 +116,24 @@ def show_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
 def show(*args, **kwargs):
     """Auto-detect the optimal `show_*` method based on arguments provided and
     forward the call.
+
+    Examples:
+
+        # QMI-only viz (no logical problem)
+        show((h, J), response)
+        show(Q, response)
+        show(response)
+        show('69ace80c-d3b1-448a-a028-b51b94f4a49d')
+
+        # QMI + explicit embedding (-> no warnings! fix!)
+        show((h, J), response, dict(embedding=embedding, chain_strength=5))
+
+        # embedding and warnings read from the sampleset
+        show(bqm, sampleset)
+
+        # embedding/warnings/problem_id read from sampleset, logical problem reconstructed
+        show(sampleset)
+
     """
     block = kwargs.pop('block', Block.ONCE)
     data = from_objects(*args, **kwargs)
