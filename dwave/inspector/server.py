@@ -208,4 +208,10 @@ def send_solver(solver_id):
         with importlib_resources.path(appdata, 'build') as basedir:
             return send_from_directory(basedir, path)
 
+@app.after_request
+def add_header(response):
+    # cache all responses for a day
+    response.cache_control.max_age = 86400
+    return response
+
 app_server = WSGIAsyncServer(host='127.0.0.1', port=8000, app=app)
