@@ -175,6 +175,10 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
     variables = list(response.variables)
     active = active_qubits(linear, quadratic)
 
+    # filter out invalid values (user's error in problem definition), since
+    # SAPI ignores them too
+    active = {q for q in active if q in solver.variables}
+
     # sanity check
     active_variables = response['active_variables']
     assert set(active) == set(active_variables)
@@ -540,8 +544,7 @@ def from_objects(*args, **kwargs):
     # in order of preference (most desirable form first):
     if problem_id is not None:
         pd = storage.get_problem(problem_id)
-        # TODO: fix ising/qubo forms
-        # XXX: for now assume type=='ising'!
+        # TODO: doublecheck qubos are visualized correctly
         problem = (pd.problem['linear'], pd.problem['quadratic'])
         return from_qmi_response(problem=problem, response=pd.response,
             embedding_context=embedding_context, warnings=warnings,
