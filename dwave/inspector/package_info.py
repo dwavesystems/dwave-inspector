@@ -20,7 +20,7 @@ __all__ = [
 
 __package_name__ = 'dwave-inspector'
 __title__ = 'D-Wave Problem Inspector'
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 __author__ = 'D-Wave Systems Inc.'
 __author_email__ = 'radomir@dwavesys.com'
 __description__ = 'D-Wave Problem Inspector tool'
