@@ -50,7 +50,10 @@ def enable_data_capture():
     def capture_qmi_response(event, obj, args, return_value):
         logger.debug("{!s}(obj={!r}, args={!r}, return_value={!r})".format(
             event, obj, args, return_value))
-        storage.add_problem(problem=args, solver=obj, response=return_value)
+        try:
+            storage.add_problem(problem=args, solver=obj, response=return_value)
+        except Exception as e:
+            logger.error('Failed to store problem with: %r', e)
 
     # subscribe to problems sampled and results returned in the cloud client
     add_handler('after_sample', capture_qmi_response)

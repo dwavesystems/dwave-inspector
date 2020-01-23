@@ -35,6 +35,10 @@ def push_problem(problem_data):
 problemdata_bag = set()
 problemdata = {}
 
+# map of all solvers seen in problems processed so far
+solvers = {}
+
+
 class ProblemData(object):
     # QMI/problem submitted, dict with keys: linear, quadratic, type_, params
     problem = None
@@ -50,9 +54,15 @@ class ProblemData(object):
         self.solver = solver
         self.response = response
 
+
 def add_problem(problem, solver, response):
+    # store the problem encapsulated with ProblemData
     pd = ProblemData(problem=problem, solver=solver, response=response)
     problemdata_bag.add(pd)
+
+    # cache solver reference
+    solvers[solver.id] = solver
+
 
 def index_resolved_problems():
     """Move problems that have `problem_id` assigned from `problemdata_bag` to
@@ -71,6 +81,7 @@ def index_resolved_problems():
         problemdata[pd.response.id] = pd
         problemdata_bag.remove(pd)
 
+
 def get_problem(problem_id):
     """Return :class:`.ProblemData` from problem data store, or fail with
     :exc:`KeyError`.
@@ -79,3 +90,13 @@ def get_problem(problem_id):
         index_resolved_problems()
 
     return problemdata[problem_id]
+
+
+def get_solver_data(solver_id):
+    """Return solver data dict for `solver_id`. If solver hasn't been seen in
+    any of the problems cached so far, fail with :exc:`KeyError`.
+    """
+    if solver_id in solvers:
+        return solvers[solver_id].data
+
+    raise KeyError('solver not found')

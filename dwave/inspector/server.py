@@ -39,7 +39,7 @@ except ImportError:
     raise RuntimeError("Can't use the Inspector without 'dwave-inspectorapp' "
                        "package. Consult the docs for install instructions.")
 
-from dwave.inspector.storage import problem_store, problem_access_sem
+from dwave.inspector.storage import problem_store, problem_access_sem, get_solver_data
 
 
 # get local server/app logger
@@ -198,5 +198,14 @@ def send_problem(problem_id):
     except KeyError:
         raise NotFound
 
+@app.route('/mocks/sapi/solvers/remote/<solver_id>.json')
+def send_solver(solver_id):
+    try:
+        return get_solver_data(solver_id)
+    except KeyError:
+        # fallback to static file lookup
+        path = 'mocks/sapi/solvers/remote/{}.json'.format(solver_id)
+        with importlib_resources.path(appdata, 'build') as basedir:
+            return send_from_directory(basedir, path)
 
 app_server = WSGIAsyncServer(host='127.0.0.1', port=8000, app=app)
