@@ -18,7 +18,7 @@ except SyntaxError:
 install_requires = [
     'dimod>=0.8.17',
     'dwave-system>=0.8.1',
-    'dwave-cloud-client>=0.6.2',
+    'dwave-cloud-client>=0.6.3',
     'Flask>=1.1.1',
 ]
 

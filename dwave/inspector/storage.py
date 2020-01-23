@@ -29,3 +29,74 @@ def push_problem(problem_data):
     id_ = problem_data['details']['id']
     problem_store[id_] = problem_data
     return id_
+
+
+# captures QMI + computation (response future)
+problemdata_bag = set()
+problemdata = {}
+
+# map of all solvers seen in problems processed so far
+solvers = {}
+
+
+class ProblemData(object):
+    # QMI/problem submitted, dict with keys: linear, quadratic, type_, params
+    problem = None
+
+    # dwave.cloud.solver.StructuredSolver instance
+    solver = None
+
+    # dwave.cloud.computation.Future instance
+    response = None
+
+    def __init__(self, problem, solver, response):
+        self.problem = problem
+        self.solver = solver
+        self.response = response
+
+
+def add_problem(problem, solver, response):
+    # store the problem encapsulated with ProblemData
+    pd = ProblemData(problem=problem, solver=solver, response=response)
+    problemdata_bag.add(pd)
+
+    # cache solver reference
+    solvers[solver.id] = solver
+
+
+def index_resolved_problems():
+    """Move problems that have `problem_id` assigned from `problemdata_bag` to
+    `problemdata` dict.
+    """
+
+    # find problems that have id assigned
+    resolved = set()
+    for pd in problemdata_bag:
+        if pd.response.id is not None:
+            resolved.add(pd)
+
+    # add them to the indexed collection
+    # and remove them from the input bag
+    for pd in resolved:
+        problemdata[pd.response.id] = pd
+        problemdata_bag.remove(pd)
+
+
+def get_problem(problem_id):
+    """Return :class:`.ProblemData` from problem data store, or fail with
+    :exc:`KeyError`.
+    """
+    if problem_id not in problemdata:
+        index_resolved_problems()
+
+    return problemdata[problem_id]
+
+
+def get_solver_data(solver_id):
+    """Return solver data dict for `solver_id`. If solver hasn't been seen in
+    any of the problems cached so far, fail with :exc:`KeyError`.
+    """
+    if solver_id in solvers:
+        return solvers[solver_id].data
+
+    raise KeyError('solver not found')

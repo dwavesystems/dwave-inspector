@@ -23,25 +23,32 @@ from dwave.cloud.utils import set_loglevel
 
 from dwave.inspector.server import app_server
 from dwave.inspector.adapters import (
-    from_qmi_response, from_bqm_response, from_bqm_sampleset, from_objects)
+    from_qmi_response, from_bqm_response, from_bqm_sampleset, from_objects,
+    enable_data_capture)
 from dwave.inspector.storage import push_problem
 
 
-def _configure_logging(loglevel):
-    """Configure `dwave.inspector` root logger."""
+# expose the root logger to simplify access
+logger = logging.getLogger(__name__)
+
+def _configure_logging(logger, loglevel):
+    """Configure `logger` root logger."""
     # TODO: move to dwave "common utils" module
 
     formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(threadName)s %(message)s')
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
 
-    logger = logging.getLogger(__name__)
     logger.addHandler(handler)
 
     set_loglevel(logger, loglevel)
 
 # configure root logger and apply `DWAVE_INSPECTOR_LOG_LEVEL`
-_configure_logging(os.getenv('DWAVE_INSPECTOR_LOG_LEVEL'))
+_configure_logging(logger, os.getenv('DWAVE_INSPECTOR_LOG_LEVEL'))
+
+
+# enable inspector data capture on import!
+enable_data_capture()
 
 
 class Block(enum.Enum):
@@ -51,7 +58,23 @@ class Block(enum.Enum):
 
 
 def open_problem(problem_id, block=Block.ONCE):
-    """Open problem_id from storage in the Inspector web app."""
+    """Open problem_id from storage in the Inspector web app.
+
+    Args:
+        problem_id (str):
+            Submitted problem id, as returned by SAPI.
+
+        block (:class:`Block`/str/bool, optional, default=:obj:`Block.ONCE`):
+            Blocking behavior after opening up the web browser preview. In
+            between the obvious edge cases (:obj:`Block.NEVER`/'never'/:obj:`False`
+            and :obj:`Block.FOREVER`/'forever'/:obj:`True`), a value of
+            :obj:`Block.ONCE`/'once' will block the return until the problem has
+            been loaded from the inspector web server exactly once.
+
+    """
+    # accept string name for `block`
+    if isinstance(block, str):
+        block = Block(block.lower())
 
     app_server.ensure_started()
     url = app_server.get_inspect_url(problem_id)
@@ -60,7 +83,7 @@ def open_problem(problem_id, block=Block.ONCE):
     webbrowser.open_new_tab(url)
     if block is Block.ONCE:
         app_server.wait_problem_accessed(problem_id)
-    elif block is Block.FOREVER:
+    elif block is Block.FOREVER or block is True:
         app_server.wait_shutdown()
 
     return url
@@ -93,6 +116,24 @@ def show_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
 def show(*args, **kwargs):
     """Auto-detect the optimal `show_*` method based on arguments provided and
     forward the call.
+
+    Examples:
+
+        # QMI-only viz (no logical problem)
+        show((h, J), response)
+        show(Q, response)
+        show(response)
+        show('69ace80c-d3b1-448a-a028-b51b94f4a49d')
+
+        # QMI + explicit embedding (-> no warnings! fix!)
+        show((h, J), response, dict(embedding=embedding, chain_strength=5))
+
+        # embedding and warnings read from the sampleset
+        show(bqm, sampleset)
+
+        # embedding/warnings/problem_id read from sampleset, logical problem reconstructed
+        show(sampleset)
+
     """
     block = kwargs.pop('block', Block.ONCE)
     data = from_objects(*args, **kwargs)
