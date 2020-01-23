@@ -15,6 +15,34 @@ D-Wave structured solver.
 .. index-end-marker
 
 
+Overview
+========
+
+``dwave-inspector`` provides a graphic interface for examining D-Wave quantum computers'
+problems and answers. As described in the
+`Ocean documentation's Getting Started <https://docs.ocean.dwavesys.com/en/latest/overview/solving_problems.html>`_,
+the D-Wave system solves problems formulated as binary quadratic models (BQM) that are
+mapped to its qubits in a process called minor-embedding. Because the way you choose to
+minor-embed a problem (the mapping and related parameters) affects solution quality,
+it can be helpful to see it.
+
+For example, embedding a :math:`K_3` fully-connected graph, such as the
+`Boolean AND gate example <https://docs.ocean.dwavesys.com/en/latest/examples/and.html>`_,
+into a D-Wave 2000Q, with its Chimera topology, requires representing one of the
+three variables with a "chain" of two physical qubits:
+
+.. figure:: _images/and_gate.png
+  :align: center
+  :figclass: align-center
+  :scale: 35%
+
+  The AND gate's original BQM is represented on the left; its embedded representation, on the right, shows a two-qubit chain of qubits 1195 and 1199 for variable X1.
+
+The problem inspector shows you your chains at a glance: you see lengths, any breakages,
+and physical layout.
+
+
+
 Installation or Building
 ========================
 
