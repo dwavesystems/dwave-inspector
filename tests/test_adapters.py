@@ -230,10 +230,19 @@ class TestAdapters(unittest.TestCase):
         self.assertEqual(from_objects(self.bqm, response=self.response, problem=self.problem), 'qmi_response')
         self.assertEqual(from_objects({(0, 0): 1, (0, 1): 0}, self.response), 'qmi_response')
 
+        # reconstruction directly from problem_id
+        self.assertEqual(from_objects(self.response.id), 'qmi_response')
+
         # qmi takes precedence
         self.assertEqual(from_objects(self.bqm, self.embedding_context, response=self.response, problem=self.problem), 'qmi_response')
 
-        # bqm/response
+        # bqm/response -> with problem_id in response ==> qmi takes precedence
+        self.assertEqual(from_objects(self.response, self.bqm, self.embedding_context), 'qmi_response')
+        self.assertEqual(from_objects(self.embedding_context, response=self.response, bqm=self.bqm), 'qmi_response')
+        self.assertEqual(from_objects(response=self.response, bqm=self.bqm, embedding_context=self.embedding_context), 'qmi_response')
+
+        # bqm/response -> without problem_id in response
+        self.response.id = None
         self.assertEqual(from_objects(self.response, self.bqm, self.embedding_context), 'bqm_response')
         self.assertEqual(from_objects(self.embedding_context, response=self.response, bqm=self.bqm), 'bqm_response')
         self.assertEqual(from_objects(response=self.response, bqm=self.bqm, embedding_context=self.embedding_context), 'bqm_response')

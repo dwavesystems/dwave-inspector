@@ -526,9 +526,9 @@ def from_objects(*args, **kwargs):
     problem_id = kwargs.get('problem_id', maybe_pop(problem_ids))
 
     # read problem_id from sampleset or response
-    if sampleset is not None:
+    if problem_id is None and sampleset is not None:
         problem_id = sampleset.info.get('problem_id')
-    if response is not None:
+    if problem_id is None and response is not None:
         problem_id = response.id
 
     # read embedding_context and warnings from sampleset
