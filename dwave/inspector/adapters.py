@@ -80,6 +80,17 @@ def _answer_dict(solutions, active_variables, energies, num_occurrences, timing,
         "num_variables": num_variables
     }
 
+def _unembedded_answer_dict(sampleset):
+    return {
+        "format": "qp",
+        "vartype": sampleset.vartype.name,
+        "solutions": [list(map(int, s)) for s in sampleset.record.sample],
+        "active_variables": list(sampleset.variables),
+        "energies": list(map(float, sampleset.record.energy)),
+        "num_occurrences": list(map(int, sampleset.record.num_occurrences)),
+        "num_variables": len(sampleset.variables)
+    }
+
 def _problem_dict(solver_id, problem_type, problem_data, params=None):
     return {
         "solver": solver_id,
@@ -124,7 +135,7 @@ def _validated_embedding(emb):
 
 
 def from_qmi_response(problem, response, embedding_context=None, warnings=None,
-                      params=None):
+                      params=None, sampleset=None):
     """Construct problem data for visualization based on the low-level sampling
     problem definition and the low-level response.
 
@@ -150,6 +161,9 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
 
         params (dict, optional):
             Sampling parameters used.
+
+        sampleset (:class:`dimod.SampleSet`, optional):
+            Optional unembedded sampleset.
 
     """
     logger.debug("from_qmi_response({!r})".format(
@@ -220,13 +234,16 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
         "messages": [],
     }
 
+    if sampleset is not None:
+        data["unembedded_answer"] = _unembedded_answer_dict(sampleset)
+
     logger.trace("from_qmi_response returned %r", data)
 
     return data
 
 
 def from_bqm_response(bqm, embedding_context, response, warnings=None,
-                      params=None):
+                      params=None, sampleset=None):
     """Construct problem data for visualization based on the unembedded BQM,
     the embedding used when submitting, and the low-level sampling response.
 
@@ -249,6 +266,9 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
 
         params (dict, optional):
             Sampling parameters used.
+
+        sampleset (:class:`dimod.SampleSet`, optional):
+            Optional unembedded sampleset.
 
     """
     logger.debug("from_bqm_response({!r})".format(
@@ -317,6 +337,9 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
         # TODO
         "messages": [],
     }
+
+    if sampleset is not None:
+        data["unembedded_answer"] = _unembedded_answer_dict(sampleset)
 
     logger.trace("from_bqm_response returned %r", data)
 
@@ -467,6 +490,7 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
         },
         "data": _problem_dict(solver_id, problem_type, problem_data, params),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
+        "unembedded_answer": _unembedded_answer_dict(sampleset),
         "warnings": _warnings(warnings),
 
         # TODO:
@@ -548,17 +572,18 @@ def from_objects(*args, **kwargs):
         problem = (pd.problem['linear'], pd.problem['quadratic'])
         return from_qmi_response(problem=problem, response=pd.response,
             embedding_context=embedding_context, warnings=warnings,
-            params=pd.problem['params'])
+            params=pd.problem['params'], sampleset=sampleset)
 
     if problem is not None and response is not None:
         return from_qmi_response(
             problem=problem, response=response,
-            embedding_context=embedding_context, warnings=warnings)
+            embedding_context=embedding_context, warnings=warnings,
+            sampleset=sampleset)
 
     if bqm is not None and embedding_context is not None and response is not None:
         return from_bqm_response(
             bqm=bqm, embedding_context=embedding_context,
-            response=response, warnings=warnings)
+            response=response, warnings=warnings, sampleset=sampleset)
 
     if bqm is not None and sampleset is not None and sampler is not None:
         return from_bqm_sampleset(
