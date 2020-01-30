@@ -14,6 +14,7 @@
 
 from __future__ import absolute_import
 
+import copy
 import uuid
 import logging
 from operator import itemgetter
@@ -114,7 +115,7 @@ def _warnings(warnings):
         return []
 
     # translate warning classes (given for type) to string names
-    data = warnings.copy()
+    data = copy.deepcopy(warnings)
     for warning in data:
         if issubclass(warning['type'], Warning):
             warning.update(type=warning['type'].__name__)
