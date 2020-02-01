@@ -1,0 +1,11 @@
+[run]
+source = dwave.inspector
+omit =
+    venv/*, env/*
+    tests/*
+    dwave/inspector/package_info.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError

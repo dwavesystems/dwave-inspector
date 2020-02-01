@@ -16,7 +16,6 @@ from __future__ import absolute_import
 
 import os
 import logging
-import webbrowser
 import enum
 
 from dwave.cloud.utils import set_loglevel
@@ -26,6 +25,7 @@ from dwave.inspector.adapters import (
     from_qmi_response, from_bqm_response, from_bqm_sampleset, from_objects,
     enable_data_capture)
 from dwave.inspector.storage import push_problem
+from dwave.inspector.viewers import view
 
 
 # expose the root logger to simplify access
@@ -79,8 +79,9 @@ def open_problem(problem_id, block=Block.ONCE):
     app_server.ensure_started()
     url = app_server.get_inspect_url(problem_id)
 
-    # open url and block
-    webbrowser.open_new_tab(url)
+    # open url and block if requested
+    view(url)
+
     if block is Block.ONCE:
         app_server.wait_problem_accessed(problem_id)
     elif block is Block.FOREVER or block is True:
