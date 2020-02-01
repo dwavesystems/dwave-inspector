@@ -51,11 +51,11 @@ def annotated(**kwargs):
 
 @annotated(priority=0)
 def webbrowser_tab(url):
-    webbrowser.open_new_tab(url)
+    return webbrowser.open_new_tab(url)
 
 @annotated(priority=-10)
 def webbrowser_window(url):
-    webbrowser.open_new(url)
+    return webbrowser.open_new(url)
 
 
 def prioritized_viewers():
