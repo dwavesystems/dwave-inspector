@@ -58,20 +58,26 @@ def webbrowser_window(url):
     webbrowser.open_new(url)
 
 
-def registered_viewers():
-    """Return all registered InspectorApp viewers order by descending priority."""
+def prioritized_viewers():
+    """Return all registered InspectorApp viewers order by descending
+    priority.
+    """
 
     viewers = [ep.load() for ep in iter_entry_points('inspectorapp_viewers')]
     return sorted(viewers, key=operator.attrgetter('priority'), reverse=True)
 
 
 def view(url):
-    """Open URL with a highest priority viewer that accepts it."""
+    """Open URL with the highest priority viewer that accepts it."""
 
-    for f in registered_viewers():
+    for viewer in prioritized_viewers():
         try:
-            return f(url)
-        except:
-            pass
+            logger.debug('Trying to open the webapp URL %r with %r',
+                         url, viewer.__name__)
+            return viewer(url)
+
+        except Exception as exc:
+            logger.info('Opening the webapp URL with %r failed with %r',
+                        viewer.__name__, exc)
 
     return False
