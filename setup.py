@@ -56,6 +56,11 @@ setup(
     url=package_info['__url__'],
     license=package_info['__license__'],
     packages=packages,
+    entry_points={
+        'inspectorapp_viewers': [
+            'browser = dwave.inspector.viewers:webbrowser_tab',
+        ]
+    },
     install_requires=install_requires,
     extras_require=extras_require,
     classifiers=classifiers,
