@@ -58,7 +58,8 @@ setup(
     packages=packages,
     entry_points={
         'inspectorapp_viewers': [
-            'browser = dwave.inspector.viewers:webbrowser_tab',
+            'browser_tab = dwave.inspector.viewers:webbrowser_tab',
+            'browser_window = dwave.inspector.viewers:webbrowser_window',
         ]
     },
     install_requires=install_requires,

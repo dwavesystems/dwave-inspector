@@ -53,6 +53,10 @@ def annotated(**kwargs):
 def webbrowser_tab(url):
     webbrowser.open_new_tab(url)
 
+@annotated(priority=-10)
+def webbrowser_window(url):
+    webbrowser.open_new(url)
+
 
 def registered_viewers():
     """Return all registered InspectorApp viewers order by descending priority."""
