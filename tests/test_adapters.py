@@ -183,15 +183,15 @@ class TestAdapters(unittest.TestCase):
         # )
         h = {
             0: numpy.int64(0),
-            4: numpy.longcomplex(0),
+            4: numpy.double(0),
             1: numpy.int8(0),
-            5: Decimal('0')
+            5: Decimal('0'),
         }
         J = {
             (0, 4): numpy.float128(1),
             (0, 5): Decimal('1'),
             (4, 1): Fraction(2, 2),
-            (1, 5): numpy.int32(-1)
+            (1, 5): numpy.int32(-1),
         }
         problem = (h, J)
 
