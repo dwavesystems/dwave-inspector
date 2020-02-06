@@ -14,6 +14,11 @@ D-Wave structured solver.
 
 .. index-end-marker
 
+* `Overview`_
+* `Installation or Building`_
+* `Usage and Examples`_
+
+.. _overview_inspector:
 
 Overview
 ========
@@ -34,7 +39,6 @@ three variables with a "chain" of two physical qubits:
 .. figure:: _images/and_gate.png
   :align: center
   :figclass: align-center
-  :scale: 35%
 
   The AND gate's original BQM is represented on the left; its embedded representation, on the right, shows a two-qubit chain of qubits 1195 and 1199 for variable X1.
 
@@ -42,6 +46,7 @@ The problem inspector shows you your chains at a glance: you see lengths, any br
 and physical layout.
 
 
+.. _install_inspector:
 
 Installation or Building
 ========================
@@ -69,34 +74,47 @@ Alternatively, clone and build from source::
 
 .. installation-end-marker
 
+.. _examples_inspector:
 
-Example
-=======
+Usage and Examples
+==================
 
 .. example-start-marker
 
-The canonical way to use the Inspector is with samples in physical/qubit space.
+Import the problem inspector to enable it to hook into your problem submissions.
+Use the ``show()`` method to visualize the embedded problem, and optionally the
+logical problem, in your default browser.
 
-.. code-block:: python
+This example shows the canonical usage: samples representing physical qubits on a
+quantum processing unit (QPU).
 
-    import dwave.cloud
-    import dwave.inspector
+>>> from dwave.system import DWaveSampler
+>>> import dwave.inspector
+>>> # Get solver
+>>> sampler = DWaveSampler(solver = {'qpu': True})
+>>> # Define a problem (actual qubits depend on the selected QPU's working graph)
+>>> h = {}
+>>> all (edge in sampler.edgelist for edge in {(0, 4), (0, 5), (1, 4), (1, 5)})
+True
+>>> J = {(0, 4): 1, (0, 5): 1, (1, 4): 1, (1, 5): -1}
+>>> # Sample
+>>> response = sampler.sample_ising(h, J, num_reads=100)
+>>> # Inspect
+>>> dwave.inspector.show((h, J), response)
 
-    # define problem
-    h = {}
-    J = {(0, 4): 1, (0, 5): 1, (4, 1): 1, (1, 5): -1}
+.. figure:: _images/physical_qubits.png
+  :align: center
+  :figclass: align-center
 
-    # get solver
-    client = dwave.cloud.Client.from_config()
-    solver = client.get_solver(qpu=True)
+  Edge values between qubits 0, 1, 4, 5, and the selected solution, are shown by color on the left; a histogram, on the right, shows the energies of returned samples.
 
-    # sample
-    response = solver.sample_ising(h, J, num_reads=100)
+The ``.show()`` method requires the ``SampleSet`` returned from the quantum computer
+or the SAPI problem ID; other arguments---the binary quadratic model in BQM, Ising,
+or QUBO formats, and an emebdding---are optional. However, to visualize a logical problem
+if *dimod's* ``EmbeddingComposite`` was not used, you must supply the embedding.
 
-    # inspect
-    dwave.inspector.show((h, J), response)
-
-It is also possible to inspect QMIs given only samples in logical space:
+This example visualizes a problem specified in logical space. For illustrative purposes
+it sets a weak ``chain_strength`` to show broken chains.
 
 .. code-block:: python
 
@@ -104,19 +122,40 @@ It is also possible to inspect QMIs given only samples in logical space:
     import dwave.inspector
     from dwave.system import DWaveSampler, EmbeddingComposite
 
-    # define problem
+    # Define problem
     bqm = dimod.BQM.from_ising({}, {'ab': 1, 'bc': 1, 'ca': 1})
 
-    # get sampler
+    # Get sampler
     sampler = EmbeddingComposite(DWaveSampler(solver=dict(qpu=True)))
 
-    # sample
-    sampleset = sampler.sample(bqm, num_reads=100)
+    # Sample with low chain strength
+    sampleset = sampler.sample(bqm, num_reads=1000, chain_strength=0.1)
 
     # inspect
-    dwave.inspector.show(bqm, sampleset)
+    dwave.inspector.show(sampleset)
+
+.. figure:: _images/logical_problem.png
+  :align: center
+  :figclass: align-center
+
+  The logical problem, on the left, shows that the value for variable ``b`` is based on a broken chain; the embedded problem, on the right, highlights the broken chain in red.
 
 .. example-end-marker
+
+Below are some options for using the ``show()`` method, where ``response`` was returned
+for a problem defined directly on physical qubits and ``sampleset`` returned from
+a problem submitted using ``EmbeddingComposite``:
+
+.. code-block:: python
+
+    show(response)
+    show('69ace80c-d3b1-448a-a028-b51b94f4a49d')
+    show((h, J), response)
+    show(Q, response)
+    show((h, J), response, dict(embedding=embedding, chain_strength=5))
+
+    show(sampleset)
+    show(bqm, sampleset)
 
 
 License
