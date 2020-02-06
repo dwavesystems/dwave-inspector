@@ -15,8 +15,11 @@
 import json
 import mock
 import unittest
+from decimal import Decimal
+from fractions import Fraction
 
 import vcr
+import numpy
 
 import dimod
 from dwave.cloud import Client
@@ -157,6 +160,40 @@ class TestAdapters(unittest.TestCase):
         """Problem/solutions are correctly encoded when qubits are referenced via couplings only."""
 
         problem = ({}, self.ising_embedded[1])
+
+        # sample
+        with Client.from_config() as client:
+            solver = client.get_solver(qpu=True)
+            response = solver.sample_ising(*problem, **self.params)
+
+        # convert
+        data = from_qmi_response(problem, response, params=self.params)
+
+        # validate data encoding
+        self.verify_data_encoding(problem=problem, response=response,
+                                  solver=solver, params=self.params, data=data)
+
+    @rec.use_cassette('triangle-ising.yaml')
+    def test_from_qmi_response__problem_encoding(self):
+        """Problem data is serialized even when it uses non-standard types (like numpy.int64)."""
+
+        # `self.problem` == (
+        #   {0: 0.0, 4: 0.0, 1: 0.0, 5: 0.0},
+        #   {(0, 4): 1.0, (0, 5): 1.0, (4, 1): 1.0, (1, 5): -1.0}
+        # )
+        h = {
+            0: numpy.int64(0),
+            4: numpy.longcomplex(0),
+            1: numpy.int8(0),
+            5: Decimal('0')
+        }
+        J = {
+            (0, 4): numpy.float128(1),
+            (0, 5): Decimal('1'),
+            (4, 1): Fraction(2, 2),
+            (1, 5): numpy.int32(-1)
+        }
+        problem = (h, J)
 
         # sample
         with Client.from_config() as client:
