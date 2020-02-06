@@ -97,8 +97,25 @@ def _problem_dict(solver_id, problem_type, problem_data, params=None):
         "solver": solver_id,
         "type": problem_type,
         "params": params if params is not None else {},
-        "data": problem_data
+        "data": _validated_problem_data(problem_data)
     }
+
+def _validated_problem_data(data):
+    "Basic types validation/conversion."
+
+    try:
+        assert data['format'] == 'qp'
+        assert isinstance(data['lin'], list)
+        assert isinstance(data['quad'], list)
+
+        data['lin'] = [float(v) if v is not None else None for v in data['lin']]
+        data['quad'] = list(map(float, data['quad']))
+        return data
+
+    except Exception as e:
+        msg = "invalid problem structure and/or data types"
+        logger.warning(msg)
+        raise ValueError(msg)
 
 def _details_dict(response):
     return {
