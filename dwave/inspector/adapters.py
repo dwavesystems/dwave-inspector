@@ -97,8 +97,41 @@ def _problem_dict(solver_id, problem_type, problem_data, params=None):
         "solver": solver_id,
         "type": problem_type,
         "params": params if params is not None else {},
-        "data": problem_data
+        "data": _validated_problem_data(problem_data)
     }
+
+def _validated_problem_data(data):
+    "Basic types validation/conversion."
+
+    try:
+        assert data['format'] == 'qp'
+        assert isinstance(data['lin'], list)
+        assert isinstance(data['quad'], list)
+
+        data['lin'] = [float(v) if v is not None else None for v in data['lin']]
+        data['quad'] = list(map(float, data['quad']))
+        if 'embedding' in data:
+            data['embedding'] = _validated_embedding(data['embedding'])
+
+        return data
+
+    except Exception as e:
+        msg = "invalid problem structure and/or data types"
+        logger.warning(msg)
+        raise ValueError(msg)
+
+def _validated_embedding(emb):
+    "Basic types validation/conversion."
+
+    try:
+        keys = map(str, emb.keys())
+        values = map(list, emb.values())
+        return dict(zip(keys, values))
+
+    except Exception as e:
+        msg = "invalid embedding structure"
+        logger.warning(msg)
+        raise ValueError(msg)
 
 def _details_dict(response):
     return {
@@ -120,19 +153,6 @@ def _warnings(warnings):
         if issubclass(warning['type'], Warning):
             warning.update(type=warning['type'].__name__)
     return data
-
-def _validated_embedding(emb):
-    "Basic types validation/conversion."
-
-    try:
-        keys = map(str, emb.keys())
-        values = map(list, emb.values())
-        return dict(zip(keys, values))
-
-    except Exception as e:
-        msg = "invalid embedding structure"
-        logger.warning(msg)
-        raise ValueError(msg)
 
 
 def from_qmi_response(problem, response, embedding_context=None, warnings=None,
@@ -217,8 +237,7 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
 
     # include optional embedding
     if embedding_context is not None and 'embedding' in embedding_context:
-        problem_data['embedding'] = \
-            _validated_embedding(embedding_context['embedding'])
+        problem_data['embedding'] = embedding_context['embedding']
 
     # try to reconstruct sampling params
     if params is None:
@@ -318,7 +337,7 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
         "quad": [quadratic.get((q1,q2), 0) + quadratic.get((q2,q1), 0)
                  for (q1,q2) in solver._encoding_couplers
                  if q1 in active and q2 in active],
-        "embedding": _validated_embedding(embedding)
+        "embedding": embedding
     }
 
     # try to reconstruct sampling params
@@ -466,7 +485,7 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
         "quad": [quadratic.get((q1,q2), 0) + quadratic.get((q2,q1), 0)
                  for (q1,q2) in solver._encoding_couplers
                  if q1 in active_variables_set and q2 in active_variables_set],
-        "embedding": _validated_embedding(embedding)
+        "embedding": embedding
     }
 
     # try to get problem id. if not available, auto-generate one
