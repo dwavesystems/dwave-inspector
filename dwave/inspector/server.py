@@ -39,7 +39,7 @@ except ImportError:
     raise RuntimeError("Can't use the Inspector without 'dwave-inspectorapp' "
                        "package. Consult the docs for install instructions.")
 
-from dwave.inspector.storage import problem_store, problem_access_sem, get_solver_data
+from dwave.inspector.storage import problem_store, problem_access_sem, get_problem
 
 
 # get local server/app logger
@@ -133,7 +133,7 @@ class WSGIAsyncServer(threading.Thread):
         self.join()
 
     def get_inspect_url(self, problem_id):
-        return 'http://{}:{}/?testId={}'.format(
+        return 'http://{}:{}/?problemId={}'.format(
             *self.server.server_address, problem_id)
 
     def _ensure_accessible(self, sleep=0.1, tries=100, timeout=10):
@@ -188,8 +188,7 @@ def send_static(path='index.html'):
     with importlib_resources.path(appdata, 'build') as basedir:
         return send_from_directory(basedir, path)
 
-@app.route('/mocks/test/<problem_id>.json')
-@app.route('/mocks/sapi/problems/<problem_id>.json')
+@app.route('/api/problems/<problem_id>')
 def send_problem(problem_id):
     try:
         problem_data = problem_store[problem_id]
@@ -198,15 +197,13 @@ def send_problem(problem_id):
     except KeyError:
         raise NotFound
 
-@app.route('/mocks/sapi/solvers/remote/<solver_id>.json')
-def send_solver(solver_id):
+@app.route('/api/problems/<problem_id>/solver')
+def send_solver(problem_id):
     try:
-        return get_solver_data(solver_id)
+        pd = get_problem(problem_id)
+        return pd.solver.data
     except KeyError:
-        # fallback to static file lookup
-        path = 'mocks/sapi/solvers/remote/{}.json'.format(solver_id)
-        with importlib_resources.path(appdata, 'build') as basedir:
-            return send_from_directory(basedir, path)
+        raise NotFound
 
 @app.after_request
 def add_header(response):
