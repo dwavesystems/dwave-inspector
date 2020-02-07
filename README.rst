@@ -9,8 +9,8 @@ D-Wave Inspector
 
 .. index-start-marker
 
-A tool for visualizing problems submitted to (and answers received from) a
-D-Wave structured solver.
+A tool for visualizing problems submitted to, and answers received from, a
+D-Wave structured solver such as a D-Wave 2000Q quantum computer.
 
 .. index-end-marker
 
@@ -32,15 +32,16 @@ minor-embed a problem (the mapping and related parameters) affects solution qual
 it can be helpful to see it.
 
 For example, embedding a :math:`K_3` fully-connected graph, such as the
-`Boolean AND gate example <https://docs.ocean.dwavesys.com/en/latest/examples/and.html>`_,
-into a D-Wave 2000Q, with its Chimera topology, requires representing one of the
-three variables with a "chain" of two physical qubits:
+`Boolean AND gate example <https://docs.ocean.dwavesys.com/en/latest/examples/and.html>`_
+into a D-Wave 2000Q, with its Chimera topology,
+requires representing one of the three variables with a "chain" of two physical qubits:
 
 .. figure:: _images/and_gate.png
   :align: center
   :figclass: align-center
 
-  The AND gate's original BQM is represented on the left; its embedded representation, on the right, shows a two-qubit chain of qubits 1195 and 1199 for variable X1.
+  The AND gate's original BQM is represented on the left; its embedded representation,
+  on the right, shows a two-qubit chain of qubits 1195 and 1199 for one variable.
 
 The problem inspector shows you your chains at a glance: you see lengths, any breakages,
 and physical layout.
@@ -85,22 +86,33 @@ Import the problem inspector to enable it to hook into your problem submissions.
 Use the ``show()`` method to visualize the embedded problem, and optionally the
 logical problem, in your default browser.
 
+* `Inspecting an Embedded Problem`_
+* `Inspecting a Logical Problem`_
+* `show() Method`_
+
+Inspecting an Embedded Problem
+------------------------------
+
 This example shows the canonical usage: samples representing physical qubits on a
 quantum processing unit (QPU).
 
 >>> from dwave.system import DWaveSampler
 >>> import dwave.inspector
+...
 >>> # Get solver
 >>> sampler = DWaveSampler(solver = {'qpu': True})
+...
 >>> # Define a problem (actual qubits depend on the selected QPU's working graph)
 >>> h = {}
 >>> all (edge in sampler.edgelist for edge in {(0, 4), (0, 5), (1, 4), (1, 5)})
 True
 >>> J = {(0, 4): 1, (0, 5): 1, (1, 4): 1, (1, 5): -1}
+...
 >>> # Sample
 >>> response = sampler.sample_ising(h, J, num_reads=100)
+...
 >>> # Inspect
->>> dwave.inspector.show((h, J), response)
+>>> dwave.inspector.show(response)
 
 .. figure:: _images/physical_qubits.png
   :align: center
@@ -108,12 +120,11 @@ True
 
   Edge values between qubits 0, 1, 4, 5, and the selected solution, are shown by color on the left; a histogram, on the right, shows the energies of returned samples.
 
-The ``.show()`` method requires the ``SampleSet`` returned from the quantum computer
-or the SAPI problem ID; other arguments---the binary quadratic model in BQM, Ising,
-or QUBO formats, and an emebdding---are optional. However, to visualize a logical problem
-if *dimod's* ``EmbeddingComposite`` was not used, you must supply the embedding.
+Inspecting a Logical Problem
+----------------------------
 
-This example visualizes a problem specified in logical space. For illustrative purposes
+This example visualizes a problem specified logically and then automatically
+minor-embedded by Ocean's ``EmbeddingComposite``. For illustrative purposes
 it sets a weak ``chain_strength`` to show broken chains.
 
 .. code-block:: python
@@ -131,25 +142,38 @@ it sets a weak ``chain_strength`` to show broken chains.
     # Sample with low chain strength
     sampleset = sampler.sample(bqm, num_reads=1000, chain_strength=0.1)
 
-    # inspect
+    # Inspect
     dwave.inspector.show(sampleset)
 
 .. figure:: _images/logical_problem.png
   :align: center
   :figclass: align-center
 
-  The logical problem, on the left, shows that the value for variable ``b`` is based on a broken chain; the embedded problem, on the right, highlights the broken chain in red.
+  The logical problem, on the left, shows that the value for variable ``b`` is based on a broken chain; the embedded problem, on the right, highlights the broken chain (its two qubits have different values) in bold red.
 
 .. example-end-marker
 
-Below are some options for using the ``show()`` method, where ``response`` was returned
-for a problem defined directly on physical qubits and ``sampleset`` returned from
-a problem submitted using ``EmbeddingComposite``:
+``show()`` Method
+-----------------
+
+The ``show()`` method requires the ``SampleSet`` returned from the quantum computer
+or the SAPI problem ID\ [#]_\ ; other problem inputs---the binary quadratic model in BQM, Ising,
+or QUBO formats, and an emebedding---are optional. However, to visualize a logical problem
+if *dimod's* ``EmbeddingComposite`` or derived classes are not used, you must supply
+the embedding.
+
+.. [#]
+  For problems submitted in the active session (i.e., once the problem inspector has been
+  imported).
+
+Below are some options for providing problem data to the ``show()`` method, where
+``response`` was returned for a problem defined directly on physical qubits and
+``sampleset`` returned from a problem submitted using ``EmbeddingComposite``:
 
 .. code-block:: python
 
     show(response)
-    show('69ace80c-d3b1-448a-a028-b51b94f4a49d')
+    show('69ace80c-d3b1-448a-a028-b51b94f4a49d')   # Using a SAPI problem ID
     show((h, J), response)
     show(Q, response)
     show((h, J), response, dict(embedding=embedding, chain_strength=5))
@@ -157,6 +181,10 @@ a problem submitted using ``EmbeddingComposite``:
     show(sampleset)
     show(bqm, sampleset)
 
+The ``show()`` method supports flow control for scripts with the ``block`` parameter.
+For example, the default setting of ``once`` (``dwave.inspector.Block.ONCE``) blocks
+until your problem is loaded from the inspector web server and ``forever`` blocks
+until you terminate with a CNTL-C/SIGTERM.
 
 License
 =======
