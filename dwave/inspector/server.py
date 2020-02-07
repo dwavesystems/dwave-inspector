@@ -170,13 +170,8 @@ class WSGIAsyncServer(threading.Thread):
         """
         problem_access_sem[problem_id].acquire(blocking=True, timeout=timeout)
 
-        # TODO: modify client-side app to ping us when all data is loaded
-        # (including static files); problem json request is not guaranteed to
-        # be last. As a temporary fix, sleep before returning.
-        time.sleep(3)
-
     def notify_problem_accessed(self, problem_id):
-        """Notifies problem access semaphore of one access (load)."""
+        """Notifies problem access semaphore of one access (full load)."""
         problem_access_sem[problem_id].release()
 
 
@@ -191,9 +186,7 @@ def send_static(path='index.html'):
 @app.route('/api/problems/<problem_id>')
 def send_problem(problem_id):
     try:
-        problem_data = problem_store[problem_id]
-        app_server.notify_problem_accessed(problem_id)
-        return problem_data
+        return problem_store[problem_id]
     except KeyError:
         raise NotFound
 
@@ -204,6 +197,11 @@ def send_solver(problem_id):
         return pd.solver.data
     except KeyError:
         raise NotFound
+
+@app.route('/api/callback/<problem_id>')
+def notify_problem_loaded(problem_id):
+    app_server.notify_problem_accessed(problem_id)
+    return dict(ack=True)
 
 @app.after_request
 def add_header(response):
