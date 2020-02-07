@@ -12,8 +12,8 @@ sampler = EmbeddingComposite(DWaveSampler(solver=dict(qpu=True)))
 
 # sample
 print("sampling")
-sampleset = sampler.sample(bqm, num_reads=1)
+sampleset = sampler.sample(bqm, num_reads=100, chain_strength=1)
 
 # inspect
 print("inspecting")
-dwave.inspector.show(bqm, sampleset, sampler)
+dwave.inspector.show(bqm, sampleset)
