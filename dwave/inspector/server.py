@@ -121,15 +121,26 @@ class WSGIAsyncServer(threading.Thread):
         raise RuntimeError("unable to find available port to bind local "
                            "webserver to even after {} tries".format(tries))
 
+    def _make_server(self):
+        return self._safe_make_server(self.host, self.base_port, self.app)
+
     def __init__(self, host, port, app):
         super(WSGIAsyncServer, self).__init__(daemon=True)
-        self.server = self._safe_make_server(host, port, app)
+
+        # store config, but start the web server (and bind to address) on run()
+        self.host = host
+        self.base_port = port
+        self.app = app
+        self.server = None
 
     def run(self):
+        if self.server is None:
+            self.server = self._make_server()
         self.server.serve_forever()
 
     def stop(self):
-        self.server.shutdown()
+        if self.server:
+            self.server.shutdown()
         self.join()
 
     def get_inspect_url(self, problem_id):
