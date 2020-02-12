@@ -61,6 +61,9 @@ setup(
         'inspectorapp_viewers': [
             'browser_tab = dwave.inspector.viewers:webbrowser_tab',
             'browser_window = dwave.inspector.viewers:webbrowser_window',
+        ],
+        'dwave_contrib': [
+            'dwave-inspector = dwave.inspector.package_info:contrib'
         ]
     },
     install_requires=install_requires,
