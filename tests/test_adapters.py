@@ -300,7 +300,7 @@ class TestAdapters(unittest.TestCase):
         self.assertEqual(from_objects(sampler, warnings, sampleset=sampleset, bqm=self.bqm), 'bqm_sampleset')
 
     @rec.use_cassette('triangle-ising.yaml')
-    def test_solver_validation(self):
+    def test_solver_type_validation(self):
         """All data adapters should fail on non-StructuredSolvers."""
 
         # sample
@@ -323,7 +323,7 @@ class TestAdapters(unittest.TestCase):
                 self.bqm, self.embedding_context, response, params=self.params)
 
     @rec.use_cassette('triangle-ising.yaml')
-    def test_sampler_validation(self):
+    def test_sampler_type_validation(self):
         """All data adapters should fail on non-StructuredSolvers."""
 
         # sample
@@ -335,6 +335,47 @@ class TestAdapters(unittest.TestCase):
         sampleset.info['problem_id']
         # change solver to unstructured to test solver validation
         sampler.child.solver = unstructured_solver_mock
+
+        # ensure `from_bqm_sampleset` adapter fails on unstructured solver
+        with self.assertRaises(TypeError):
+            from_bqm_sampleset(self.bqm, sampleset, sampler, params=self.params)
+
+    @rec.use_cassette('triangle-ising.yaml')
+    def test_solver_graph_validation(self):
+        """All data adapters should fail on non-Chimera/Pegasus solvers."""
+
+        # sample
+        with Client.from_config() as client:
+            solver = client.get_solver(qpu=True)
+            response = solver.sample_ising(*self.problem, **self.params)
+
+        # resolve it before we mangle with it
+        response.result()
+        # change solver topology to non-chimera/pegasus to test solver validation
+        response.solver.properties['topology']['type'] = 'unknown'
+
+        # ensure `from_qmi_response` adapter fails on unstructured solver
+        with self.assertRaises(TypeError):
+            from_qmi_response(self.problem, response, params=self.params)
+
+        # ensure `from_bqm_response` adapter fails on unstructured solver
+        with self.assertRaises(TypeError):
+            from_bqm_response(
+                self.bqm, self.embedding_context, response, params=self.params)
+
+    @rec.use_cassette('triangle-ising.yaml')
+    def test_sampler_graph_validation(self):
+        """All data adapters should fail on non-Chimera/Pegasus solvers."""
+
+        # sample
+        qpu = DWaveSampler(solver=dict(qpu=True))
+        sampler = FixedEmbeddingComposite(qpu, self.embedding)
+        sampleset = sampler.sample(self.bqm, return_embedding=True, **self.params)
+
+        # resolve it before we mangle with it
+        sampleset.info['problem_id']
+        # change solver topology to non-chimera/pegasus to test solver validation
+        sampler.child.solver.properties['topology']['type'] = 'unknown'
 
         # ensure `from_bqm_sampleset` adapter fails on unstructured solver
         with self.assertRaises(TypeError):
