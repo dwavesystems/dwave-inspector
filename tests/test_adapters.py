@@ -42,6 +42,12 @@ rec = vcr.VCR(
     filter_headers=['x-auth-token'],
 )
 
+# minimal mock of an unstructured solver
+unstructured_solver_mock = UnstructuredSolver(
+    client=None,
+    data={'id': 'mock',
+          'properties': {'supported_problem_types': ['bqm']}})
+
 
 class TestAdapters(unittest.TestCase):
 
@@ -297,12 +303,6 @@ class TestAdapters(unittest.TestCase):
     def test_solver_validation(self):
         """All data adapters should fail on non-StructuredSolvers."""
 
-        # minimal mock of an unstructured solver
-        unstr = UnstructuredSolver(
-            client=None,
-            data={'id': 'mock',
-                  'properties': {'supported_problem_types': ['bqm']}})
-
         # sample
         with Client.from_config() as client:
             solver = client.get_solver(qpu=True)
@@ -311,7 +311,7 @@ class TestAdapters(unittest.TestCase):
         # resolve it before we mangle with it
         response.result()
         # change solver to unstructured to test solver validation
-        response.solver = unstr
+        response.solver = unstructured_solver_mock
 
         # ensure `from_qmi_response` adapter fails on unstructured solver
         with self.assertRaises(TypeError):
@@ -331,16 +331,10 @@ class TestAdapters(unittest.TestCase):
         sampler = FixedEmbeddingComposite(qpu, self.embedding)
         sampleset = sampler.sample(self.bqm, return_embedding=True, **self.params)
 
-        # minimal mock of an unstructured solver
-        unstr = UnstructuredSolver(
-            client=None,
-            data={'id': 'mock',
-                  'properties': {'supported_problem_types': ['bqm']}})
-
         # resolve it before we mangle with it
         sampleset.info['problem_id']
         # change solver to unstructured to test solver validation
-        sampler.child.solver = unstr
+        sampler.child.solver = unstructured_solver_mock
 
         # ensure `from_bqm_sampleset` adapter fails on unstructured solver
         with self.assertRaises(TypeError):
