@@ -32,13 +32,6 @@ import requests
 from flask import Flask, send_from_directory
 from werkzeug.exceptions import NotFound
 
-try:
-    import dwave._inspectorapp as appdata
-except ImportError:
-    # TODO: demote to warning only and use a dummy server in this case
-    raise RuntimeError("Can't use the Inspector without 'dwave-inspectorapp' "
-                       "package. Consult the docs for install instructions.")
-
 from dwave.inspector.storage import problem_store, problem_access_sem, get_problem
 
 
@@ -122,6 +115,17 @@ class WSGIAsyncServer(threading.Thread):
                            "webserver to even after {} tries".format(tries))
 
     def _make_server(self):
+        # ensure inspector web app static data is available
+        try:
+            import dwave._inspectorapp as webappdata
+        except ImportError:
+            raise RuntimeError(
+                "Can't use the Inspector without a non-open-source 'inspector' "
+                "component. Consult the docs for install instructions.")
+
+        self.app.webappdata = webappdata
+
+        # create http server, and bind it to first available port >= base_port
         return self._safe_make_server(self.host, self.base_port, self.app)
 
     @property
@@ -204,7 +208,7 @@ app = Flask(__name__, static_folder=None)
 @app.route('/')
 @app.route('/<path:path>')
 def send_static(path='index.html'):
-    with importlib_resources.path(appdata, 'build') as basedir:
+    with importlib_resources.path(app.webappdata, 'build') as basedir:
         return send_from_directory(basedir, path)
 
 @app.route('/api/problems/<problem_id>')
