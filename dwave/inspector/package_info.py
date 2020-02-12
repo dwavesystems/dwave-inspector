@@ -27,3 +27,18 @@ __description__ = 'D-Wave Problem Inspector tool'
 __url__ = 'https://github.com/dwavesystems/dwave-inspector'
 __license__ = 'Apache 2.0'
 __copyright__ = '2019, D-Wave Systems Inc.'
+
+
+# register the non-open-source packages required for dwave-inspector to work
+contrib = [{
+    'name': 'inspector',
+    'title': 'D-Wave Problem Inspector',
+    'description': 'This tool visualizes problems submitted to the quantum computer and the results returned.',
+    'license': {
+        'name': 'D-Wave EULA',
+        'url': 'https://docs.ocean.dwavesys.com/eula',
+    },
+    'requirements': [
+        'dwave-inspectorapp>=0.1.0',
+    ]
+}]
