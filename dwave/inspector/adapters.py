@@ -25,6 +25,7 @@ import dimod.views.bqm
 import dwave.cloud
 from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get, active_qubits
 from dwave.cloud.events import add_handler
+from dwave.cloud.solver import StructuredSolver
 from dwave.embedding import embed_bqm
 from dwave.embedding.utils import edgelist_to_adjacency
 from dwave.system.composites import EmbeddingComposite
@@ -41,6 +42,8 @@ __all__ = [
 ]
 
 logger = logging.getLogger(__name__)
+
+SUPPORTED_SOLVER_TOPOLOGY_TYPES = {'chimera', 'pegasus'}
 
 
 def enable_data_capture():
@@ -203,6 +206,13 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
         quadratic = dict(quadratic)
 
     solver = response.solver
+    if not isinstance(response.solver, StructuredSolver):
+        raise TypeError("only structured solvers are supported")
+
+    topology_type = solver.properties['topology']['type'].lower()
+    if topology_type not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
+        raise TypeError("unsupported solver topology type")
+
     solver_id = solver.id
     solver_data = solver.data
     problem_type = response.problem_type
@@ -296,6 +306,13 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
              embedding_context=embedding_context, warnings=warnings, params=params)))
 
     solver = response.solver
+    if not isinstance(response.solver, StructuredSolver):
+        raise TypeError("only structured solvers are supported")
+
+    topology_type = solver.properties['topology']['type'].lower()
+    if topology_type not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
+        raise TypeError("unsupported solver topology type")
+
     solver_id = solver.id
     problem_type = response.problem_type
 
@@ -439,6 +456,13 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
         raise TypeError("'sampler' doesn't use DWaveSampler")
 
     solver = find_solver(sampler)
+    if not isinstance(solver, StructuredSolver):
+        raise TypeError("only structured solvers are supported")
+
+    topology_type = solver.properties['topology']['type'].lower()
+    if topology_type not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
+        raise TypeError("unsupported solver topology type")
+
     solver_id = solver.id
     problem_type = "ising" if sampleset.vartype is dimod.SPIN else "qubo"
 
