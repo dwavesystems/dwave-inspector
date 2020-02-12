@@ -32,13 +32,6 @@ import requests
 from flask import Flask, send_from_directory
 from werkzeug.exceptions import NotFound
 
-try:
-    import dwave._inspectorapp as appdata
-except ImportError:
-    # TODO: demote to warning only and use a dummy server in this case
-    raise RuntimeError("Can't use the Inspector without 'dwave-inspectorapp' "
-                       "package. Consult the docs for install instructions.")
-
 from dwave.inspector.storage import problem_store, problem_access_sem, get_problem
 
 
@@ -121,9 +114,42 @@ class WSGIAsyncServer(threading.Thread):
         raise RuntimeError("unable to find available port to bind local "
                            "webserver to even after {} tries".format(tries))
 
-    def __init__(self, host, port, app):
+    def _make_server(self):
+        # ensure inspector web app static data is available
+        try:
+            import dwave._inspectorapp as webappdata
+        except ImportError:
+            raise RuntimeError(
+                "Can't use the Inspector without a non-open-source 'inspector' "
+                "component. Consult the docs for install instructions.")
+
+        self.app.webappdata = webappdata
+
+        # create http server, and bind it to first available port >= base_port
+        return self._safe_make_server(self.host, self.base_port, self.app)
+
+    @property
+    def server(self):
+        """HTTP server accessor that creates the actual server instance
+        (and binds it to host:port) on first access.
+        """
+
+        with self._server_lock:
+            self._server = getattr(self, '_server', None)
+
+            if self._server is None:
+                self._server = self._make_server()
+
+            return self._server
+
+    def __init__(self, host, base_port, app):
         super(WSGIAsyncServer, self).__init__(daemon=True)
-        self.server = self._safe_make_server(host, port, app)
+
+        # store config, but start the web server (and bind to address) on run()
+        self.host = host
+        self.base_port = base_port
+        self.app = app
+        self._server_lock = threading.RLock()
 
     def run(self):
         self.server.serve_forever()
@@ -155,6 +181,8 @@ class WSGIAsyncServer(threading.Thread):
             self.start()
             return self._ensure_accessible()
 
+        return True
+
     def ensure_stopped(self):
         if self.is_alive():
             self.stop()
@@ -180,7 +208,7 @@ app = Flask(__name__, static_folder=None)
 @app.route('/')
 @app.route('/<path:path>')
 def send_static(path='index.html'):
-    with importlib_resources.path(appdata, 'build') as basedir:
+    with importlib_resources.path(app.webappdata, 'build') as basedir:
         return send_from_directory(basedir, path)
 
 @app.route('/api/problems/<problem_id>')
@@ -209,4 +237,4 @@ def add_header(response):
     response.cache_control.max_age = 86400
     return response
 
-app_server = WSGIAsyncServer(host='127.0.0.1', port=8000, app=app)
+app_server = WSGIAsyncServer(host='127.0.0.1', base_port=8000, app=app)
