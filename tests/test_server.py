@@ -19,6 +19,10 @@ from dwave.inspector.server import app_server
 
 class TestServer(unittest.TestCase):
 
+    def test_lazy_start(self):
+        self.assertIsNone(getattr(app_server, '_server', None))
+        self.assertIsNotNone(app_server.server)
+
     def test_smoke(self):
         self.assertTrue(app_server.ensure_started())
         app_server.stop()
