@@ -124,23 +124,34 @@ class WSGIAsyncServer(threading.Thread):
     def _make_server(self):
         return self._safe_make_server(self.host, self.base_port, self.app)
 
-    def __init__(self, host, port, app):
+    @property
+    def server(self):
+        """HTTP server accessor that creates the actual server instance
+        (and binds it to host:port) on first access.
+        """
+
+        with self._server_lock:
+            self._server = getattr(self, '_server', None)
+
+            if self._server is None:
+                self._server = self._make_server()
+
+            return self._server
+
+    def __init__(self, host, base_port, app):
         super(WSGIAsyncServer, self).__init__(daemon=True)
 
         # store config, but start the web server (and bind to address) on run()
         self.host = host
-        self.base_port = port
+        self.base_port = base_port
         self.app = app
-        self.server = None
+        self._server_lock = threading.RLock()
 
     def run(self):
-        if self.server is None:
-            self.server = self._make_server()
         self.server.serve_forever()
 
     def stop(self):
-        if self.server:
-            self.server.shutdown()
+        self.server.shutdown()
         self.join()
 
     def get_inspect_url(self, problem_id):
@@ -165,6 +176,8 @@ class WSGIAsyncServer(threading.Thread):
         if not self.is_alive():
             self.start()
             return self._ensure_accessible()
+
+        return True
 
     def ensure_stopped(self):
         if self.is_alive():
@@ -220,4 +233,4 @@ def add_header(response):
     response.cache_control.max_age = 86400
     return response
 
-app_server = WSGIAsyncServer(host='127.0.0.1', port=8000, app=app)
+app_server = WSGIAsyncServer(host='127.0.0.1', base_port=8000, app=app)
