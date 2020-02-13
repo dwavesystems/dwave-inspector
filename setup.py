@@ -1,5 +1,4 @@
 import os
-from io import open
 from setuptools import setup
 
 
@@ -7,11 +6,8 @@ from setuptools import setup
 basedir = os.path.dirname(os.path.abspath(__file__))
 package_info_path = os.path.join(basedir, "dwave", "inspector", "package_info.py")
 package_info = {}
-try:
-    with open(package_info_path, encoding='utf-8') as f:
-        exec(f.read(), package_info)
-except SyntaxError:
-    execfile(package_info_path, package_info)
+with open(package_info_path, encoding='utf-8') as f:
+    exec(f.read(), package_info)
 
 
 # Package requirements, minimal pinning
@@ -35,10 +31,7 @@ classifiers = [
     'License :: OSI Approved :: Apache Software License',
     'Operating System :: OS Independent',
     'Development Status :: 3 - Alpha',
-    'Programming Language :: Python :: 2',
-    'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.4',
     'Programming Language :: Python :: 3.5',
     'Programming Language :: Python :: 3.6',
     'Programming Language :: Python :: 3.7',
@@ -46,6 +39,8 @@ classifiers = [
 ]
 
 packages = ['dwave', 'dwave.inspector']
+
+python_requires = '>=3.5'
 
 setup(
     name=package_info['__package_name__'],
@@ -66,6 +61,7 @@ setup(
             'dwave-inspector = dwave.inspector.package_info:contrib'
         ]
     },
+    python_requires=python_requires,
     install_requires=install_requires,
     extras_require=extras_require,
     classifiers=classifiers,
