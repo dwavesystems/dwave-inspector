@@ -26,7 +26,7 @@ from dwave.inspector.adapters import (
     enable_data_capture)
 from dwave.inspector.storage import push_problem
 from dwave.inspector.viewers import view
-
+from dwave.inspector.package_info import __version__, __author__, __description__
 
 # expose the root logger to simplify access
 logger = logging.getLogger(__name__)
