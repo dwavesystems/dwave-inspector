@@ -640,4 +640,6 @@ def from_objects(*args, **kwargs):
             bqm=bqm, sampleset=sampleset, sampler=sampler,
             embedding_context=embedding_context, warnings=warnings)
 
-    raise ValueError("invalid combination of arguments")
+    raise ValueError(
+        "invalid combination of arguments provided: if data capture not "
+        "enabled, problem/response/solver/etc have to be explicitly specified")
