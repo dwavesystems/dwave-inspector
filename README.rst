@@ -23,6 +23,8 @@ D-Wave structured solver such as a D-Wave 2000Q quantum computer.
 Overview
 ========
 
+.. overview-start-marker
+
 ``dwave-inspector`` provides a graphic interface for examining D-Wave quantum computers'
 problems and answers. As described in the
 `Ocean documentation's Getting Started <https://docs.ocean.dwavesys.com/en/latest/overview/solving_problems.html>`_,
@@ -46,6 +48,7 @@ requires representing one of the three variables with a "chain" of two physical 
 The problem inspector shows you your chains at a glance: you see lengths, any breakages,
 and physical layout.
 
+.. overview-end-marker
 
 .. _install_inspector:
 
@@ -80,7 +83,7 @@ Alternatively, clone and build from source::
 Usage and Examples
 ==================
 
-.. example-start-marker
+.. usage-start-marker
 
 Import the problem inspector to enable it\ [#]_ to hook into your problem submissions.
 
@@ -160,8 +163,6 @@ it sets a weak ``chain_strength`` to show broken chains.
 
   The logical problem, on the left, shows that the value for variable ``b`` is based on a broken chain; the embedded problem, on the right, highlights the broken chain (its two qubits have different values) in bold red.
 
-.. example-end-marker
-
 ``show()`` Method
 -----------------
 
@@ -193,6 +194,8 @@ The ``show()`` method supports flow control for scripts with the ``block`` param
 For example, the default setting of ``once`` (``dwave.inspector.Block.ONCE``) blocks
 until your problem is loaded from the inspector web server and ``forever`` blocks
 until you terminate with a CNTL-C/SIGTERM.
+
+.. usage-end-marker
 
 License
 =======
