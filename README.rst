@@ -82,7 +82,16 @@ Usage and Examples
 
 .. example-start-marker
 
-Import the problem inspector to enable it to hook into your problem submissions.
+Import the problem inspector to enable it\ [#]_ to hook into your problem submissions.
+
+.. [#]
+   Importing the problem inspector activates for the session the capture of
+   data such as problems sent to the QPU and returned responses, relevant details of
+   minor-embedding, and warnings. The recommended workflow is to import it at the
+   start of your coding session as is typical for Python packages (it is also
+   possible, but less convenient, to specify in the submission that
+   data such as embedding be returned with the response).
+
 Use the ``show()`` method to visualize the embedded problem, and optionally the
 logical problem, in your default browser.
 
@@ -163,8 +172,7 @@ if *dimod's* ``EmbeddingComposite`` or derived classes are not used, you must su
 the embedding.
 
 .. [#]
-  For problems submitted in the active session (i.e., once the problem inspector has been
-  imported).
+   For problems submitted in the active session (i.e., once the problem inspector has been imported).
 
 Below are some options for providing problem data to the ``show()`` method, where
 ``response`` was returned for a problem defined directly on physical qubits and
