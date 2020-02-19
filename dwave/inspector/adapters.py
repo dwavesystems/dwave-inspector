@@ -609,9 +609,15 @@ def from_objects(*args, **kwargs):
              embedding_context=embedding_context, warnings=warnings,
              problem=problem, problem_id=problem_id)))
 
-    # in order of preference (most desirable form first):
-    if problem_id is not None:
+    # ideally, low-level data capture has been enabled during sampling,
+    # and we have the problem data:
+    try:
         pd = storage.get_problem(problem_id)
+    except KeyError:
+        pd = None
+
+    # in order of preference (most desirable form first):
+    if pd is not None:
         # TODO: doublecheck qubos are visualized correctly
         problem = (pd.problem['linear'], pd.problem['quadratic'])
         return from_qmi_response(problem=problem, response=pd.response,
@@ -634,4 +640,6 @@ def from_objects(*args, **kwargs):
             bqm=bqm, sampleset=sampleset, sampler=sampler,
             embedding_context=embedding_context, warnings=warnings)
 
-    raise ValueError("invalid combination of arguments")
+    raise ValueError(
+        "invalid combination of arguments provided: if data capture not "
+        "enabled, problem/response/solver/etc have to be explicitly specified")
