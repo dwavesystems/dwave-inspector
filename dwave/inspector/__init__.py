@@ -118,6 +118,19 @@ def show(*args, **kwargs):
     """Auto-detect the optimal `show_*` method based on arguments provided and
     forward the call.
 
+    Note:
+        Low-level data capture is enabled on `dwave.inspector` import. Data
+        captured includes the full QMI, QPU response, embedding context,
+        warnings, and sampling parameters.
+
+        If the data capture is enabled prior to embedding/sampling, the only
+        necessary argument to provide to `show()` is a response / problem id
+        (for QMI inspection) or a sampleset (for logical problem + QMI
+        inspection).
+
+        The alternative (late import) requires all relevant data to be
+        explicitly provided to `show()`.
+
     Examples:
 
         # QMI-only viz (no logical problem)
