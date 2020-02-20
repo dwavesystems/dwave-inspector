@@ -95,12 +95,13 @@ def _unembedded_answer_dict(sampleset):
         "num_variables": len(sampleset.variables)
     }
 
-def _problem_dict(solver_id, problem_type, problem_data, params=None):
+def _problem_dict(solver_id, problem_type, problem_data, params=None, stats=None):
     return {
         "solver": solver_id,
         "type": problem_type,
         "params": params if params is not None else {},
-        "data": _validated_problem_data(problem_data)
+        "data": _validated_problem_data(problem_data),
+        "stats": stats if stats is not None else {}
     }
 
 def _validated_problem_data(data):
@@ -135,6 +136,54 @@ def _validated_embedding(emb):
         msg = "invalid embedding structure"
         logger.warning(msg)
         raise ValueError(msg)
+
+def _problem_stats(response=None, sampleset=None, embedding_context=None):
+    "Generate problem stats from available data."
+
+    if embedding_context is None:
+        embedding_context = {}
+
+    embedding = embedding_context.get('embedding')
+    chain_strength = embedding_context.get('chain_strength')
+    chain_break_method = embedding_context.get('chain_break_method')
+
+    # best guess for number of logical/source vars
+    if sampleset:
+        num_source_variables = len(sampleset.variables)
+    elif embedding:
+        num_source_variables = len(embedding)
+    elif response:
+        num_source_variables = len(response.variables)
+    else:
+        num_source_variables = None
+
+    # best guess for number of target/source vars
+    if response:
+        target_vars = set(response.variables)
+        num_target_variables = len(response.variables)
+    elif sampleset and embedding:
+        target_vars = {t for s in sampleset.variables for t in embedding[s]}
+        num_target_variables = len(target_vars)
+    else:
+        target_vars = set()
+        num_target_variables = None
+
+    # max chain length
+    if embedding:
+        # consider only active variables in response
+        # (so fixed embedding won't falsely increase the max chain len)
+        max_chain_length = max(len(target_vars.intersection(chain))
+                               for chain in embedding.values())
+    else:
+        max_chain_length = 1
+
+    return {
+        "num_source_variables": num_source_variables,
+        "num_target_variables": num_target_variables,
+        "max_chain_length": max_chain_length,
+        "chain_strength": chain_strength,
+        "chain_break_method": chain_break_method,
+    }
 
 def _details_dict(response):
     return {
@@ -253,10 +302,14 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
     if params is None:
         params = {'num_reads': sum(num_occurrences)}
 
+    # construct problem stats
+    problem_stats = _problem_stats(response=response, sampleset=sampleset,
+                                   embedding_context=embedding_context)
+
     data = {
         "ready": True,
         "details": _details_dict(response),
-        "data": _problem_dict(solver_id, problem_type, problem_data, params),
+        "data": _problem_dict(solver_id, problem_type, problem_data, params, problem_stats),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
         "warnings": _warnings(warnings),
 
@@ -364,10 +417,14 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
     # TODO: if warnings are missing, calculate them here (since we have the
     # low-level response)
 
+    # construct problem stats
+    problem_stats = _problem_stats(response=response, sampleset=sampleset,
+                                   embedding_context=embedding_context)
+
     data = {
         "ready": True,
         "details": _details_dict(response),
-        "data": _problem_dict(solver_id, problem_type, problem_data, params),
+        "data": _problem_dict(solver_id, problem_type, problem_data, params, problem_stats),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
         "warnings": _warnings(warnings),
 
@@ -441,7 +498,6 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
     if embedding is None:
         raise ValueError("embedding not given")
     chain_strength = embedding_context.get('chain_strength', 1.0)
-    chain_break_method = embedding_context.get('chain_break_method')
 
     def find_solver(sampler):
         if hasattr(sampler, 'solver'):
@@ -525,6 +581,10 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
     if warnings is None:
         warnings = sampleset.info.get('warnings')
 
+    # construct problem stats
+    problem_stats = _problem_stats(response=None, sampleset=sampleset,
+                                   embedding_context=embedding_context)
+
     data = {
         "ready": True,
         "details": {
@@ -532,7 +592,7 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
             "type": problem_type,
             "solver": solver.id
         },
-        "data": _problem_dict(solver_id, problem_type, problem_data, params),
+        "data": _problem_dict(solver_id, problem_type, problem_data, params, problem_stats),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
         "unembedded_answer": _unembedded_answer_dict(sampleset),
         "warnings": _warnings(warnings),
