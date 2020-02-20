@@ -593,6 +593,11 @@ def from_objects(*args, **kwargs):
     problem = kwargs.get('problem', maybe_pop(problems))
     problem_id = kwargs.get('problem_id', maybe_pop(problem_ids))
 
+    # make sure the response is resolved
+    if response is not None and not response.done():
+        logger.debug("response not yet resolved; forcing resolve")
+        response.result()
+
     # read problem_id from sampleset or response
     if problem_id is None and sampleset is not None:
         problem_id = sampleset.info.get('problem_id')
