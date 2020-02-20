@@ -104,6 +104,64 @@ def _problem_dict(solver_id, problem_type, problem_data, params=None, stats=None
         "stats": stats if stats is not None else {}
     }
 
+def _expand_params(solver, params=None, timing=None):
+    """Expand a limited set of user-provided params to a full set, substituting
+    missing values with solver defaults.
+    """
+    if params is None:
+        params = {}
+    if timing is None:
+        timing = {}
+
+    default_annealing_time = solver.properties['default_annealing_time']
+    default_programming_thermalization = solver.properties['default_programming_thermalization']
+    default_readout_thermalization = solver.properties['default_readout_thermalization']
+
+    # figure out `annealing_time`
+    if "qpu_anneal_time_per_sample" in timing:
+        # actual value is known
+        annealing_time = timing["qpu_anneal_time_per_sample"]
+    elif "annealing_time" in params:
+        annealing_time = params["annealing_time"]
+    elif "anneal_schedule" in params:
+        anneal_schedule = params["anneal_schedule"]
+        annealing_time = anneal_schedule[-1][0]
+    else:
+        annealing_time = default_annealing_time
+
+    # figure out `anneal_schedule`
+    if "anneal_schedule" in params:
+        anneal_schedule = params["anneal_schedule"]
+    else:
+        anneal_schedule = [[0, 0], [annealing_time, 1]]
+
+    flux_biases = params.get('flux_biases')
+    initial_state = params.get("initial_state")
+
+    # set each parameter individually because defaults are not necessarily
+    # constant; they can depend on one or more other parameters
+    return {
+        "anneal_offsets": params.get("anneal_offsets"),
+        "anneal_schedule": anneal_schedule,
+        "annealing_time": annealing_time,
+        "answer_mode": params.get("answer_mode", "histogram"),
+        "auto_scale": params.get("auto_scale", True if not flux_biases else False),
+        "beta": params.get("beta", 10 if solver.is_vfyc else 1),
+        "chains": params.get("chains"),
+        "flux_biases": flux_biases,
+        "flux_drift_compensation": params.get("flux_drift_compensation", True),
+        "h_gain_schedule": params.get("h_gain_schedule", [[0, 1], [annealing_time, 1]]),
+        "initial_state": initial_state,
+        "max_answers": params.get("max_answers"),
+        "num_reads": params.get("num_reads", 1),
+        "num_spin_reversal_transforms": params.get("num_spin_reversal_transforms", 0),
+        "postprocess": params.get("postprocess", "sampling" if solver.is_vfyc else ""),
+        "programming_thermalization": params.get("programming_thermalization", default_programming_thermalization),
+        "readout_thermalization": params.get("readout_thermalization", default_readout_thermalization),
+        "reduce_intersample_correlation": params.get("reduce_intersample_correlation", False),
+        "reinitialize_state": params.get("reinitialize_state", True if initial_state else False)
+    }
+
 def _validated_problem_data(data):
     "Basic types validation/conversion."
 
@@ -302,6 +360,9 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
     if params is None:
         params = {'num_reads': sum(num_occurrences)}
 
+    # expand with defaults
+    params = _expand_params(solver, params, timing)
+
     # construct problem stats
     problem_stats = _problem_stats(response=response, sampleset=sampleset,
                                    embedding_context=embedding_context)
@@ -413,6 +474,9 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
     # try to reconstruct sampling params
     if params is None:
         params = {'num_reads': sum(num_occurrences)}
+
+    # expand with defaults
+    params = _expand_params(solver, params, timing)
 
     # TODO: if warnings are missing, calculate them here (since we have the
     # low-level response)
@@ -576,6 +640,9 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
     # try to reconstruct sampling params
     if params is None:
         params = {'num_reads': sum(num_occurrences)}
+
+    # expand with defaults
+    params = _expand_params(solver, params, timing)
 
     # try to get warnings from sampleset.info
     if warnings is None:
