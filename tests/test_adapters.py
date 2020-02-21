@@ -89,7 +89,12 @@ class TestAdapters(unittest.TestCase):
 
         # .problem
         self.assertEqual(data['data']['type'], response.problem_type)
-        self.assertEqual(data['data']['params'], params)
+
+        # .problem.params, smoke tests
+        self.assertIn('params', data['data'])
+        self.assertEqual(data['data']['params']['num_reads'], params['num_reads'])
+        self.assertIn('annealing_time', data['data']['params'])
+        self.assertIn('programming_thermalization', data['data']['params'])
 
         if response.problem_type == 'ising':
             linear, quadratic = problem

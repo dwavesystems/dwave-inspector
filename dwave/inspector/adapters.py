@@ -95,12 +95,71 @@ def _unembedded_answer_dict(sampleset):
         "num_variables": len(sampleset.variables)
     }
 
-def _problem_dict(solver_id, problem_type, problem_data, params=None):
+def _problem_dict(solver_id, problem_type, problem_data, params=None, stats=None):
     return {
         "solver": solver_id,
         "type": problem_type,
         "params": params if params is not None else {},
-        "data": _validated_problem_data(problem_data)
+        "data": _validated_problem_data(problem_data),
+        "stats": stats if stats is not None else {}
+    }
+
+def _expand_params(solver, params=None, timing=None):
+    """Expand a limited set of user-provided params to a full set, substituting
+    missing values with solver defaults.
+    """
+    if params is None:
+        params = {}
+    if timing is None:
+        timing = {}
+
+    default_annealing_time = solver.properties['default_annealing_time']
+    default_programming_thermalization = solver.properties['default_programming_thermalization']
+    default_readout_thermalization = solver.properties['default_readout_thermalization']
+
+    # figure out `annealing_time`
+    if "qpu_anneal_time_per_sample" in timing:
+        # actual value is known
+        annealing_time = timing["qpu_anneal_time_per_sample"]
+    elif "annealing_time" in params:
+        annealing_time = params["annealing_time"]
+    elif "anneal_schedule" in params:
+        anneal_schedule = params["anneal_schedule"]
+        annealing_time = anneal_schedule[-1][0]
+    else:
+        annealing_time = default_annealing_time
+
+    # figure out `anneal_schedule`
+    if "anneal_schedule" in params:
+        anneal_schedule = params["anneal_schedule"]
+    else:
+        anneal_schedule = [[0, 0], [annealing_time, 1]]
+
+    flux_biases = params.get('flux_biases')
+    initial_state = params.get("initial_state")
+
+    # set each parameter individually because defaults are not necessarily
+    # constant; they can depend on one or more other parameters
+    return {
+        "anneal_offsets": params.get("anneal_offsets"),
+        "anneal_schedule": anneal_schedule,
+        "annealing_time": annealing_time,
+        "answer_mode": params.get("answer_mode", "histogram"),
+        "auto_scale": params.get("auto_scale", True if not flux_biases else False),
+        "beta": params.get("beta", 10 if solver.is_vfyc else 1),
+        "chains": params.get("chains"),
+        "flux_biases": flux_biases,
+        "flux_drift_compensation": params.get("flux_drift_compensation", True),
+        "h_gain_schedule": params.get("h_gain_schedule", [[0, 1], [annealing_time, 1]]),
+        "initial_state": initial_state,
+        "max_answers": params.get("max_answers"),
+        "num_reads": params.get("num_reads", 1),
+        "num_spin_reversal_transforms": params.get("num_spin_reversal_transforms", 0),
+        "postprocess": params.get("postprocess", "sampling" if solver.is_vfyc else ""),
+        "programming_thermalization": params.get("programming_thermalization", default_programming_thermalization),
+        "readout_thermalization": params.get("readout_thermalization", default_readout_thermalization),
+        "reduce_intersample_correlation": params.get("reduce_intersample_correlation", False),
+        "reinitialize_state": params.get("reinitialize_state", True if initial_state else False)
     }
 
 def _validated_problem_data(data):
@@ -135,6 +194,54 @@ def _validated_embedding(emb):
         msg = "invalid embedding structure"
         logger.warning(msg)
         raise ValueError(msg)
+
+def _problem_stats(response=None, sampleset=None, embedding_context=None):
+    "Generate problem stats from available data."
+
+    if embedding_context is None:
+        embedding_context = {}
+
+    embedding = embedding_context.get('embedding')
+    chain_strength = embedding_context.get('chain_strength')
+    chain_break_method = embedding_context.get('chain_break_method')
+
+    # best guess for number of logical/source vars
+    if sampleset:
+        num_source_variables = len(sampleset.variables)
+    elif embedding:
+        num_source_variables = len(embedding)
+    elif response:
+        num_source_variables = len(response.variables)
+    else:
+        num_source_variables = None
+
+    # best guess for number of target/source vars
+    if response:
+        target_vars = set(response.variables)
+        num_target_variables = len(response.variables)
+    elif sampleset and embedding:
+        target_vars = {t for s in sampleset.variables for t in embedding[s]}
+        num_target_variables = len(target_vars)
+    else:
+        target_vars = set()
+        num_target_variables = None
+
+    # max chain length
+    if embedding:
+        # consider only active variables in response
+        # (so fixed embedding won't falsely increase the max chain len)
+        max_chain_length = max(len(target_vars.intersection(chain))
+                               for chain in embedding.values())
+    else:
+        max_chain_length = 1
+
+    return {
+        "num_source_variables": num_source_variables,
+        "num_target_variables": num_target_variables,
+        "max_chain_length": max_chain_length,
+        "chain_strength": chain_strength,
+        "chain_break_method": chain_break_method,
+    }
 
 def _details_dict(response):
     return {
@@ -253,10 +360,17 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
     if params is None:
         params = {'num_reads': sum(num_occurrences)}
 
+    # expand with defaults
+    params = _expand_params(solver, params, timing)
+
+    # construct problem stats
+    problem_stats = _problem_stats(response=response, sampleset=sampleset,
+                                   embedding_context=embedding_context)
+
     data = {
         "ready": True,
         "details": _details_dict(response),
-        "data": _problem_dict(solver_id, problem_type, problem_data, params),
+        "data": _problem_dict(solver_id, problem_type, problem_data, params, problem_stats),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
         "warnings": _warnings(warnings),
 
@@ -361,13 +475,20 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
     if params is None:
         params = {'num_reads': sum(num_occurrences)}
 
+    # expand with defaults
+    params = _expand_params(solver, params, timing)
+
     # TODO: if warnings are missing, calculate them here (since we have the
     # low-level response)
+
+    # construct problem stats
+    problem_stats = _problem_stats(response=response, sampleset=sampleset,
+                                   embedding_context=embedding_context)
 
     data = {
         "ready": True,
         "details": _details_dict(response),
-        "data": _problem_dict(solver_id, problem_type, problem_data, params),
+        "data": _problem_dict(solver_id, problem_type, problem_data, params, problem_stats),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
         "warnings": _warnings(warnings),
 
@@ -441,7 +562,6 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
     if embedding is None:
         raise ValueError("embedding not given")
     chain_strength = embedding_context.get('chain_strength', 1.0)
-    chain_break_method = embedding_context.get('chain_break_method')
 
     def find_solver(sampler):
         if hasattr(sampler, 'solver'):
@@ -521,9 +641,16 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
     if params is None:
         params = {'num_reads': sum(num_occurrences)}
 
+    # expand with defaults
+    params = _expand_params(solver, params, timing)
+
     # try to get warnings from sampleset.info
     if warnings is None:
         warnings = sampleset.info.get('warnings')
+
+    # construct problem stats
+    problem_stats = _problem_stats(response=None, sampleset=sampleset,
+                                   embedding_context=embedding_context)
 
     data = {
         "ready": True,
@@ -532,7 +659,7 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
             "type": problem_type,
             "solver": solver.id
         },
-        "data": _problem_dict(solver_id, problem_type, problem_data, params),
+        "data": _problem_dict(solver_id, problem_type, problem_data, params, problem_stats),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
         "unembedded_answer": _unembedded_answer_dict(sampleset),
         "warnings": _warnings(warnings),
