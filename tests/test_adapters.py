@@ -421,3 +421,16 @@ class TestAdapters(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             _validated_embedding("a")
+
+        # validate overlapping chains fail (issue #67)
+        with self.assertRaises(ValueError):
+            _validated_embedding({'a': [0, 4], 'b': [4, 5]})
+
+        with self.assertRaises(ValueError):
+            _validated_embedding({'a': [0, 1, 2], 'b': [1]})
+
+        with self.assertRaises(ValueError):
+            _validated_embedding({'a': [0, 1, 2], 'b': [3], 'c': [3, 0]})
+
+        with self.assertRaises(ValueError):
+            _validated_embedding({0: [0, 4], 1: [4, 3], 2: [3, 7], 3: [7, 0]})
