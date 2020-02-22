@@ -31,7 +31,8 @@ from dwave.embedding.utils import edgelist_to_adjacency
 from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get, active_qubits
 
 from dwave.inspector.adapters import (
-    from_qmi_response, from_bqm_response, from_bqm_sampleset, from_objects)
+    from_qmi_response, from_bqm_response, from_bqm_sampleset, from_objects,
+    _validated_embedding)
 
 
 rec = vcr.VCR(
@@ -385,3 +386,38 @@ class TestAdapters(unittest.TestCase):
         # ensure `from_bqm_sampleset` adapter fails on unstructured solver
         with self.assertRaises(TypeError):
             from_bqm_sampleset(self.bqm, sampleset, sampler, params=self.params)
+
+    def test_embedding_validation(self):
+        # chains can be non-lists
+
+        # like sets (issue 19)
+        emb = {'a': {0}, 'b': {2,1}}
+        validated = _validated_embedding(emb)
+        self.assertDictEqual(validated, {'a': [0], 'b': [1,2]})
+
+        # or numpy arrays
+        emb = {'a': numpy.array([1,2])}
+        validated = _validated_embedding(emb)
+        self.assertDictEqual(validated, {'a': [1,2]})
+
+        # or other iterables
+        emb = {'a': {0: 1, 1: 2}}
+        validated = _validated_embedding(emb)
+        self.assertDictEqual(validated, {'a': [0,1]})
+
+        # source variables can be non-strings
+        emb = {0: [0], 1: [1]}
+        validated = _validated_embedding(emb)
+        self.assertDictEqual(validated, {"0": [0], "1": [1]})
+
+        # target variables can be non-integers
+        emb = {'a': [numpy.int64(0)]}
+        validated = _validated_embedding(emb)
+        self.assertDictEqual(validated, {'a': [0]})
+
+        # invalid embedding data structure
+        with self.assertRaises(ValueError):
+            _validated_embedding([['a'], [1,2]])
+
+        with self.assertRaises(ValueError):
+            _validated_embedding("a")
