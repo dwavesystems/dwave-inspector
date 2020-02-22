@@ -185,15 +185,18 @@ def _validated_problem_data(data):
 def _validated_embedding(emb):
     "Basic types validation/conversion."
 
+    # check structure, casting to `Dict[str, List[int]]` along the way
     try:
         keys = map(str, emb.keys())
-        values = map(list, emb.values())
-        return dict(zip(keys, values))
+        values = [sorted(map(int, chain)) for chain in emb.values()]
+        emb = dict(zip(keys, values))
 
     except Exception as e:
         msg = "invalid embedding structure"
         logger.warning(msg)
         raise ValueError(msg)
+
+    return emb
 
 def _problem_stats(response=None, sampleset=None, embedding_context=None):
     "Generate problem stats from available data."
