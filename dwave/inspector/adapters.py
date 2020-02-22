@@ -17,8 +17,9 @@ from __future__ import absolute_import
 import copy
 import uuid
 import logging
+import itertools
 from operator import itemgetter
-from collections import abc
+from collections import abc, Counter
 
 import dimod
 import dimod.views.bqm
@@ -187,12 +188,21 @@ def _validated_embedding(emb):
 
     # check structure, casting to `Dict[str, List[int]]` along the way
     try:
-        keys = map(str, emb.keys())
+        keys = map(str, emb)
         values = [sorted(map(int, chain)) for chain in emb.values()]
         emb = dict(zip(keys, values))
 
     except Exception as e:
         msg = "invalid embedding structure"
+        logger.warning("{}: {}".format(msg, e))
+        raise ValueError(msg, e)
+
+    # validate chains are disjoint
+    counts = Counter()
+    counts.update(itertools.chain(*emb.values()))
+    if not all(v == 1 for v in counts.values()):
+        msg = "embedding has overlapping chains in target variables: {}".format(
+            sorted(k for k, v in counts.items() if v > 1))
         logger.warning(msg)
         raise ValueError(msg)
 
