@@ -77,12 +77,12 @@ def enable_data_capture():
 def _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables):
     return {
         "format": "qp",
-        "solutions": solutions,
-        "active_variables": active_variables,
-        "energies": energies,
-        "num_occurrences": num_occurrences,
+        "solutions": [list(map(int, s)) for s in solutions],
+        "active_variables": list(map(int, active_variables)),
+        "energies": list(map(float, energies)),
+        "num_occurrences": list(map(int, num_occurrences)),
         "timing": timing,
-        "num_variables": num_variables
+        "num_variables": int(num_variables)
     }
 
 def _unembedded_answer_dict(sampleset):
