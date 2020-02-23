@@ -32,7 +32,7 @@ import requests
 from flask import Flask, send_from_directory
 from werkzeug.exceptions import NotFound
 
-from dwave.inspector.storage import problem_store, problem_access_sem, get_problem
+from dwave.inspector.storage import problem_store, problem_access_sem, get_problem, get_solver_data
 
 
 # get local server/app logger
@@ -222,8 +222,7 @@ def send_problem(problem_id):
 @app.route('/api/problems/<problem_id>/solver')
 def send_solver(problem_id):
     try:
-        pd = get_problem(problem_id)
-        return pd.solver.data
+        return get_solver_data(problem_store[problem_id]['details']['solver'])
     except KeyError:
         raise NotFound
 

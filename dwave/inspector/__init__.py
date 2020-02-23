@@ -24,7 +24,7 @@ from dwave.inspector.server import app_server
 from dwave.inspector.adapters import (
     from_qmi_response, from_bqm_response, from_bqm_sampleset, from_objects,
     enable_data_capture)
-from dwave.inspector.storage import push_problem
+from dwave.inspector.storage import push_inspector_data
 from dwave.inspector.viewers import view
 from dwave.inspector.package_info import __version__, __author__, __description__
 
@@ -94,14 +94,14 @@ def show_qmi(problem, response, embedding_context=None, warnings=None, params=No
     data = from_qmi_response(problem=problem, response=response,
                              embedding_context=embedding_context,
                              warnings=warnings, params=params)
-    id_ = push_problem(data)
+    id_ = push_inspector_data(data)
     return open_problem(id_)
 
 
 def show_bqm_response(bqm, embedding_context, response, warnings=None, params=None):
     data = from_bqm_response(bqm=bqm, embedding_context=embedding_context,
                              response=response, warnings=warnings, params=params)
-    id_ = push_problem(data)
+    id_ = push_inspector_data(data)
     return open_problem(id_)
 
 
@@ -110,7 +110,7 @@ def show_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
     data = from_bqm_sampleset(bqm=bqm, sampleset=sampleset, sampler=sampler,
                               embedding_context=embedding_context,
                               warnings=warnings, params=params)
-    id_ = push_problem(data)
+    id_ = push_inspector_data(data)
     return open_problem(id_)
 
 
@@ -151,5 +151,5 @@ def show(*args, **kwargs):
     """
     block = kwargs.pop('block', Block.ONCE)
     data = from_objects(*args, **kwargs)
-    id_ = push_problem(data)
+    id_ = push_inspector_data(data)
     return open_problem(id_, block=block)

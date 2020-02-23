@@ -25,9 +25,15 @@ problem_store = OrderedDict()
 problem_access_sem = defaultdict(lambda: threading.Semaphore(value=0))
 
 
-def push_problem(problem_data):
-    id_ = problem_data['details']['id']
-    problem_store[id_] = problem_data
+def push_inspector_data(data):
+    # push solver
+    add_solver(data['rel']['solver'])
+    del data['rel']
+
+    # push problem data
+    id_ = data['details']['id']
+    problem_store[id_] = data
+
     return id_
 
 
@@ -61,6 +67,10 @@ def add_problem(problem, solver, response):
     problemdata_bag.add(pd)
 
     # cache solver reference
+    add_solver(solver)
+
+
+def add_solver(solver):
     solvers[solver.id] = solver
 
 

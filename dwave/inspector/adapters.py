@@ -141,6 +141,7 @@ def _expand_params(solver, params=None, timing=None):
 
     # set each parameter individually because defaults are not necessarily
     # constant; they can depend on one or more other parameters
+    # TODO: cast to primary types for safe JSON serialization
     return {
         "anneal_offsets": params.get("anneal_offsets"),
         "anneal_schedule": anneal_schedule,
@@ -334,7 +335,6 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
         raise TypeError("unsupported solver topology type")
 
     solver_id = solver.id
-    solver_data = solver.data
     problem_type = response.problem_type
 
     variables = list(response.variables)
@@ -371,7 +371,7 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
 
     # try to reconstruct sampling params
     if params is None:
-        params = {'num_reads': sum(num_occurrences)}
+        params = {'num_reads': int(sum(num_occurrences))}
 
     # expand with defaults
     params = _expand_params(solver, params, timing)
@@ -386,9 +386,7 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
         "data": _problem_dict(solver_id, problem_type, problem_data, params, problem_stats),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
         "warnings": _warnings(warnings),
-
-        # TODO
-        "messages": [],
+        "rel": dict(solver=solver),
     }
 
     if sampleset is not None:
@@ -486,7 +484,7 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
 
     # try to reconstruct sampling params
     if params is None:
-        params = {'num_reads': sum(num_occurrences)}
+        params = {'num_reads': int(sum(num_occurrences))}
 
     # expand with defaults
     params = _expand_params(solver, params, timing)
@@ -504,9 +502,7 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
         "data": _problem_dict(solver_id, problem_type, problem_data, params, problem_stats),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
         "warnings": _warnings(warnings),
-
-        # TODO
-        "messages": [],
+        "rel": dict(solver=solver),
     }
 
     if sampleset is not None:
@@ -652,7 +648,7 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
 
     # try to reconstruct sampling params
     if params is None:
-        params = {'num_reads': sum(num_occurrences)}
+        params = {'num_reads': int(sum(num_occurrences))}
 
     # expand with defaults
     params = _expand_params(solver, params, timing)
@@ -676,9 +672,7 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
         "unembedded_answer": _unembedded_answer_dict(sampleset),
         "warnings": _warnings(warnings),
-
-        # TODO:
-        "messages": [],
+        "rel": dict(solver=solver),
     }
 
     logger.trace("from_bqm_sampleset returned %r", data)
