@@ -334,7 +334,6 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
         raise TypeError("unsupported solver topology type")
 
     solver_id = solver.id
-    solver_data = solver.data
     problem_type = response.problem_type
 
     variables = list(response.variables)
@@ -386,9 +385,7 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
         "data": _problem_dict(solver_id, problem_type, problem_data, params, problem_stats),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
         "warnings": _warnings(warnings),
-
-        # TODO
-        "messages": [],
+        "rel": dict(solver=solver),
     }
 
     if sampleset is not None:
@@ -504,9 +501,7 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
         "data": _problem_dict(solver_id, problem_type, problem_data, params, problem_stats),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
         "warnings": _warnings(warnings),
-
-        # TODO
-        "messages": [],
+        "rel": dict(solver=solver),
     }
 
     if sampleset is not None:
@@ -676,9 +671,7 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
         "unembedded_answer": _unembedded_answer_dict(sampleset),
         "warnings": _warnings(warnings),
-
-        # TODO:
-        "messages": [],
+        "rel": dict(solver=solver),
     }
 
     logger.trace("from_bqm_sampleset returned %r", data)
