@@ -22,7 +22,7 @@ from operator import itemgetter
 from collections import abc, Counter
 
 import dimod
-import dimod.views.bqm
+import dimod.core.bqm
 import dwave.cloud
 from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get, active_qubits
 from dwave.cloud.events import add_handler
@@ -77,12 +77,12 @@ def enable_data_capture():
 def _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables):
     return {
         "format": "qp",
-        "solutions": solutions,
-        "active_variables": active_variables,
-        "energies": energies,
-        "num_occurrences": num_occurrences,
+        "solutions": [list(map(int, s)) for s in solutions],
+        "active_variables": list(map(int, active_variables)),
+        "energies": list(map(float, energies)),
+        "num_occurrences": list(map(int, num_occurrences)),
         "timing": timing,
-        "num_variables": num_variables
+        "num_variables": int(num_variables)
     }
 
 def _unembedded_answer_dict(sampleset):
@@ -320,9 +320,9 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
         linear, quadratic = reformat_qubo_as_ising(problem)
 
     # make sure lin/quad are not dimod views (that handle directed edges)
-    if isinstance(linear, dimod.views.bqm.BQMView):
+    if isinstance(linear, dimod.core.bqm.BQMView):
         linear = dict(linear)
-    if isinstance(quadratic, dimod.views.bqm.BQMView):
+    if isinstance(quadratic, dimod.core.bqm.BQMView):
         quadratic = dict(quadratic)
 
     solver = response.solver
@@ -405,7 +405,7 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
     the embedding used when submitting, and the low-level sampling response.
 
     Args:
-        bqm (:class:`dimod.BinaryQuadraticModel`):
+        bqm (:class:`dimod.BinaryQuadraticModel`/:class:`dimod.core.bqm.BQM`):
             Problem in logical (unembedded) space, given as a BQM.
 
         embedding_context (dict):
@@ -535,7 +535,7 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
         adapter.
 
     Args:
-        bqm (:class:`dimod.BinaryQuadraticModel`):
+        bqm (:class:`dimod.BinaryQuadraticModel`/:class:`dimod.core.bqm.BQM`):
             Problem in logical (unembedded) space, given as a BQM.
 
         sampleset (:class:`~dimod.sampleset.SampleSet`):
@@ -695,7 +695,7 @@ def from_objects(*args, **kwargs):
     """
     logger.debug("from_objects(*{!r}, **{!r})".format(args, kwargs))
 
-    bqm_cls = dimod.BinaryQuadraticModel
+    bqm_cls = (dimod.BinaryQuadraticModel, dimod.core.bqm.BQM)
     sampleset_cls = dimod.SampleSet
     sampler_cls = (dimod.Sampler, dimod.ComposedSampler)
     response_cls = dwave.cloud.Future
