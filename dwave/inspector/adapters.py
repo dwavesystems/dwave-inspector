@@ -141,6 +141,7 @@ def _expand_params(solver, params=None, timing=None):
 
     # set each parameter individually because defaults are not necessarily
     # constant; they can depend on one or more other parameters
+    # TODO: cast to primary types for safe JSON serialization
     return {
         "anneal_offsets": params.get("anneal_offsets"),
         "anneal_schedule": anneal_schedule,
@@ -370,7 +371,7 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
 
     # try to reconstruct sampling params
     if params is None:
-        params = {'num_reads': sum(num_occurrences)}
+        params = {'num_reads': int(sum(num_occurrences))}
 
     # expand with defaults
     params = _expand_params(solver, params, timing)
@@ -483,7 +484,7 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
 
     # try to reconstruct sampling params
     if params is None:
-        params = {'num_reads': sum(num_occurrences)}
+        params = {'num_reads': int(sum(num_occurrences))}
 
     # expand with defaults
     params = _expand_params(solver, params, timing)
@@ -647,7 +648,7 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
 
     # try to reconstruct sampling params
     if params is None:
-        params = {'num_reads': sum(num_occurrences)}
+        params = {'num_reads': int(sum(num_occurrences))}
 
     # expand with defaults
     params = _expand_params(solver, params, timing)
