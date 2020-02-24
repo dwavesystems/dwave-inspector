@@ -54,6 +54,7 @@ unstructured_solver_mock = UnstructuredSolver(
 BrickedClient = partial(Client, token='fake')
 
 
+@mock.patch('dwave.system.samplers.dwave_sampler.Client.from_config', BrickedClient)
 class TestAdapters(unittest.TestCase):
 
     @rec.use_cassette('triangle-ising.yaml')
