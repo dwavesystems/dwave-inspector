@@ -22,7 +22,6 @@ from operator import itemgetter
 from collections import abc, Counter
 
 import dimod
-import dimod.core.bqm
 import dwave.cloud
 from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get, active_qubits
 from dwave.cloud.events import add_handler
@@ -33,6 +32,19 @@ from dwave.system.composites import EmbeddingComposite
 from dwave.system.warnings import WarningAction
 
 from dwave.inspector import storage
+
+try:
+    from dimod.core.bqm import BQMView
+except ImportError:
+    # dimod < 0.9
+    from dimod.views.bqm import BQMView
+
+try:
+    import dimod.core.bqm
+    BQM_CLASSES = (dimod.BinaryQuadraticModel, dimod.core.bqm.BQM)
+except ImportError:
+    # dimod < 0.9
+    BQM_CLASSES = (dimod.BinaryQuadraticModel, )
 
 __all__ = [
     'from_qmi_response',
@@ -321,9 +333,9 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
         linear, quadratic = reformat_qubo_as_ising(problem)
 
     # make sure lin/quad are not dimod views (that handle directed edges)
-    if isinstance(linear, dimod.core.bqm.BQMView):
+    if isinstance(linear, BQMView):
         linear = dict(linear)
-    if isinstance(quadratic, dimod.core.bqm.BQMView):
+    if isinstance(quadratic, BQMView):
         quadratic = dict(quadratic)
 
     solver = response.solver
@@ -689,7 +701,7 @@ def from_objects(*args, **kwargs):
     """
     logger.debug("from_objects(*{!r}, **{!r})".format(args, kwargs))
 
-    bqm_cls = (dimod.BinaryQuadraticModel, dimod.core.bqm.BQM)
+    bqm_cls = BQM_CLASSES
     sampleset_cls = dimod.SampleSet
     sampler_cls = (dimod.Sampler, dimod.ComposedSampler)
     response_cls = dwave.cloud.Future
