@@ -17,6 +17,7 @@ import mock
 import unittest
 from decimal import Decimal
 from fractions import Fraction
+from functools import partial
 
 import vcr
 import numpy
@@ -49,12 +50,15 @@ unstructured_solver_mock = UnstructuredSolver(
     data={'id': 'mock',
           'properties': {'supported_problem_types': ['bqm']}})
 
+# we can use a fake token because outbound requests are intercepted anyway
+BrickedClient = partial(Client, token='fake')
+
 
 class TestAdapters(unittest.TestCase):
 
     @rec.use_cassette('triangle-ising.yaml')
     def setUp(self):
-        with Client.from_config() as client:
+        with BrickedClient() as client:
             self.solver = client.get_solver(qpu=True)
 
             self.ising = ({}, {'ab': 1, 'bc': 1, 'ca': 1})
@@ -133,7 +137,7 @@ class TestAdapters(unittest.TestCase):
         """Inspector data is correctly encoded for a simple Ising triangle problem."""
 
         # sample
-        with Client.from_config() as client:
+        with BrickedClient() as client:
             solver = client.get_solver(qpu=True)
             response = solver.sample_ising(*self.problem, **self.params)
 
@@ -158,7 +162,7 @@ class TestAdapters(unittest.TestCase):
         }
 
         # sample
-        with Client.from_config() as client:
+        with BrickedClient() as client:
             solver = client.get_solver(qpu=True)
             response = solver.sample_qubo(problem, **self.params)
 
@@ -176,7 +180,7 @@ class TestAdapters(unittest.TestCase):
         problem = ({}, self.ising_embedded[1])
 
         # sample
-        with Client.from_config() as client:
+        with BrickedClient() as client:
             solver = client.get_solver(qpu=True)
             response = solver.sample_ising(*problem, **self.params)
 
@@ -210,7 +214,7 @@ class TestAdapters(unittest.TestCase):
         problem = (h, J)
 
         # sample
-        with Client.from_config() as client:
+        with BrickedClient() as client:
             solver = client.get_solver(qpu=True)
             response = solver.sample_ising(*problem, **self.params)
 
@@ -224,7 +228,7 @@ class TestAdapters(unittest.TestCase):
     @rec.use_cassette('triangle-ising.yaml')
     def _test_from_bqm_response(self, bqm):
         # sample
-        with Client.from_config() as client:
+        with BrickedClient() as client:
             solver = client.get_solver(qpu=True)
             response = solver.sample_ising(*self.problem, **self.params)
 
@@ -382,7 +386,7 @@ class TestAdapters(unittest.TestCase):
         """All data adapters should fail on non-StructuredSolvers."""
 
         # sample
-        with Client.from_config() as client:
+        with BrickedClient() as client:
             solver = client.get_solver(qpu=True)
             response = solver.sample_ising(*self.problem, **self.params)
 
@@ -423,7 +427,7 @@ class TestAdapters(unittest.TestCase):
         """All data adapters should fail on non-Chimera/Pegasus solvers."""
 
         # sample
-        with Client.from_config() as client:
+        with BrickedClient() as client:
             solver = client.get_solver(qpu=True)
             response = solver.sample_ising(*self.problem, **self.params)
 
