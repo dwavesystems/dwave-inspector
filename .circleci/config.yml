@@ -26,10 +26,15 @@ jobs:
           key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "tests/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
           paths:
             - env
+      - run: &install-package
+          name: Install package
+          command: env/bin/python setup.py install
       - run: &build-package
           name: Build package
-          command: python setup.py sdist bdist_wheel
-      - run: env/bin/coverage run -m unittest discover
+          command: env/bin/python setup.py sdist bdist_wheel
+      - run: &run-tests
+          name: Run tests
+          command: env/bin/coverage run -m unittest discover
       - run:
           name: codecov
           command: |
@@ -91,8 +96,9 @@ jobs:
             - env
           key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "tests/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
 
-      # run tests
-      - run: env/bin/coverage run -m unittest discover
+      - run: *install-package
+
+      - run: *run-tests
 
   test-osx-3.7:
     <<: *test-osx-template
