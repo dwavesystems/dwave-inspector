@@ -21,7 +21,7 @@ install_requires = [
 
 # Package extras requirements
 extras_require = {
-    'test': ['coverage', 'mock'],
+    'test': ['coverage', 'mock', 'vcrpy'],
 
     # backports
     ':python_version < "3.7"': ['importlib_resources']
