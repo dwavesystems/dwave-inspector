@@ -33,7 +33,7 @@ mapped to its qubits in a process called minor-embedding. Because the way you ch
 minor-embed a problem (the mapping and related parameters) affects solution quality,
 it can be helpful to see it.
 
-For example, embedding a :math:`K_3` fully-connected graph, such as the
+For example, embedding a K3 fully-connected graph, such as the
 `Boolean AND gate example <https://docs.ocean.dwavesys.com/en/latest/examples/and.html>`_
 into a D-Wave 2000Q, with its Chimera topology,
 requires representing one of the three variables with a "chain" of two physical qubits:
