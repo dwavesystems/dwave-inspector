@@ -210,7 +210,8 @@ app = Flask(__name__, static_folder=None)
 @app.route('/<path:path>')
 def send_static(path='index.html'):
     with importlib_resources.path(app.webappdata, 'build') as basedir:
-        return send_from_directory(basedir, path)
+        # NOTE: cast `basedir: PosixPath` to `str` to work on Flask@py35
+        return send_from_directory(str(basedir), path)
 
 @app.route('/api/problems/<problem_id>')
 def send_problem(problem_id):
