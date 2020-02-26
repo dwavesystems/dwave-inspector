@@ -2,7 +2,7 @@
     :target: https://badge.fury.io/py/dwave-inspector
     :alt: Last version on PyPI
 
-.. image:: https://circleci.com/gh/dwavesystems/dwave-inspector.svg?style=svg
+.. image:: https://circleci.com/gh/dwavesystems/dwave-inspector.svg?style=shield
     :target: https://circleci.com/gh/dwavesystems/dwave-inspector
     :alt: Linux/Mac build status
 
