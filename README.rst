@@ -57,17 +57,17 @@ Installation or Building
 
 .. installation-start-marker
 
-Install the closed-source dependencies::
+If `D-Wave Ocean SDK 2.0+ <https://docs.ocean.dwavesys.com/>`_ is installed::
+
+    dwave install inspector
+
+Otherwise, install the package from PyPI::
+
+    pip install dwave-inspector
+
+and then install the closed-source dependencies with::
 
     pip install dwave-inspectorapp --extra-index=https://pypi.dwavesys.com/simple
-
-Then, install from package on D-Wave's PyPI::
-
-    pip install dwave-inspector --extra-index=https://pypi.dwavesys.com/simple
-
-or from source::
-
-    pip install git+ssh://git@github.com/dwavesystems/dwave-inspector.git
 
 Alternatively, clone and build from source::
 
@@ -75,6 +75,9 @@ Alternatively, clone and build from source::
     cd dwave-inspector
     pip install -r requirements.txt
     python setup.py install
+
+When building from source, the closed-source component still needs to be
+installed as above.
 
 .. installation-end-marker
 
