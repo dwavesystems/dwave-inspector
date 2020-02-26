@@ -38,7 +38,7 @@ For example, embedding a K3 fully-connected graph, such as the
 into a D-Wave 2000Q, with its Chimera topology,
 requires representing one of the three variables with a "chain" of two physical qubits:
 
-.. figure:: docs/_images/and_gate.png
+.. figure:: https://raw.githubusercontent.com/dwavesystems/dwave-inspector/master/docs/_images/and_gate.png
   :align: center
   :figclass: align-center
 
@@ -126,7 +126,7 @@ True
 >>> # Inspect
 >>> dwave.inspector.show(response)
 
-.. figure:: docs/_images/physical_qubits.png
+.. figure:: https://raw.githubusercontent.com/dwavesystems/dwave-inspector/master/docs/_images/physical_qubits.png
   :align: center
   :figclass: align-center
 
@@ -157,7 +157,7 @@ it sets a weak ``chain_strength`` to show broken chains.
     # Inspect
     dwave.inspector.show(sampleset)
 
-.. figure:: docs/_images/logical_problem.png
+.. figure:: https://raw.githubusercontent.com/dwavesystems/dwave-inspector/master/docs/_images/logical_problem.png
   :align: center
   :figclass: align-center
 
