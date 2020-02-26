@@ -1,6 +1,14 @@
+.. image:: https://badge.fury.io/py/dwave-inspector.svg
+    :target: https://badge.fury.io/py/dwave-inspector
+    :alt: Last version on PyPI
+
 .. image:: https://circleci.com/gh/dwavesystems/dwave-inspector.svg?style=svg
     :target: https://circleci.com/gh/dwavesystems/dwave-inspector
     :alt: Linux/Mac build status
+
+.. image:: https://codecov.io/gh/dwavesystems/dwave-inspector/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/dwavesystems/dwave-inspector
+    :alt: Coverage report
 
 
 ================
