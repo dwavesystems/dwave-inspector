@@ -120,9 +120,9 @@ class WSGIAsyncServer(threading.Thread):
             import dwave._inspectorapp as webappdata
         except ImportError:
             raise RuntimeError(
-                "Can't use the Inspector without a non-open-source 'inspector' "
-                "app component. Try running: 'dwave install inspector', or "
-                "consult the docs.")
+                "Cannot use the problem inspector without a non-open-source 'inspector' "
+                "application component. Try running 'dwave install inspector' or "
+                "consult the documentation.")
 
         self.app.webappdata = webappdata
 
