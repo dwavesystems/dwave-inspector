@@ -305,7 +305,7 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
 
         response (:class:`dwave.cloud.computation.Future`):
             Sampling response, as returned by the low-level sampling interface
-            in the Cloud Client (e.g. :meth:`dwave.cloud.solver.sample_ising`
+            in the Cloud Client (e.g. :meth:`dwave.cloud.Solver.sample_ising`
             for Ising problems).
 
         embedding_context (dict, optional):
