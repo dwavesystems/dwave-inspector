@@ -192,6 +192,24 @@ class TestAdapters(unittest.TestCase):
         self.verify_data_encoding(problem=problem, response=response,
                                   solver=solver, params=self.params, data=data)
 
+    @rec.use_cassette('single-qubit-ising.yaml')
+    def test_from_qmi_response__single_qubit(self):
+        """Problem/solutions are correctly encoded for single-qubit problems."""
+
+        problem = ({0: 1}, {})
+
+        # sample
+        with BrickedClient() as client:
+            solver = client.get_solver(qpu=True)
+            response = solver.sample_ising(*problem, **self.params)
+
+        # convert
+        data = from_qmi_response(problem, response, params=self.params)
+
+        # validate data encoding
+        self.verify_data_encoding(problem=problem, response=response,
+                                  solver=solver, params=self.params, data=data)
+
     @rec.use_cassette('triangle-ising.yaml')
     def test_from_qmi_response__problem_encoding(self):
         """Problem data is serialized even when it uses non-standard types (like numpy.int64)."""
