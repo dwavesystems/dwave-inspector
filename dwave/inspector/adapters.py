@@ -18,7 +18,6 @@ import copy
 import uuid
 import logging
 import itertools
-from operator import itemgetter
 from collections import abc, Counter
 
 import dimod
@@ -32,6 +31,7 @@ from dwave.system.composites import EmbeddingComposite
 from dwave.system.warnings import WarningAction
 
 from dwave.inspector import storage
+from dwave.inspector.utils import itemsgetter
 
 try:
     from dimod.core.bqm import BQMView
@@ -360,7 +360,7 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
     active_variables = response['active_variables']
     assert set(active) == set(active_variables)
 
-    solutions = list(map(itemgetter(*active_variables), response['solutions']))
+    solutions = list(map(itemsgetter(*active_variables), response['solutions']))
     energies = response['energies']
     num_occurrences = response.occurrences
     num_variables = solver.num_qubits
@@ -456,7 +456,7 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
     active_variables = response['active_variables']
     active = set(active_variables)
 
-    solutions = list(map(itemgetter(*active_variables), response['solutions']))
+    solutions = list(map(itemsgetter(*active_variables), response['solutions']))
     energies = response['energies']
     num_occurrences = response.occurrences
     num_variables = solver.num_qubits
