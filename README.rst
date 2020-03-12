@@ -34,19 +34,19 @@ quantum processing unit (QPU).
 >>> import dwave.inspector
 ...
 >>> # Get solver
->>> sampler = DWaveSampler(solver = {'qpu': True})
+>>> sampler = DWaveSampler(solver = {'qpu': True})   # doctest: +SKIP
 ...
 >>> # Define a problem (actual qubits depend on the selected QPU's working graph)
 >>> h = {}
->>> all (edge in sampler.edgelist for edge in {(0, 4), (0, 5), (1, 4), (1, 5)})
+>>> all (edge in sampler.edgelist for edge in {(0, 4), (0, 5), (1, 4), (1, 5)})   # doctest: +SKIP
 True
 >>> J = {(0, 4): 1, (0, 5): 1, (1, 4): 1, (1, 5): -1}
 ...
 >>> # Sample
->>> response = sampler.sample_ising(h, J, num_reads=100)
+>>> response = sampler.sample_ising(h, J, num_reads=100)   # doctest: +SKIP
 ...
 >>> # Inspect
->>> dwave.inspector.show(response)
+>>> dwave.inspector.show(response)   # doctest: +SKIP
 
 .. example-end-marker
 
