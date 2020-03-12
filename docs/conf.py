@@ -63,7 +63,7 @@ master_doc = 'index'
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-from dwave.inspector.package_info import package_info
+from dwave.inspector import package_info
 project = package_info.__title__
 copyright = package_info.__copyright__
 author = package_info.__author__
