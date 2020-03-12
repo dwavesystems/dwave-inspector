@@ -36,7 +36,7 @@ Documentation
 .. toctree::
   :maxdepth: 1
 
-  intro/index
+  intro
   reference/index
 
 .. sdk-end-marker
