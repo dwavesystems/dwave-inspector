@@ -20,7 +20,7 @@ __all__ = [
 
 __package_name__ = 'dwave-inspector'
 __title__ = 'D-Wave Problem Inspector'
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 __author__ = 'D-Wave Systems Inc.'
 __author_email__ = 'radomir@dwavesys.com'
 __description__ = 'D-Wave Problem Inspector tool'
@@ -39,6 +39,6 @@ contrib = [{
         'url': 'https://docs.ocean.dwavesys.com/eula',
     },
     'requirements': [
-        'dwave-inspectorapp==0.1.3',
+        'dwave-inspectorapp==0.1.4',
     ]
 }]
