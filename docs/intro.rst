@@ -55,6 +55,13 @@ Inspecting an Embedded Problem
   :start-after: example-start-marker
   :end-before: example-end-marker
 
+.. figure:: _images/physical_qubits.png
+  :align: center
+  :figclass: align-center
+
+  Edge values between qubits 0, 1, 4, 5, and the selected solution, are shown by color on the left; a histogram, on the right, shows the energies of returned samples.
+
+
 Inspecting a Logical Problem
 ----------------------------
 

@@ -1,9 +1,10 @@
 .. _show_inspector:
 
-===========================
-Simulated Annealing Sampler
-===========================
+====================
+Visualizing Problems
+====================
 
+TODO: BRING IN FUNCTIONS FROM __init__ WITH AUTODOC
 
 ``show()`` Method
 -----------------
