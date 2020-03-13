@@ -5,11 +5,11 @@ Visualizing Problems
 ====================
 
 Typically you use the :func:`~dwave.inspector.__init__.show` function on a
-:class:`.SampleSet` returned from the quantum computer or on the SAPI
+:class:`~dimod.SampleSet` returned from the quantum computer or on the SAPI
 problem ID\ [#]_. Other problem inputs, such as the binary quadratic
 model---in BQM, Ising, or QUBO formats---and an emebedding, are optional.
 However, to visualize a logical problem if
-:std:doc:`dimod <oceandocs:docs_dimod/sdk_index>`\ 's :class:`EmbeddingComposite`
+:std:doc:`dimod <oceandocs:docs_dimod/sdk_index>`\ 's :class:`~dwave.system.composites.EmbeddingComposite`
 or derived classes are not used, you must supply the embedding.
 
 .. [#]
@@ -18,7 +18,8 @@ or derived classes are not used, you must supply the embedding.
 Below are some options for providing problem data to the
 :func:`~dwave.inspector.__init__.show` function, where
 ``response`` was returned for a problem defined directly on physical qubits and
-``sampleset`` returned from a problem submitted using :class:`EmbeddingComposite`:
+``sampleset`` returned from a problem submitted using
+:class:`~dwave.system.composites.EmbeddingComposite`:
 
 .. code-block:: python
 

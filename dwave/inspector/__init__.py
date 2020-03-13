@@ -52,6 +52,19 @@ enable_data_capture()
 
 
 class Block(enum.Enum):
+    """
+    Flow-control settings for scripts.
+
+    An enum with values: ``NEVER``, ``ONCE``, ``FOREVER``. The default setting of
+    ``once`` (``dwave.inspector.Block.ONCE``) blocks until your problem
+    is loaded from the inspector web server
+
+    Examples:
+        This example does not block while the problem is loaded.
+
+    >>> show(response, block='never')
+
+    """
     NEVER = 'never'
     ONCE = 'once'
     FOREVER = 'forever'
