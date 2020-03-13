@@ -71,18 +71,15 @@ class Block(enum.Enum):
 
 
 def open_problem(problem_id, block=Block.ONCE):
-    """Open problem_id from storage in the Inspector web app.
+    """Open the problem inspector for the specified problem.
 
     Args:
         problem_id (str):
-            Submitted problem id, as returned by SAPI.
+            Submitted problem identity, as returned by SAPI.
 
-        block (:class:`Block`/str/bool, optional, default=:obj:`Block.ONCE`):
-            Blocking behavior after opening up the web browser preview. In
-            between the obvious edge cases (:obj:`Block.NEVER`/'never'/:obj:`False`
-            and :obj:`Block.FOREVER`/'forever'/:obj:`True`), a value of
-            :obj:`Block.ONCE`/'once' will block the return until the problem has
-            been loaded from the inspector web server exactly once.
+        block (:class:`Block`/str/bool, optional, default: :obj:`Block.ONCE`):
+            Blocking behavior after opening up the web browser preview as set
+            by :class:`Block` value.
 
     """
     # accept string name for `block`
@@ -104,6 +101,9 @@ def open_problem(problem_id, block=Block.ONCE):
 
 
 def show_qmi(problem, response, embedding_context=None, warnings=None, params=None):
+    """
+    Visualize a quantum machine instruction (QMI).
+    """
     data = from_qmi_response(problem=problem, response=response,
                              embedding_context=embedding_context,
                              warnings=warnings, params=params)
@@ -112,6 +112,9 @@ def show_qmi(problem, response, embedding_context=None, warnings=None, params=No
 
 
 def show_bqm_response(bqm, embedding_context, response, warnings=None, params=None):
+    """
+    Visualize a quantum machine instruction (QMI) response and binary quadratic model.
+    """
     data = from_bqm_response(bqm=bqm, embedding_context=embedding_context,
                              response=response, warnings=warnings, params=params)
     id_ = push_inspector_data(data)
@@ -120,6 +123,9 @@ def show_bqm_response(bqm, embedding_context, response, warnings=None, params=No
 
 def show_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
                        warnings=None, params=None):
+    """
+    Visualize a returned sampleset and binary quadratic model.
+    """
     data = from_bqm_sampleset(bqm=bqm, sampleset=sampleset, sampler=sampler,
                               embedding_context=embedding_context,
                               warnings=warnings, params=params)
@@ -128,38 +134,45 @@ def show_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
 
 
 def show(*args, **kwargs):
-    """Auto-detect the optimal `show_*` method based on arguments provided and
-    forward the call.
+    """Auto-detect and forward to the `show_*`` optimal for the specified arguments.
 
+    Args:
+        See parameters of :func:`.show_qmi`, :func:`.show_bqm_response`,
+        or :func:`.show_bqm_sampleset`.
+        
     Note:
         Low-level data capture is enabled on `dwave.inspector` import. Data
-        captured includes the full QMI, QPU response, embedding context,
-        warnings, and sampling parameters.
+        captured includes the full quantum machine instruction (QMI), QPU
+        response, embedding context, warnings, and sampling parameters.
 
-        If the data capture is enabled prior to embedding/sampling, the only
-        necessary argument to provide to `show()` is a response / problem id
-        (for QMI inspection) or a sampleset (for logical problem + QMI
-        inspection).
+        If data capture is enabled prior to embedding/sampling, you need
+        provide to ``show()`` only a response or problem ID for QMI inspection
+        or a :class:`~dimod.SampleSet` for logical problem and QMI inspection.
 
-        The alternative (late import) requires all relevant data to be
-        explicitly provided to `show()`.
+        If data capture is not enabled prior to embedding/sampling, provide
+        all relevant data explicitly to ``show()``.
 
     Examples:
 
-        # QMI-only viz (no logical problem)
-        show((h, J), response)
-        show(Q, response)
-        show(response)
-        show('69ace80c-d3b1-448a-a028-b51b94f4a49d')
+        This example shows ways to visualize just a QMI (not a logical problem)::
 
-        # QMI + explicit embedding (-> no warnings! fix!)
-        show((h, J), response, dict(embedding=embedding, chain_strength=5))
+            show(response)
+            show((h, J), response)
+            show(Q, response)
+            show('69ace80c-d3b1-448a-a028-b51b94f4a49d')
 
-        # embedding and warnings read from the sampleset
-        show(bqm, sampleset)
+        This example visualizes a QMI and explicit embedding::
 
-        # embedding/warnings/problem_id read from sampleset, logical problem reconstructed
-        show(sampleset)
+            show((h, J), response, dict(embedding=embedding, chain_strength=5))
+
+        This example shows embedding and warnings read from the sampleset::
+
+            show(bqm, sampleset)
+
+        This example shows embedding and warnings read from a :class:`~dimod.SampleSet`,
+        from which the logical problem is reconstructed::
+
+            show(sampleset)
 
     """
     block = kwargs.pop('block', Block.ONCE)
