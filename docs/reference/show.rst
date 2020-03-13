@@ -4,23 +4,21 @@
 Visualizing Problems
 ====================
 
-TODO: BRING IN FUNCTIONS FROM __init__ WITH AUTODOC
-
-``show()`` Method
------------------
-
-The ``show()`` method requires the ``SampleSet`` returned from the quantum computer
-or the SAPI problem ID\ [#]_\ ; other problem inputs---the binary quadratic model in BQM, Ising,
-or QUBO formats, and an emebedding---are optional. However, to visualize a logical problem
-if *dimod's* ``EmbeddingComposite`` or derived classes are not used, you must supply
-the embedding.
+Typically you use the :func:`~dwave.inspector.__init__.show` function on a
+:class:`.SampleSet` returned from the quantum computer or on the SAPI
+problem ID\ [#]_. Other problem inputs, such as the binary quadratic
+model---in BQM, Ising, or QUBO formats---and an emebedding, are optional.
+However, to visualize a logical problem if
+:std:doc:`dimod <oceandocs:docs_dimod/sdk_index>`\ 's :class:`EmbeddingComposite`
+or derived classes are not used, you must supply the embedding.
 
 .. [#]
    For problems submitted in the active session (i.e., once the problem inspector has been imported).
 
-Below are some options for providing problem data to the ``show()`` method, where
+Below are some options for providing problem data to the
+:func:`~dwave.inspector.__init__.show` function, where
 ``response`` was returned for a problem defined directly on physical qubits and
-``sampleset`` returned from a problem submitted using ``EmbeddingComposite``:
+``sampleset`` returned from a problem submitted using :class:`EmbeddingComposite`:
 
 .. code-block:: python
 
@@ -33,7 +31,29 @@ Below are some options for providing problem data to the ``show()`` method, wher
     show(sampleset)
     show(bqm, sampleset)
 
-The ``show()`` method supports flow control for scripts with the ``block`` parameter.
+To see detailed parameter information, see the relevant function below.
+
+The :func:`~dwave.inspector.__init__.show` function supports flow control for
+scripts with the ``block`` parameter.
 For example, the default setting of ``once`` (``dwave.inspector.Block.ONCE``) blocks
 until your problem is loaded from the inspector web server and ``forever`` blocks
 until you terminate with a CNTL-C/SIGTERM.
+
+.. currentmodule:: dwave.inspector.__init__
+
+Classes
+=======
+
+.. autoclass:: Block
+
+Functions
+=========
+
+.. autosummary::
+   :toctree: generated/
+
+   open_problem
+   show
+   show_bqm_response
+   show_bqm_sampleset
+   show_qmi
