@@ -9,3 +9,5 @@ build/
 dist/
 wheels/
 docs/**/generated/
+
+docs/_build
