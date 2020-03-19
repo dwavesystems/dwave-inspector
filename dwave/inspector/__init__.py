@@ -134,23 +134,24 @@ def show_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
 
 
 def show(*args, **kwargs):
-    """Auto-detect and forward to the `show_*`` optimal for the specified arguments.
+    """Auto-detect and forward to the ``show_*`` optimal for the specified
+    arguments.
 
-    Args:
-        See parameters of :func:`.show_qmi`, :func:`.show_bqm_response`,
-        or :func:`.show_bqm_sampleset`.
-        
+    For description of accepted arguments, see of :func:`.show_qmi`,
+    :func:`.show_bqm_response`, or :func:`.show_bqm_sampleset`.
+
     Note:
         Low-level data capture is enabled on `dwave.inspector` import. Data
         captured includes the full quantum machine instruction (QMI), QPU
         response, embedding context, warnings, and sampling parameters.
 
         If data capture is enabled prior to embedding/sampling, you need
-        provide to ``show()`` only a response or problem ID for QMI inspection
-        or a :class:`~dimod.SampleSet` for logical problem and QMI inspection.
+        provide to :func:`~dwave.inspector.show` only a response or problem ID
+        for QMI inspection or a :class:`~dimod.SampleSet` for logical problem
+        and QMI inspection.
 
         If data capture is not enabled prior to embedding/sampling, provide
-        all relevant data explicitly to ``show()``.
+        all relevant data explicitly to :func:`~dwave.inspector.show`.
 
     Examples:
 
