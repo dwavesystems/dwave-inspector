@@ -10,6 +10,9 @@
     :target: https://codecov.io/gh/dwavesystems/dwave-inspector
     :alt: Coverage report
 
+.. image:: https://readthedocs.com/projects/d-wave-systems-dwave-inspector/badge/?version=latest
+    :target: https://docs.ocean.dwavesys.com/projects/inspector/en/latest/?badge=latest
+    :alt: Documentation Status
 
 ================
 D-Wave Inspector
