@@ -18,8 +18,8 @@
 #
 import os
 import sys
-# sys.path.insert(0, os.path.abspath('.'))
-# sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # -- General configuration ------------------------------------------------
 # import sphinx
@@ -120,7 +120,8 @@ def setup(app):
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'python': ('https://docs.python.org/3', None),
-    'qbsolv': ('https://docs.ocean.dwavesys.com/projects/qbsolv/en/latest/', None),
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
     'oceandocs': ('https://docs.ocean.dwavesys.com/en/latest/', None),
-    'sysdocs_gettingstarted': ('https://docs.dwavesys.com/docs/latest/', None)}
+    'sysdocs_gettingstarted': ('https://docs.dwavesys.com/docs/latest/', None),
+}
