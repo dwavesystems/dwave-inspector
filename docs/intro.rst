@@ -59,7 +59,9 @@ Inspecting an Embedded Problem
   :align: center
   :figclass: align-center
 
-  Edge values between qubits 0, 1, 4, 5, and the selected solution, are shown by color on the left; a histogram, on the right, shows the energies of returned samples.
+  Edge values between qubits 0, 1, 4, 5, and the selected solution, are shown by
+  color on the left; a histogram, on the right, shows the energies of returned
+  samples.
 
 
 Inspecting a Logical Problem
@@ -91,4 +93,6 @@ it sets a weak ``chain_strength`` to show broken chains.
   :align: center
   :figclass: align-center
 
-  The logical problem, on the left, shows that the value for variable ``b`` is based on a broken chain; the embedded problem, on the right, highlights the broken chain (its two qubits have different values) in bold red.
+  The logical problem, on the left, shows that the value for variable ``b`` is
+  based on a broken chain; the embedded problem, on the right, highlights the
+  broken chain (its two qubits have different values) in bold red.
