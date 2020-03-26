@@ -51,9 +51,30 @@ logical problem, in your default browser.
 Inspecting an Embedded Problem
 ------------------------------
 
-.. include:: README.rst
-  :start-after: example-start-marker
-  :end-before: example-end-marker
+.. inspecting-embedded-problem-start-marker
+
+This example shows the canonical usage: samples representing physical qubits on a
+quantum processing unit (QPU).
+
+>>> from dwave.system import DWaveSampler
+>>> import dwave.inspector
+...
+>>> # Get solver
+>>> sampler = DWaveSampler(solver=dict(qpu=True))   # doctest: +SKIP
+...
+>>> # Define a problem (actual qubits depend on the selected QPU's working graph)
+>>> h = {}
+>>> J = {(0, 4): 1, (0, 5): 1, (1, 4): 1, (1, 5): -1}
+>>> all(edge in sampler.edgelist for edge in J)     # doctest: +SKIP
+True
+...
+>>> # Sample
+>>> response = sampler.sample_ising(h, J, num_reads=100)   # doctest: +SKIP
+...
+>>> # Inspect
+>>> dwave.inspector.show(response)   # doctest: +SKIP
+
+.. inspecting-embedded-problem-end-marker
 
 .. figure:: _images/physical_qubits.png
   :align: center
@@ -81,7 +102,7 @@ it sets a weak ``chain_strength`` to show broken chains.
     bqm = dimod.BQM.from_ising({}, {'ab': 1, 'bc': 1, 'ca': 1})
 
     # Get sampler
-    sampler = EmbeddingComposite(DWaveSampler(solver=dict(qpu=True)))   # doctest: +SKIP
+    sampler = EmbeddingComposite(DWaveSampler(solver=dict(qpu=True)))     # doctest: +SKIP
 
     # Sample with low chain strength
     sampleset = sampler.sample(bqm, num_reads=1000, chain_strength=0.1)   # doctest: +SKIP

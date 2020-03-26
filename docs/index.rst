@@ -13,9 +13,9 @@ D-Wave Problem Inspector
 Example
 =======
 
-.. include:: README.rst
-  :start-after: example-start-marker
-  :end-before: example-end-marker
+.. include:: intro.rst
+  :start-after: inspecting-embedded-problem-start-marker
+  :end-before: inspecting-embedded-problem-end-marker
 
 Documentation
 =============
