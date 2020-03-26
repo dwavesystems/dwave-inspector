@@ -30,26 +30,27 @@ Example
 
 .. example-start-marker
 
-This example shows the canonical usage: samples representing physical qubits on a
-quantum processing unit (QPU).
+This example shows the canonical usage: samples representing physical qubits on
+a quantum processing unit (QPU).
 
->>> from dwave.system import DWaveSampler
->>> import dwave.inspector
-...
->>> # Get solver
->>> sampler = DWaveSampler(solver = {'qpu': True})   # doctest: +SKIP
-...
->>> # Define a problem (actual qubits depend on the selected QPU's working graph)
->>> h = {}
->>> all (edge in sampler.edgelist for edge in {(0, 4), (0, 5), (1, 4), (1, 5)})   # doctest: +SKIP
-True
->>> J = {(0, 4): 1, (0, 5): 1, (1, 4): 1, (1, 5): -1}
-...
->>> # Sample
->>> response = sampler.sample_ising(h, J, num_reads=100)   # doctest: +SKIP
-...
->>> # Inspect
->>> dwave.inspector.show(response)   # doctest: +SKIP
+.. code-block:: python
+
+    from dwave.system import DWaveSampler
+    import dwave.inspector
+
+    # Get solver
+    sampler = DWaveSampler(solver=dict(qpu=True))
+
+    # Define a problem (actual qubits depend on the selected QPU's working graph)
+    h = {}
+    J = {(0, 4): 1, (0, 5): 1, (1, 4): 1, (1, 5): -1}
+    assert all(edge in sampler.edgelist for edge in J)
+
+    # Sample
+    response = sampler.sample_ising(h, J, num_reads=100)
+
+    # Inspect
+    dwave.inspector.show(response)
 
 .. example-end-marker
 
