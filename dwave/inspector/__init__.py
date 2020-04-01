@@ -62,7 +62,7 @@ class Block(enum.Enum):
     Examples:
         This example does not block while the problem is loaded.
 
-    >>> show(response, block='never')
+    >>> dwave.inspector.show(response, block='never')   # doctest: +SKIP
 
     """
     NEVER = 'never'
