@@ -60,16 +60,15 @@ quantum processing unit (QPU).
 >>> import dwave.inspector
 ...
 >>> # Get solver
->>> sampler = DWaveSampler(solver=dict(qpu=True))   # doctest: +SKIP
+>>> sampler = DWaveSampler(solver=dict(qpu=True))
 ...
 >>> # Define a problem (actual qubits depend on the selected QPU's working graph)
 >>> h = {}
 >>> J = {(0, 4): 1, (0, 5): 1, (1, 4): 1, (1, 5): -1}
->>> all(edge in sampler.edgelist for edge in J)     # doctest: +SKIP
+>>> all(edge in sampler.edgelist for edge in J)
 True
-...
 >>> # Sample
->>> response = sampler.sample_ising(h, J, num_reads=100)   # doctest: +SKIP
+>>> response = sampler.sample_ising(h, J, num_reads=100)
 ...
 >>> # Inspect
 >>> dwave.inspector.show(response)   # doctest: +SKIP
@@ -92,7 +91,9 @@ This example visualizes a problem specified logically and then automatically
 minor-embedded by Ocean's ``EmbeddingComposite``. For illustrative purposes
 it sets a weak ``chain_strength`` to show broken chains.
 
-.. code-block:: python
+Define a problem and sample it for solutions:
+
+.. testcode::
 
     import dimod
     import dwave.inspector
@@ -102,13 +103,14 @@ it sets a weak ``chain_strength`` to show broken chains.
     bqm = dimod.BQM.from_ising({}, {'ab': 1, 'bc': 1, 'ca': 1})
 
     # Get sampler
-    sampler = EmbeddingComposite(DWaveSampler(solver=dict(qpu=True)))     # doctest: +SKIP
+    sampler = EmbeddingComposite(DWaveSampler(solver=dict(qpu=True)))
 
     # Sample with low chain strength
-    sampleset = sampler.sample(bqm, num_reads=1000, chain_strength=0.1)   # doctest: +SKIP
+    sampleset = sampler.sample(bqm, num_reads=1000, chain_strength=0.1)
 
-    # Inspect
-    dwave.inspector.show(sampleset)    # doctest: +SKIP
+Inspect the problem::
+
+    dwave.inspector.show(sampleset)
 
 .. figure:: _images/logical_problem.png
   :align: center
