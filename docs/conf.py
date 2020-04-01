@@ -92,6 +92,12 @@ todo_include_todos = True
 
 modindex_common_prefix = ['inspector.']
 
+doctest_global_setup = """
+from dwave.system.testing import MockDWaveSampler
+import dwave.system
+dwave.system.DWaveSampler = MockDWaveSampler
+"""
+
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
