@@ -12,29 +12,39 @@ jobs:
 
     steps:
       - checkout
-      - restore_cache:
+
+      - restore_cache: &restore-cache-tests
           key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "tests/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
-      - run: python -m virtualenv env
-      - run: &install-requirements
+
+      - run: &create-virtualenv
+          name: Create virtual environment
+          command: python -m virtualenv env
+
+      - run: &install-requirements-tests
           name: Install requirements
           command: |
             . env/bin/activate
             pip install -r tests/requirements.txt
             pip install dwave-inspectorapp --extra-index=https://pypi.dwavesys.com/simple
             pip install wheel twine
-      - save_cache:
+
+      - save_cache: &save-cache-tests
           key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "tests/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
           paths:
             - env
+
       - run: &install-package
           name: Install package
           command: env/bin/python setup.py install
+
       - run: &build-package
           name: Build package
           command: env/bin/python setup.py sdist bdist_wheel
+
       - run: &run-tests
           name: Run tests
           command: env/bin/coverage run -m unittest discover
+
       - run:
           name: codecov
           command: |
@@ -63,23 +73,28 @@ jobs:
   test-osx-3.8: &test-osx-template
     macos:
       xcode: "11.2.1"
+
     environment:
       PYTHON: 3.8.0
+
     steps:
       - checkout
 
       # install $PYTHON and cache it
       - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install pyenv
+
       - restore_cache:
           keys:
             - pyenv-{{ .Environment.CIRCLE_JOB }}-xcode-11.2.1
+
       - run: pyenv install $PYTHON -s
+
       - save_cache:
           key: pyenv-{{ .Environment.CIRCLE_JOB }}-xcode-11.2.1
           paths:
             - ~/.pyenv
 
-      # install dependencies
+      # install dependencies and cache them
       - run:
           name: Create virtual environment
           command: |
@@ -87,14 +102,12 @@ jobs:
             pyenv local $PYTHON
             python -m pip install virtualenv
             python -m virtualenv env
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "tests/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
-      - run: *install-requirements
-      - save_cache:
-          paths:
-            - env
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "tests/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
+
+      - restore_cache: *restore-cache-tests
+
+      - run: *install-requirements-tests
+
+      - save_cache: *save-cache-tests
 
       - run: *install-package
 
@@ -114,6 +127,52 @@ jobs:
     <<: *test-osx-template
     environment:
       PYTHON: 3.5.5
+
+  #
+  # docs
+  #
+
+  # based on test-linux-template
+  test-docs:
+    docker:
+      - image: circleci/python:3.8
+
+    steps:
+      - checkout
+
+      - restore_cache: &restore-cache-docs
+          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "docs/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
+
+      - run: *create-virtualenv
+
+      - run: &install-requirements-docs
+          name: Install requirements
+          command: |
+            . env/bin/activate
+            pip install -r docs/requirements.txt
+            pip install dwave-inspectorapp --extra-index=https://pypi.dwavesys.com/simple
+
+      - save_cache: &save-cache-docs
+          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "docs/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
+          paths:
+            - env
+
+      - run: *install-package
+
+      - run: &build-docs
+          name: Build docs
+          command: |
+            . env/bin/activate
+            make -C docs/ html
+
+      - store_artifacts:
+          path: ./docs/build/html
+
+      - run: &run-doctest
+          name: doctest
+          command: |
+            . env/bin/activate
+            make -C docs/ doctest
 
   #
   # deploy
@@ -143,6 +202,7 @@ workflows:
       - test-osx-3.7
       - test-osx-3.6
       - test-osx-3.5
+      - test-docs
 
   deploy:
     jobs:
