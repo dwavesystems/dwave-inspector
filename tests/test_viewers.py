@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
 import unittest
+from unittest import mock
 
 from dwave.inspector.viewers import (
     annotated, prioritized_viewers, webbrowser_tab, webbrowser_window, view)
