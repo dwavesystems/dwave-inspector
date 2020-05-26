@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import json
-import mock
 import unittest
+from unittest import mock
 from decimal import Decimal
 from fractions import Fraction
 from functools import partial
