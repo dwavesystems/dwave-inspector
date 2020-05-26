@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-
 import os
-import logging
 import enum
+import logging
 
 from dwave.cloud.utils import set_loglevel
 
