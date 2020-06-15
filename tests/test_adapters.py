@@ -482,6 +482,31 @@ class TestAdapters(unittest.TestCase):
         with self.assertRaises(TypeError):
             from_bqm_sampleset(self.bqm, sampleset, sampler, params=self.params)
 
+    @rec.use_cassette('triangle-ising.yaml')
+    def test_implicit_solver_topology(self):
+        """All data adapters should work on Chimera-implied solvers."""
+
+        # sample
+        with BrickedClient() as client:
+            solver = client.get_solver(qpu=True)
+            response = solver.sample_ising(*self.problem, **self.params)
+
+        # simulate old solver, without explicit topology property
+        del response.solver.properties['topology']
+
+        # convert and validate
+        data = from_qmi_response(self.problem, response, params=self.params)
+        self.verify_data_encoding(problem=self.problem, response=response,
+                                  solver=solver, params=self.params, data=data)
+
+        # in addition to `topology` missing, remove "structure", so Chimera
+        # can't be implied
+        delattr(solver, 'edges')
+
+        # ensure `from_qmi_response` adapter fails on unstructured old solver
+        with self.assertRaises(TypeError):
+            from_qmi_response(self.problem, response, params=self.params)
+
     def test_embedding_validation(self):
         # chains can be non-lists
 
