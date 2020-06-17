@@ -84,6 +84,22 @@ def enable_data_capture():
     logger.debug("Data capture enabled for embeddings, warnings and QMIs")
 
 
+def _get_solver_topology(solver, default=None):
+    """Safe getter of solver's topology. Older solver definitions do not include
+    the ``topology`` property, but we can assume such solvers, if they are
+    structured, have a "chimera" topology type.
+    """
+
+    try:
+        return solver.properties['topology']['type'].lower()
+
+    except KeyError:
+        if hasattr(solver, 'edges') and hasattr(solver, 'nodes'):
+            return 'chimera'
+
+    return default
+
+
 def _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables):
     return {
         "format": "qp",
@@ -340,7 +356,7 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
     if not isinstance(response.solver, StructuredSolver):
         raise TypeError("only structured solvers are supported")
 
-    topology_type = solver.properties['topology']['type'].lower()
+    topology_type = _get_solver_topology(solver)
     if topology_type not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
         raise TypeError("unsupported solver topology type")
 
@@ -444,7 +460,7 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
     if not isinstance(response.solver, StructuredSolver):
         raise TypeError("only structured solvers are supported")
 
-    topology_type = solver.properties['topology']['type'].lower()
+    topology_type = _get_solver_topology(solver)
     if topology_type not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
         raise TypeError("unsupported solver topology type")
 
@@ -598,7 +614,7 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
     if not isinstance(solver, StructuredSolver):
         raise TypeError("only structured solvers are supported")
 
-    topology_type = solver.properties['topology']['type'].lower()
+    topology_type = _get_solver_topology(solver)
     if topology_type not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
         raise TypeError("unsupported solver topology type")
 
