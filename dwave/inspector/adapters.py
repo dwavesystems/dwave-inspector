@@ -102,6 +102,18 @@ def _get_solver_topology(solver, default=None):
 
     return default
 
+def solver_data_modernized(solver):
+    """Returns (possibly an old) solver's updated `data` that include the
+    missing properties like topology. Does not modify existing properties.
+    """
+
+    # make a copy to avoid modifying the original solver.data
+    data = copy.deepcopy(solver.data)
+
+    data['properties'].setdefault('topology', _get_solver_topology(solver))
+
+    return data
+
 
 def _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables):
     return {
