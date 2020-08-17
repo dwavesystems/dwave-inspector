@@ -342,7 +342,8 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
     """
     logger.debug("from_qmi_response({!r})".format(
         dict(problem=problem, response=response, response_energies=response['energies'],
-             embedding_context=embedding_context, warnings=warnings, params=params)))
+             embedding_context=embedding_context, warnings=warnings,
+             params=params, sampleset=sampleset)))
 
     try:
         linear, quadratic = problem
@@ -457,7 +458,8 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
     """
     logger.debug("from_bqm_response({!r})".format(
         dict(bqm=bqm, response=response, response_energies=response['energies'],
-             embedding_context=embedding_context, warnings=warnings, params=params)))
+             embedding_context=embedding_context, warnings=warnings,
+             params=params, sampleset=sampleset)))
 
     solver = response.solver
     if not isinstance(response.solver, StructuredSolver):
