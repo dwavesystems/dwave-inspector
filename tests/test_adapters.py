@@ -82,6 +82,9 @@ class TestAdapters(unittest.TestCase):
             self.response = self.solver.sample_ising(*self.problem, **self.params)
 
     def verify_data_encoding(self, problem, response, solver, params, data, embedding_context=None):
+        # avoid persistent data modification
+        data = data.copy()
+
         # make sure data correct after JSON decoding (minus the 'rel' data)
         del data['rel']
         data = json.loads(json.dumps(data))
