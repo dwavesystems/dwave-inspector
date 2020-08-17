@@ -102,15 +102,19 @@ def _get_solver_topology(solver, default=None):
 
     return default
 
-def solver_data_modernized(solver):
-    """Returns (possibly an old) solver's updated `data` that include the
-    missing properties like topology. Does not modify existing properties.
+def solver_data_postprocessed(solver):
+    """Returns (possibly an old) solver's updated `data` that includes the
+    missing properties like topology. Also, removes large unused properties.
     """
 
     # make a copy to avoid modifying the original solver.data
     data = copy.deepcopy(solver.data)
 
+    # add missing but used properties
     data['properties'].setdefault('topology', _get_solver_topology(solver))
+
+    # remove unused properties
+    del data['properties']['anneal_offset_ranges']
 
     return data
 
