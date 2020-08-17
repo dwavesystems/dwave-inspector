@@ -91,13 +91,32 @@ def _get_solver_topology(solver, default=None):
     """
 
     try:
-        return solver.properties['topology']['type'].lower()
+        # get topology, verifying structure
+        topology = solver.properties['topology']
+        _, _ = topology['type'], topology['shape']
+        return topology
 
     except KeyError:
         if hasattr(solver, 'edges') and hasattr(solver, 'nodes'):
-            return 'chimera'
+            return {'type': 'chimera', 'shape': [16, 16, 4]}
 
     return default
+
+def solver_data_postprocessed(solver):
+    """Returns (possibly an old) solver's updated `data` that includes the
+    missing properties like topology. Also, removes large unused properties.
+    """
+
+    # make a copy to avoid modifying the original solver.data
+    data = copy.deepcopy(solver.data)
+
+    # add missing but used properties
+    data['properties'].setdefault('topology', _get_solver_topology(solver))
+
+    # remove unused properties
+    del data['properties']['anneal_offset_ranges']
+
+    return data
 
 
 def _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables):
@@ -339,7 +358,8 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
     """
     logger.debug("from_qmi_response({!r})".format(
         dict(problem=problem, response=response, response_energies=response['energies'],
-             embedding_context=embedding_context, warnings=warnings, params=params)))
+             embedding_context=embedding_context, warnings=warnings,
+             params=params, sampleset=sampleset)))
 
     try:
         linear, quadratic = problem
@@ -356,8 +376,8 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
     if not isinstance(response.solver, StructuredSolver):
         raise TypeError("only structured solvers are supported")
 
-    topology_type = _get_solver_topology(solver)
-    if topology_type not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
+    topology = _get_solver_topology(solver)
+    if topology['type'] not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
         raise TypeError("unsupported solver topology type")
 
     solver_id = solver.id
@@ -454,14 +474,15 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
     """
     logger.debug("from_bqm_response({!r})".format(
         dict(bqm=bqm, response=response, response_energies=response['energies'],
-             embedding_context=embedding_context, warnings=warnings, params=params)))
+             embedding_context=embedding_context, warnings=warnings,
+             params=params, sampleset=sampleset)))
 
     solver = response.solver
     if not isinstance(response.solver, StructuredSolver):
         raise TypeError("only structured solvers are supported")
 
-    topology_type = _get_solver_topology(solver)
-    if topology_type not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
+    topology = _get_solver_topology(solver)
+    if topology['type'] not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
         raise TypeError("unsupported solver topology type")
 
     solver_id = solver.id
@@ -614,8 +635,8 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
     if not isinstance(solver, StructuredSolver):
         raise TypeError("only structured solvers are supported")
 
-    topology_type = _get_solver_topology(solver)
-    if topology_type not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
+    topology = _get_solver_topology(solver)
+    if topology['type'] not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
         raise TypeError("unsupported solver topology type")
 
     solver_id = solver.id

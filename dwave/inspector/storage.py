@@ -15,6 +15,8 @@
 import threading
 from collections import OrderedDict, defaultdict
 
+from dwave.inspector.adapters import solver_data_postprocessed
+
 
 # dict[problem_id: str, problem_data: dict]
 problem_store = OrderedDict()
@@ -105,6 +107,6 @@ def get_solver_data(solver_id):
     any of the problems cached so far, fail with :exc:`KeyError`.
     """
     if solver_id in solvers:
-        return solvers[solver_id].data
+        return solver_data_postprocessed(solvers[solver_id])
 
     raise KeyError('solver not found')
