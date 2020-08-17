@@ -91,11 +91,14 @@ def _get_solver_topology(solver, default=None):
     """
 
     try:
-        return solver.properties['topology']['type'].lower()
+        # get topology, verifying structure
+        topology = solver.properties['topology']
+        _, _ = topology['type'], topology['shape']
+        return topology
 
     except KeyError:
         if hasattr(solver, 'edges') and hasattr(solver, 'nodes'):
-            return 'chimera'
+            return {'type': 'chimera', 'shape': [16, 16, 4]}
 
     return default
 
@@ -356,8 +359,8 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
     if not isinstance(response.solver, StructuredSolver):
         raise TypeError("only structured solvers are supported")
 
-    topology_type = _get_solver_topology(solver)
-    if topology_type not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
+    topology = _get_solver_topology(solver)
+    if topology['type'] not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
         raise TypeError("unsupported solver topology type")
 
     solver_id = solver.id
@@ -460,8 +463,8 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
     if not isinstance(response.solver, StructuredSolver):
         raise TypeError("only structured solvers are supported")
 
-    topology_type = _get_solver_topology(solver)
-    if topology_type not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
+    topology = _get_solver_topology(solver)
+    if topology['type'] not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
         raise TypeError("unsupported solver topology type")
 
     solver_id = solver.id
@@ -614,8 +617,8 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
     if not isinstance(solver, StructuredSolver):
         raise TypeError("only structured solvers are supported")
 
-    topology_type = _get_solver_topology(solver)
-    if topology_type not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
+    topology = _get_solver_topology(solver)
+    if topology['type'] not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
         raise TypeError("unsupported solver topology type")
 
     solver_id = solver.id
