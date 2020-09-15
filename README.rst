@@ -67,9 +67,11 @@ Otherwise, install the package from PyPI::
 
     pip install dwave-inspector
 
-and then install the closed-source dependencies with::
+and then install the closed-source dependency with::
 
     pip install dwave-inspectorapp --extra-index=https://pypi.dwavesys.com/simple
+
+Please note this closed-source dependency is released under the `D-Wave EULA`_ license.
 
 Alternatively, clone and build from source::
 
@@ -87,3 +89,7 @@ License
 =======
 
 Released under the Apache License 2.0. See `<LICENSE>`_ file.
+
+Visualization component released under the `D-Wave EULA`_.
+
+.. _D-Wave EULA: https://docs.ocean.dwavesys.com/projects/inspector/en/latest/license.html#inspector-eula
