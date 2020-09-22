@@ -507,16 +507,23 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
     if 'embedding' not in embedding_context:
         raise ValueError("embedding not given")
     embedding = embedding_context.get('embedding')
-    chain_strength = embedding_context.get('chain_strength', 1.0)
+    chain_strength = embedding_context.get('chain_strength')
     chain_break_method = embedding_context.get('chain_break_method')
 
+    # if `embedding` is `dwave.embedding.transforms.EmbeddedStructure`, we don't
+    # need `target_adjacency`
+    emb_params = dict(embedding=embedding)
+    if not hasattr(embedding, 'embed_bqm'):
+        # proxy for detecting dict vs. EmbeddedStructure, without actually
+        # importing EmbeddedStructure (did not exist in dwave-system<0.9.10)
+        target_adjacency = edgelist_to_adjacency(solver.edges)
+        emb_params.update(target_adjacency=target_adjacency)
+
     # get embedded bqm
-    source_edgelist = list(bqm.quadratic) + [(v, v) for v in bqm.linear]
-    target_edgelist = solver.edges
-    target_adjacency = edgelist_to_adjacency(target_edgelist)
-    bqm_embedded = embed_bqm(bqm, embedding, target_adjacency,
+    bqm_embedded = embed_bqm(bqm,
                              chain_strength=chain_strength,
-                             smear_vartype=dimod.SPIN)
+                             smear_vartype=dimod.SPIN,
+                             **emb_params)
 
     linear, quadratic, offset = bqm_embedded.to_ising()
     problem_data = {
@@ -617,7 +624,7 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
     embedding = embedding_context.get('embedding')
     if embedding is None:
         raise ValueError("embedding not given")
-    chain_strength = embedding_context.get('chain_strength', 1.0)
+    chain_strength = embedding_context.get('chain_strength')
 
     def find_solver(sampler):
         if hasattr(sampler, 'solver'):
@@ -646,13 +653,20 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
     if bqm.vartype is not sampleset.vartype:
         bqm = bqm.change_vartype(sampleset.vartype, inplace=False)
 
+    # if `embedding` is `dwave.embedding.transforms.EmbeddedStructure`, we don't
+    # need `target_adjacency`
+    emb_params = dict(embedding=embedding)
+    if not hasattr(embedding, 'embed_bqm'):
+        # proxy for detecting dict vs. EmbeddedStructure, without actually
+        # importing EmbeddedStructure (did not exist in dwave-system<0.9.10)
+        target_adjacency = edgelist_to_adjacency(solver.edges)
+        emb_params.update(target_adjacency=target_adjacency)
+
     # get embedded bqm
-    source_edgelist = list(bqm.quadratic) + [(v, v) for v in bqm.linear]
-    target_edgelist = solver.edges
-    target_adjacency = edgelist_to_adjacency(target_edgelist)
-    bqm_embedded = embed_bqm(bqm, embedding, target_adjacency,
+    bqm_embedded = embed_bqm(bqm,
                              chain_strength=chain_strength,
-                             smear_vartype=dimod.SPIN)
+                             smear_vartype=dimod.SPIN,
+                             **emb_params)
 
     # best effort reconstruction of (unembedded/qmi) response/solutions
     # NOTE: we **can not** reconstruct physical qubit values from logical variables

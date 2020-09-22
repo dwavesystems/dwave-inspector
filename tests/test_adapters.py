@@ -124,7 +124,7 @@ class TestAdapters(unittest.TestCase):
         }
         if embedding_context is not None:
             problem_data['embedding'] = embedding_context['embedding']
-        self.assertEqual(data['data']['data'], problem_data)
+        self.assertDictEqual(data['data']['data'], problem_data)
 
         # .answer
         self.assertEqual(sum(data['answer']['num_occurrences']), params['num_reads'])
@@ -307,7 +307,9 @@ class TestAdapters(unittest.TestCase):
         # sample
         qpu = DWaveSampler(solver=dict(qpu=True))
         sampler = FixedEmbeddingComposite(qpu, self.embedding)
-        sampleset = sampler.sample(bqm, return_embedding=True, **self.params)
+        sampleset = sampler.sample(
+            bqm, return_embedding=True, chain_strength=self.chain_strength,
+            **self.params)
 
         # convert
         data = from_bqm_sampleset(bqm, sampleset, sampler, params=self.params)

@@ -1,8 +1,8 @@
 Flask>=1.1.1
 
 dimod>=0.8.17
-dwave-system>=0.9.3
-dwave-cloud-client>=0.6.2
+dwave-system>=0.8.1
+dwave-cloud-client>=0.6.3,!=0.7.6
 
 # backports
 importlib_resources; python_version<"3.7"
