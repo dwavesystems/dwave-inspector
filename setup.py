@@ -13,7 +13,7 @@ with open(package_info_path, encoding='utf-8') as f:
 # Package requirements, minimal pinning
 install_requires = [
     'dimod>=0.8.17',
-    'dwave-system>=0.8.1',
+    'dwave-system>=0.8.1,!=0.9.10,!=0.9.11,!=0.9.12',
     'dwave-cloud-client>=0.6.3,!=0.7.6',
     'Flask>=1.1.1',
     # dwave-inspectorapp==0.2.1
