@@ -24,7 +24,7 @@ extras_require = {
     'test': ['coverage', 'vcrpy'],
 
     # backports
-    ':python_version < "3.7"': ['importlib_resources']
+    ':python_version < "3.9"': ['importlib-resources>=3.2.0']
 }
 
 classifiers = [

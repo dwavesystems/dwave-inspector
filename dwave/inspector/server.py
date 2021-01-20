@@ -21,10 +21,10 @@ import threading
 from wsgiref.simple_server import make_server, WSGIRequestHandler, WSGIServer
 
 try:
-    import importlib.resources as importlib_resources
-except ImportError:
-    # use a backport for python_version < 3.7
+    # use a backport for python_version < 3.9
     import importlib_resources
+except ImportError:
+    import importlib.resources as importlib_resources
 
 import requests
 from flask import Flask, send_from_directory
@@ -207,9 +207,13 @@ app = Flask(__name__, static_folder=None)
 @app.route('/')
 @app.route('/<path:path>')
 def send_static(path='index.html'):
-    with importlib_resources.path(app.webappdata, 'build') as basedir:
-        # NOTE: cast `basedir: PosixPath` to `str` to work on Flask@py35
-        return send_from_directory(str(basedir), path)
+    # NOTE: backport required for `.files` prior to py39
+    basedir = importlib_resources.files(app.webappdata).joinpath('build')
+
+    # NOTE: cast `basedir: PosixPath` to `str` to work on Flask@py35
+    # NOTE: safe to do because inspectorapp (webappdata) is `zip_safe=False`!
+    # XXX: remove when py35 is dropped; consider using werkzeug.safe_join directly
+    return send_from_directory(str(basedir), path)
 
 @app.route('/api/problems/<problem_id>')
 def send_problem(problem_id):
