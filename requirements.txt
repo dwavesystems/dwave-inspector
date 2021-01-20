@@ -5,4 +5,4 @@ dwave-system>=0.8.1
 dwave-cloud-client>=0.6.3,!=0.7.6
 
 # backports
-importlib_resources; python_version<"3.7"
+importlib-resources>=3.2.0; python_version<"3.9"
