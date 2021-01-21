@@ -77,6 +77,7 @@ class TestAdapters(unittest.TestCase):
             self.problem = self.ising_embedded[:2]
 
             self.params = dict(num_reads=100)
+            self.label = "pretty-label"
 
             # get the expected response (from VCR)
             self.response = self.solver.sample_ising(*self.problem, **self.params)
@@ -95,6 +96,7 @@ class TestAdapters(unittest.TestCase):
 
         # .details
         self.assertIn('id', data['details'])
+        self.assertIn('label', data['details'])
         self.assertEqual(data['details']['solver'], solver.id)
 
         # .problem
@@ -486,6 +488,36 @@ class TestAdapters(unittest.TestCase):
         # ensure `from_bqm_sampleset` adapter fails on unstructured solver
         with self.assertRaises(TypeError):
             from_bqm_sampleset(self.bqm, sampleset, sampler, params=self.params)
+
+    @rec.use_cassette('triangle-ising-labelled.yaml')
+    def test_problem_label_in_response(self):
+        """All data adapters should propagate problem label."""
+
+        # sample ising -> response
+        with BrickedClient() as client:
+            solver = client.get_solver(qpu=True)
+            response = solver.sample_ising(*self.problem, label=self.label, **self.params)
+
+        # ensure `from_qmi_response` adapter propagates label
+        data = from_qmi_response(self.problem, response, params=self.params)
+        self.assertEqual(data['details']['label'], self.label)
+
+        # ensure `from_bqm_response` adapter propagates label
+        data = from_bqm_response(self.bqm, self.embedding_context, response, params=self.params)
+        self.assertEqual(data['details']['label'], self.label)
+
+    @rec.use_cassette('triangle-ising-labelled.yaml')
+    def test_problem_label_in_sampleset(self):
+        """All data adapters should propagate problem label."""
+
+        # sample bqm -> sampleset
+        qpu = DWaveSampler(solver=dict(qpu=True))
+        sampler = FixedEmbeddingComposite(qpu, self.embedding)
+        sampleset = sampler.sample(self.bqm, label=self.label, **self.params)
+
+        # ensure `from_bqm_sampleset` adapter propagates label
+        data = from_bqm_sampleset(self.bqm, sampleset, sampler, params=self.params)
+        self.assertEqual(data['details']['label'], self.label)
 
     @rec.use_cassette('triangle-ising.yaml')
     def test_implicit_solver_topology(self):
