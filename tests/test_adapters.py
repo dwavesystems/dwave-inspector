@@ -258,7 +258,7 @@ class TestAdapters(unittest.TestCase):
 
             # induce sampleset production in response, to test serialization of
             # sampleset-provided data, like `num_occurrences` (an numpy.ndarray)
-            # NOTE: `dwave.cloud.computation.Future.occurrences` et al. will
+            # NOTE: `dwave.cloud.computation.Future.num_occurrences` et al. will
             # favorize returning data from a sampleset, if it's present, instead
             # of returning raw SAPI data
             _ = response.sampleset

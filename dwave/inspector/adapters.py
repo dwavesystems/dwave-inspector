@@ -397,7 +397,7 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
 
     solutions = list(map(itemsgetter(*active_variables), response['solutions']))
     energies = response['energies']
-    num_occurrences = response.occurrences
+    num_occurrences = response.num_occurrences
     num_variables = solver.num_qubits
     timing = response.timing
 
@@ -494,7 +494,7 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
 
     solutions = list(map(itemsgetter(*active_variables), response['solutions']))
     energies = response['energies']
-    num_occurrences = response.occurrences
+    num_occurrences = response.num_occurrences
     num_variables = solver.num_qubits
     timing = response.timing
 
