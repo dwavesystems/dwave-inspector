@@ -282,13 +282,12 @@ class TestAdapters(unittest.TestCase):
 
         self._test_from_bqm_response(bqm)
 
-    # NOTE: omit AdjArrayBQM until https://github.com/dwavesystems/dwave-system/issues/261 is fixed
-    # @unittest.skipUnless('AdjArrayBQM' in dir(dimod), 'requires dimod.AdjArrayBQM')
-    # def test_from_AdjArrayBQM_response(self):
-    #     # cast dict bqm to AdjArrayBQM
-    #     bqm = dimod.as_bqm(self.bqm, cls=[dimod.AdjArrayBQM])
-    #
-    #     self._test_from_bqm_response(bqm)
+    @unittest.skipUnless('AdjArrayBQM' in dir(dimod), 'requires dimod.AdjArrayBQM')
+    def test_from_AdjArrayBQM_response(self):
+        # cast dict bqm to AdjArrayBQM
+        bqm = dimod.as_bqm(self.bqm, cls=[dimod.AdjArrayBQM])
+
+        self._test_from_bqm_response(bqm)
 
     @unittest.skipUnless('AdjDictBQM' in dir(dimod), 'requires dimod.AdjDictBQM')
     def test_from_AdjDictBQM_response(self):
@@ -348,13 +347,12 @@ class TestAdapters(unittest.TestCase):
 
         self._test_from_bqm_sampleset(bqm)
 
-    # NOTE: omit AdjArrayBQM until https://github.com/dwavesystems/dwave-system/issues/261 is fixed
-    # @unittest.skipUnless('AdjArrayBQM' in dir(dimod), 'requires dimod.AdjArrayBQM')
-    # def test_from_AdjArrayBQM_sampleset(self):
-    #     # cast dict bqm to AdjArrayBQM
-    #     bqm = dimod.as_bqm(self.bqm, cls=[dimod.AdjArrayBQM])
-    #
-    #     self._test_from_bqm_sampleset(bqm)
+    @unittest.skipUnless('AdjArrayBQM' in dir(dimod), 'requires dimod.AdjArrayBQM')
+    def test_from_AdjArrayBQM_sampleset(self):
+        # cast dict bqm to AdjArrayBQM
+        bqm = dimod.as_bqm(self.bqm, cls=[dimod.AdjArrayBQM])
+
+        self._test_from_bqm_sampleset(bqm)
 
     @unittest.skipUnless('AdjDictBQM' in dir(dimod), 'requires dimod.AdjDictBQM')
     def test_from_AdjDictBQM_sampleset(self):
