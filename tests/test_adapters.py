@@ -306,7 +306,7 @@ class TestAdapters(unittest.TestCase):
     @rec.use_cassette('triangle-ising.yaml')
     def _test_from_bqm_sampleset(self, bqm):
         # sample
-        qpu = DWaveSampler(solver=dict(qpu=True))
+        qpu = DWaveSampler()
         sampler = FixedEmbeddingComposite(qpu, self.embedding)
         sampleset = sampler.sample(
             bqm, return_embedding=True, chain_strength=self.chain_strength,
@@ -433,7 +433,7 @@ class TestAdapters(unittest.TestCase):
         """All data adapters should fail on non-StructuredSolvers."""
 
         # sample
-        qpu = DWaveSampler(solver=dict(qpu=True))
+        qpu = DWaveSampler()
         sampler = FixedEmbeddingComposite(qpu, self.embedding)
         sampleset = sampler.sample(self.bqm, return_embedding=True, **self.params)
 
@@ -474,7 +474,7 @@ class TestAdapters(unittest.TestCase):
         """All data adapters should fail on non-Chimera/Pegasus solvers."""
 
         # sample
-        qpu = DWaveSampler(solver=dict(qpu=True))
+        qpu = DWaveSampler()
         sampler = FixedEmbeddingComposite(qpu, self.embedding)
         sampleset = sampler.sample(self.bqm, return_embedding=True, **self.params)
 
@@ -509,7 +509,7 @@ class TestAdapters(unittest.TestCase):
         """All data adapters should propagate problem label."""
 
         # sample bqm -> sampleset
-        qpu = DWaveSampler(solver=dict(qpu=True))
+        qpu = DWaveSampler()
         sampler = FixedEmbeddingComposite(qpu, self.embedding)
         sampleset = sampler.sample(self.bqm, label=self.label, **self.params)
 
