@@ -17,7 +17,7 @@ problem = (linear, quadratic)
 
 # sample
 print("sampling")
-response = solver.sample_ising(*problem, num_reads=100)
+response = solver.sample_ising(*problem, num_reads=100, label="qmi inspector example")
 
 # inspect
 print("inspecting")

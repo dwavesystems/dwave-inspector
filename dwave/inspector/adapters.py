@@ -305,6 +305,7 @@ def _problem_stats(response=None, sampleset=None, embedding_context=None):
 def _details_dict(response):
     return {
         "id": response.id,
+        "label": response.label,
         "status": response.remote_status,
         "solver": response.solver.id,
         "type": response.problem_type,
@@ -396,7 +397,7 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
 
     solutions = list(map(itemsgetter(*active_variables), response['solutions']))
     energies = response['energies']
-    num_occurrences = response.occurrences
+    num_occurrences = response.num_occurrences
     num_variables = solver.num_qubits
     timing = response.timing
 
@@ -493,7 +494,7 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
 
     solutions = list(map(itemsgetter(*active_variables), response['solutions']))
     energies = response['energies']
-    num_occurrences = response.occurrences
+    num_occurrences = response.num_occurrences
     num_variables = solver.num_qubits
     timing = response.timing
 
@@ -727,7 +728,8 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
         "details": {
             "id": problem_id,
             "type": problem_type,
-            "solver": solver.id
+            "solver": solver.id,
+            "label": sampleset.info.get('problem_label'),
         },
         "data": _problem_dict(solver_id, problem_type, problem_data, params, problem_stats),
         "answer": _answer_dict(solutions, active_variables, energies, num_occurrences, timing, num_variables),
