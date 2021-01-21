@@ -218,7 +218,7 @@ workflows:
 
   deploy:
     jobs:
-      - test-3.8:
+      - test-3.9:
           filters:
             tags:
               only: /^[0-9]+(\.[0-9]+)*(\.dev([0-9]+)?)?$/
@@ -226,7 +226,7 @@ workflows:
               ignore: /.*/
       - pypi-deploy:
           requires:
-            - test-3.8
+            - test-3.9
           filters:
             tags:
               only: /^[0-9]+(\.[0-9]+)*(\.dev([0-9]+)?)?$/
