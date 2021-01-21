@@ -31,7 +31,8 @@ bqm_embedded = embed_bqm(bqm, embedding, target_adjacency)
 
 # sample
 print("sampling")
-response = solver.sample_ising(bqm_embedded.linear, bqm_embedded.quadratic, num_reads=100)
+response = solver.sample_ising(bqm_embedded.linear, bqm_embedded.quadratic,
+                               num_reads=100, label="bqm/response inspector example")
 sampleset_embedded = response.sampleset
 sampleset = unembed_sampleset(sampleset_embedded, embedding, bqm)
 

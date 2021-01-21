@@ -12,7 +12,8 @@ sampler = EmbeddingComposite(DWaveSampler())
 
 # sample
 print("sampling")
-sampleset = sampler.sample(bqm, num_reads=100, chain_strength=1)
+sampleset = sampler.sample(bqm, num_reads=100, chain_strength=1,
+                           label='bqm/sampleset inspector example')
 
 # inspect
 print("inspecting")
