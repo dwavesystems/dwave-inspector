@@ -27,7 +27,7 @@ except ImportError:
     import importlib.resources as importlib_resources
 
 import requests
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, make_response
 from werkzeug.exceptions import NotFound
 
 from dwave.inspector.storage import problem_store, problem_access_sem, get_problem, get_solver_data
@@ -232,7 +232,9 @@ def send_solver(problem_id):
 @app.route('/api/callback/<problem_id>')
 def notify_problem_loaded(problem_id):
     app_server.notify_problem_accessed(problem_id)
-    return dict(ack=True)
+    resp = make_response(dict(ack=True))
+    resp.headers['Cache-Control'] = 'no-cache'
+    return resp
 
 @app.after_request
 def add_header(response):
