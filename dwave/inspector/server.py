@@ -186,8 +186,8 @@ class WSGIAsyncServer(threading.Thread):
         if self.is_alive():
             self.stop()
 
-    def wait_shutdown(self):
-        self.join()
+    def wait_shutdown(self, timeout=None):
+        self.join(timeout)
 
     def wait_problem_accessed(self, problem_id, timeout=None):
         """Blocks until problem access semaphore is notified.
