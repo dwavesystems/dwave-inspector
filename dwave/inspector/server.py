@@ -232,14 +232,17 @@ def send_solver(problem_id):
 @app.route('/api/callback/<problem_id>')
 def notify_problem_loaded(problem_id):
     app_server.notify_problem_accessed(problem_id)
-    resp = make_response(dict(ack=True))
-    resp.headers['Cache-Control'] = 'no-cache'
-    return resp
+    response = make_response(dict(ack=True))
+    response.cache_control.no_store = True
+    response.cache_control.max_age = 0  # force revalidation if already cached
+    return response
 
 @app.after_request
 def add_header(response):
-    # cache all responses for a day
-    response.cache_control.max_age = 86400
+    # cache responses for a day, unless caching turned off
+    if not response.cache_control.no_store:
+        response.cache_control.public = True
+        response.cache_control.max_age = 86400
     return response
 
 app_server = WSGIAsyncServer(host='127.0.0.1', base_port=18000, app=app)
