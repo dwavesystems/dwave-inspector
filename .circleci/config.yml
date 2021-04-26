@@ -184,6 +184,12 @@ jobs:
             . env/bin/activate
             make -C docs/ doctest
 
+      - run: &run-linkcheck
+          name: linkcheck
+          command: |
+            . env/bin/activate
+            make -C docs/ linkcheck
+
   #
   # deploy
   #
