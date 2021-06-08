@@ -1,5 +1,8 @@
 version: 2
 
+environment:
+  PIP_PROGRESS_BAR: off
+
 jobs:
 
   #
@@ -24,6 +27,7 @@ jobs:
           name: Install requirements
           command: |
             . env/bin/activate
+            pip install -U pip setuptools
             pip install -r requirements.txt -r tests/requirements.txt
             pip install dwave-inspectorapp --extra-index=https://pypi.dwavesys.com/simple
             pip install wheel twine
@@ -105,8 +109,7 @@ jobs:
           command: |
             eval "$(pyenv init -)"
             pyenv local $PYTHON
-            python -m pip install virtualenv
-            python -m virtualenv env
+            python -m venv env
 
       - restore_cache: *restore-cache-tests
 
@@ -159,6 +162,7 @@ jobs:
           name: Install requirements
           command: |
             . env/bin/activate
+            pip install -U pip setuptools
             pip install -r requirements.txt -r docs/requirements.txt
             pip install dwave-inspectorapp --extra-index=https://pypi.dwavesys.com/simple
 
