@@ -15,6 +15,8 @@
 import threading
 from collections import OrderedDict, defaultdict
 
+from dwave.cloud.solver import StructuredSolver
+
 from dwave.inspector.adapters import solver_data_postprocessed
 
 
@@ -45,7 +47,7 @@ problemdata = {}
 solvers = {}
 
 
-class ProblemData(object):
+class ProblemData:
     # QMI/problem submitted, dict with keys: linear, quadratic, type_, params
     problem = None
 
@@ -56,8 +58,13 @@ class ProblemData(object):
     response = None
 
     def __init__(self, problem, solver, response):
-        self.problem = problem
+        if not isinstance(solver, StructuredSolver):
+            raise TypeError('structured solver required')
         self.solver = solver
+
+        if 'linear' not in problem or 'quadratic' not in problem:
+            raise TypeError('invalid problem structure')
+        self.problem = problem
         self.response = response
 
 

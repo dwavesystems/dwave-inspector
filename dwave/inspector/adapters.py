@@ -65,10 +65,16 @@ def enable_data_capture():
     def capture_qmi_response(event, obj, args, return_value):
         logger.debug("{!s}(obj={!r}, args={!r}, return_value={!r})".format(
             event, obj, args, return_value))
+
+        topology = _get_solver_topology(obj)
+        if topology['type'] not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
+            logger.error('Solver topology {!r} not supported.'.format(topology))
+            return
+
         try:
             storage.add_problem(problem=args, solver=obj, response=return_value)
         except Exception as e:
-            logger.error('Failed to store problem with: %r', e)
+            logger.error('Failed to store problem: %r', e)
 
     # subscribe to problems sampled and results returned in the cloud client
     add_handler('after_sample', capture_qmi_response)
@@ -844,4 +850,5 @@ def from_objects(*args, **kwargs):
 
     raise ValueError(
         "invalid combination of arguments provided: if data capture not "
-        "enabled, problem/response/solver/etc have to be explicitly specified")
+        "enabled, problem/response/solver have to be specified; "
+        "also, make sure a structured problem is inspected")
