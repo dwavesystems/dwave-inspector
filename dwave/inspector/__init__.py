@@ -50,17 +50,16 @@ enable_data_capture()
 
 
 class Block(enum.Enum):
-    """
-    Flow-control settings for scripts.
+    """Flow-control settings for scripts.
 
     An enum with values: ``NEVER``, ``ONCE``, ``FOREVER``. The default setting of
     ``once`` (``dwave.inspector.Block.ONCE``) blocks until your problem
-    is loaded from the inspector web server
+    is loaded from the inspector web server.
 
     Examples:
         This example does not block while the problem is loaded.
 
-    >>> dwave.inspector.show(response, block='never')   # doctest: +SKIP
+        >>> dwave.inspector.show(response, block='never')   # doctest: +SKIP
 
     """
     NEVER = 'never'
@@ -68,7 +67,7 @@ class Block(enum.Enum):
     FOREVER = 'forever'
 
 
-def open_problem(problem_id, block=Block.ONCE):
+def open_problem(problem_id, block=Block.ONCE, timeout=None):
     """Open the problem inspector for the specified problem.
 
     Args:
@@ -78,6 +77,9 @@ def open_problem(problem_id, block=Block.ONCE):
         block (:class:`Block`/str/bool, optional, default: :obj:`Block.ONCE`):
             Blocking behavior after opening up the web browser preview as set
             by :class:`Block` value.
+
+        timeout (float):
+            Blocking behavior timeout in seconds.
 
     """
     # accept string name for `block`
@@ -91,9 +93,9 @@ def open_problem(problem_id, block=Block.ONCE):
     view(url)
 
     if block is Block.ONCE:
-        app_server.wait_problem_accessed(problem_id)
+        app_server.wait_problem_accessed(problem_id, timeout=timeout)
     elif block is Block.FOREVER or block is True:
-        app_server.wait_shutdown()
+        app_server.wait_shutdown(timeout=timeout)
 
     return url
 
@@ -175,6 +177,7 @@ def show(*args, **kwargs):
 
     """
     block = kwargs.pop('block', Block.ONCE)
+    timeout = kwargs.pop('timeout', None)
     data = from_objects(*args, **kwargs)
     id_ = push_inspector_data(data)
-    return open_problem(id_, block=block)
+    return open_problem(id_, block=block, timeout=timeout)
