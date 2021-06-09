@@ -230,7 +230,7 @@ class TestAdapters(unittest.TestCase):
             5: Decimal('0'),
         }
         J = {
-            (0, 4): numpy.float128(1),
+            (0, 4): numpy.float16(1),
             (0, 5): Decimal('1'),
             (4, 1): Fraction(2, 2),
             (1, 5): numpy.int32(-1),
