@@ -161,6 +161,10 @@ class WSGIAsyncServer(threading.Thread):
         return 'http://{}:{}/?problemId={}'.format(
             *self.server.server_address, problem_id)
 
+    def get_callback_url(self, problem_id):
+        return 'http://{}:{}/api/callback/{}'.format(
+            *self.server.server_address, problem_id)
+
     def _ensure_accessible(self, sleep=0.1, tries=100, timeout=10):
         """Ping the canary URL (app root) until the app becomes accessible."""
 
@@ -187,6 +191,7 @@ class WSGIAsyncServer(threading.Thread):
             self.stop()
 
     def wait_shutdown(self, timeout=None):
+        logger.debug('%s.wait_shutdown(timeout=%r)', type(self).__name__, timeout)
         self.join(timeout)
 
     def wait_problem_accessed(self, problem_id, timeout=None):
@@ -195,10 +200,14 @@ class WSGIAsyncServer(threading.Thread):
         Problem semaphore is created on access, so this method can be called
         even before the problem is created, or access is notified.
         """
+        logger.debug('%s.wait_problem_accessed(problem_id=%r, timeout=%r)',
+                     type(self).__name__, problem_id, timeout)
         problem_access_sem[problem_id].acquire(blocking=True, timeout=timeout)
 
     def notify_problem_accessed(self, problem_id):
         """Notifies problem access semaphore of one access (full load)."""
+        logger.debug('%s.notify_problem_accessed(problem_id=%r)',
+                     type(self).__name__, problem_id)
         problem_access_sem[problem_id].release()
 
 
@@ -231,6 +240,7 @@ def send_solver(problem_id):
 
 @app.route('/api/callback/<problem_id>')
 def notify_problem_loaded(problem_id):
+    # note: switch to POST to avoid caching issues altogether?
     app_server.notify_problem_accessed(problem_id)
     response = make_response(dict(ack=True))
     response.cache_control.no_store = True

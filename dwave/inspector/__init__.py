@@ -79,7 +79,7 @@ def open_problem(problem_id, block=Block.ONCE, timeout=None):
             by :class:`Block` value.
 
         timeout (float):
-            Blocking behavior timeout.
+            Blocking behavior timeout in seconds.
 
     """
     # accept string name for `block`

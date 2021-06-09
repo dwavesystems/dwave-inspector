@@ -851,4 +851,4 @@ def from_objects(*args, **kwargs):
     raise ValueError(
         "invalid combination of arguments provided: if data capture not "
         "enabled, problem/response/solver have to be specified; "
-        "also, make sure a structured problem is inspected")
+        "also, make sure a structured problem is being inspected")
