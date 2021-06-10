@@ -57,33 +57,47 @@ class TestServerRuns(unittest.TestCase):
 class TestServerWorks(unittest.TestCase, RunTimeAssertionMixin):
 
     @rec.use_cassette('triangle-ising.yaml')
-    def test_blocking(self):
-
+    @classmethod
+    def setUpClass(cls):
         # sample (submitted problem irrelevant, response is prerecorded)
         with BrickedClient() as client:
             solver = client.get_solver(qpu=True)
-            response = solver.sample_qubo({(0, 4): 1, (1, 5): 1})
-            problem_id = response.wait_id()
+            cls.response = solver.sample_qubo({(0, 4): 1, (1, 5): 1})
+            cls.problem_id = cls.response.wait_id()
 
-        # setup a "problem loaded" notifier
-        def problem_loaded(problem_id):
-            url = app_server.get_callback_url(problem_id)
-            return requests.get(url).json()
+    @staticmethod
+    def notify_problem_loaded(problem_id):
+        url = app_server.get_callback_url(problem_id)
+        return requests.get(url).json()
 
+    def test_show_no_block(self):
+        # exclude potential server start-up time from timing tests below
+        app_server.ensure_started()
+
+        # show shouldn't block regardless of problem inspector opening or not
+        with self.assertMaxRuntime(2000):
+            show(self.response, block=Block.NEVER)
+
+    def test_show_block_once(self):
+        # exclude potential server start-up time from timing tests below
+        app_server.ensure_started()
+
+        # show should block until first access
         with ThreadPoolExecutor(max_workers=1) as executor:
-
-            # show shouldn't block regardless of problem inspector opening or not
-            with self.assertMaxRuntime(5000):
-                show(response, block=Block.NEVER)
-
-            # show blocks until first access
-            with self.assertMaxRuntime(5000):
+            with self.assertMaxRuntime(2000):
                 # notify the inspector server the `problem_id` has been "viewed" by
                 # our mock browser/viewer (async)
-                fut = executor.submit(problem_loaded, problem_id=problem_id)
-                show(response, block=Block.ONCE)
+                fut = executor.submit(self.notify_problem_loaded, problem_id=self.problem_id)
+                show(self.response, block=Block.ONCE)
                 fut.result()
 
-            # show blocks until timeout
-            with self.assertMaxRuntime(5000):
-                show(response, block=Block.ONCE, timeout=1)
+    def test_show_block_timeout(self):
+        # exclude potential server start-up time from timing tests below
+        app_server.ensure_started()
+
+        # show blocks until timeout
+        with self.assertMaxRuntime(2000):
+            show(self.response, block=Block.ONCE, timeout=1)
+
+        with self.assertMaxRuntime(2000):
+            show(self.response, block=True, timeout=1)
