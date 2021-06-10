@@ -59,10 +59,10 @@ class TestServerWorks(unittest.TestCase, RunTimeAssertionMixin):
     @rec.use_cassette('triangle-ising.yaml')
     @classmethod
     def setUpClass(cls):
-        # sample (submitted problem irrelevant, response is prerecorded)
+        # sample
         with BrickedClient() as client:
             solver = client.get_solver(qpu=True)
-            cls.response = solver.sample_qubo({(0, 4): 1, (1, 5): 1})
+            cls.response = solver.sample_ising({}, {(0, 4): 1, (0, 5): 1, (4, 1): 1, (1, 5): -1})
             cls.problem_id = cls.response.wait_id()
 
     @staticmethod

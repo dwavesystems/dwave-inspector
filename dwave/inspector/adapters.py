@@ -802,6 +802,7 @@ def from_objects(*args, **kwargs):
         response.result()
 
     # read problem_id from sampleset or response
+    # TODO: resolve sampleset/response if they are not resolved yet?
     if problem_id is None and sampleset is not None:
         problem_id = sampleset.info.get('problem_id')
     if problem_id is None and response is not None:
