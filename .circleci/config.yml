@@ -44,12 +44,18 @@ jobs:
           name: Build package
           command: env/bin/python setup.py sdist bdist_wheel
 
-      - store_artifacts: &store-dist
+      - store_artifacts:
           path: dist
 
-      - persist_to_workspace: &persist-dist
-          root: dist
-          paths: .
+      - when:
+          condition:
+            matches:
+              pattern: "^3\\.9.*$"    # can't do "^3\\.9" only due to (likely) circleci regex matching bug
+              value: << parameters.python-version >>
+          steps:
+            - persist_to_workspace:
+                root: dist
+                paths: .
 
       - run: &install-package
           name: Install package
@@ -216,7 +222,7 @@ jobs:
       - image: circleci/python:3.9
 
     steps:
-      - attach_workspace: &attach-dist
+      - attach_workspace:
           at: dist
 
       - run:
