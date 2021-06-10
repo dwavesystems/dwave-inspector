@@ -58,29 +58,30 @@ BrickedClient = partial(Client, token='fake')
 class TestAdapters(unittest.TestCase):
 
     @rec.use_cassette('triangle-ising.yaml')
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         with BrickedClient() as client:
-            self.solver = client.get_solver(qpu=True)
+            cls.solver = client.get_solver(qpu=True)
 
-            self.ising = ({}, {'ab': 1, 'bc': 1, 'ca': 1})
-            self.bqm = dimod.BQM.from_ising(*self.ising)
-            self.embedding = {'a': [0], 'b': [4], 'c': [1, 5]}
-            self.chain_strength = 1.0
-            self.embedding_context = dict(embedding=self.embedding,
-                                          chain_strength=self.chain_strength)
+            cls.ising = ({}, {'ab': 1, 'bc': 1, 'ca': 1})
+            cls.bqm = dimod.BQM.from_ising(*cls.ising)
+            cls.embedding = {'a': [0], 'b': [4], 'c': [1, 5]}
+            cls.chain_strength = 1.0
+            cls.embedding_context = dict(embedding=cls.embedding,
+                                         chain_strength=cls.chain_strength)
 
             target_edgelist = [[0, 4], [0, 5], [1, 4], [1, 5]]
             target_adjacency = edgelist_to_adjacency(target_edgelist)
-            self.bqm_embedded = embed_bqm(self.bqm, self.embedding, target_adjacency,
-                                          chain_strength=self.chain_strength)
-            self.ising_embedded = self.bqm_embedded.to_ising()
-            self.problem = self.ising_embedded[:2]
+            cls.bqm_embedded = embed_bqm(cls.bqm, cls.embedding, target_adjacency,
+                                         chain_strength=cls.chain_strength)
+            cls.ising_embedded = cls.bqm_embedded.to_ising()
+            cls.problem = cls.ising_embedded[:2]
 
-            self.params = dict(num_reads=100)
-            self.label = "pretty-label"
+            cls.params = dict(num_reads=100)
+            cls.label = "pretty-label"
 
             # get the expected response (from VCR)
-            self.response = self.solver.sample_ising(*self.problem, **self.params)
+            cls.response = cls.solver.sample_ising(*cls.problem, **cls.params)
 
     def verify_data_encoding(self, problem, response, solver, params, data, embedding_context=None):
         # avoid persistent data modification
