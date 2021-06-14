@@ -12,12 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import time
+import logging
 import threading
+import functools
 from collections import OrderedDict, defaultdict
 
 from dwave.cloud.solver import StructuredSolver
 
 from dwave.inspector.adapters import solver_data_postprocessed
+
+logger = logging.getLogger(__name__)
 
 
 # dict[problem_id: str, problem_data: dict]
@@ -67,10 +72,36 @@ class ProblemData:
         self.problem = problem
         self.response = response
 
+    def __eq__(self, other):
+        return (self.problem is other.problem and
+                self.solver is other.solver and
+                self.response is other.response)
+
+
+@functools.total_ordering
+class ProblemDataTimestamped(ProblemData):
+    """ProblemData tagged with creation timestamp and ordered chronologically."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.created_at = time.monotonic()
+
+    def __lt__(self, other):
+        return self.created_at < other.created_at
+
+    def __eq__(self, other):
+        return self.created_at == other.created_at and super().__eq__(other)
+
+    def __hash__(self):
+        return id(self)
+
 
 def add_problem(problem, solver, response):
+    logger.debug('storage.add_problem(problem=%r, solver=%r, response=%r)',
+                 problem, solver, response)
+
     # store the problem encapsulated with ProblemData
-    pd = ProblemData(problem=problem, solver=solver, response=response)
+    pd = ProblemDataTimestamped(problem=problem, solver=solver, response=response)
     problemdata_bag.add(pd)
 
     # cache solver reference
@@ -92,10 +123,16 @@ def index_resolved_problems():
         if pd.response.id is not None:
             resolved.add(pd)
 
-    # add them to the indexed collection
+    # add them to the indexed collection (favorize newer problems)
     # and remove them from the input bag
     for pd in resolved:
-        problemdata[pd.response.id] = pd
+        problem_id = pd.response.id
+        if problem_id in problemdata:
+            logger.debug('duplicate problem data (by problem_id) found; '
+                         'discarding the older one')
+            problemdata[problem_id] = max(pd, problemdata[problem_id])
+        else:
+            problemdata[problem_id] = pd
         problemdata_bag.remove(pd)
 
 
@@ -103,9 +140,10 @@ def get_problem(problem_id):
     """Return :class:`.ProblemData` from problem data store, or fail with
     :exc:`KeyError`.
     """
-    if problem_id not in problemdata:
-        index_resolved_problems()
+    # always re-index so newer problems with duplicate ids are preferred
+    index_resolved_problems()
 
+    # possibly fail with KeyError
     return problemdata[problem_id]
 
 
