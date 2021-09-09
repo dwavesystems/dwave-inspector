@@ -19,7 +19,7 @@ jobs:
       - checkout
 
       - restore_cache: &restore-cache-env
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "tests/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
+          key: pip-{{ .Environment.CACHE_VERSION }}-{{ checksum "requirements.txt" }}-{{ checksum "tests/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
 
       - run: &create-virtualenv
           name: Create virtual environment
@@ -36,7 +36,7 @@ jobs:
             pip install wheel twine
 
       - save_cache: &save-cache-env
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "tests/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
+          key: pip-{{ .Environment.CACHE_VERSION }}-{{ checksum "requirements.txt" }}-{{ checksum "tests/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
           paths:
             - env
 
@@ -95,7 +95,7 @@ jobs:
 
       - restore_cache: &restore-cache-pyenv
           keys:
-            - v1-pyenv-{{ .Environment.CIRCLE_JOB }}-xcode-<< parameters.xcode >>
+            - pyenv-{{ .Environment.CACHE_VERSION }}-{{ .Environment.CIRCLE_JOB }}-xcode-<< parameters.xcode >>
 
       - run: &pyenv-install-python
           name: Install python
@@ -107,7 +107,7 @@ jobs:
             pyenv global << parameters.python-version >>
 
       - save_cache: &save-cache-pyenv
-          key: v1-pyenv-{{ .Environment.CIRCLE_JOB }}-xcode-<< parameters.xcode >>
+          key: pyenv-{{ .Environment.CACHE_VERSION }}-{{ .Environment.CIRCLE_JOB }}-xcode-<< parameters.xcode >>
           paths:
             - ~/.pyenv
 
@@ -137,7 +137,7 @@ jobs:
 
       - restore_cache:
           keys:
-            - v1-nuget-python-<< parameters.python-version >>-{{ .Environment.CIRCLE_JOB }}
+            - nuget-{{ .Environment.CACHE_VERSION }}-python-<< parameters.python-version >>-{{ .Environment.CIRCLE_JOB }}
 
       - run:
           name: Install python and create virtualenv
@@ -146,7 +146,7 @@ jobs:
             python.<< parameters.python-version >>\tools\python -m venv env
 
       - save_cache:
-          key: v1-nuget-python-<< parameters.python-version >>-{{ .Environment.CIRCLE_JOB }}
+          key: nuget-{{ .Environment.CACHE_VERSION }}-python-<< parameters.python-version >>-{{ .Environment.CIRCLE_JOB }}
           paths:
             - python.<< parameters.python-version >>
 
@@ -177,7 +177,7 @@ jobs:
       - checkout
 
       - restore_cache: &restore-cache-docs
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "docs/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
+          key: pip-{{ .Environment.CACHE_VERSION }}-{{ checksum "requirements.txt" }}-{{ checksum "docs/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
 
       - run: *create-virtualenv
 
@@ -190,7 +190,7 @@ jobs:
             pip install dwave-inspectorapp --extra-index=https://pypi.dwavesys.com/simple
 
       - save_cache: &save-cache-docs
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "docs/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
+          key: pip-{{ .Environment.CACHE_VERSION }}-{{ checksum "requirements.txt" }}-{{ checksum "docs/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
           paths:
             - env
 
@@ -237,6 +237,8 @@ workflows:
   test-deploy:
     jobs:
       - test-linux:
+          context:
+            - ocean-build
           matrix:
             parameters:
               python-version: &python-versions ["3.6.8", "3.7.9", "3.8.9", "3.9.4"]
@@ -245,6 +247,8 @@ workflows:
               only: /.*/
 
       - test-macos:
+          context:
+            - ocean-build
           matrix:
             parameters:
               python-version: *python-versions
@@ -252,6 +256,8 @@ workflows:
             <<: *always-run
 
       - test-windows:
+          context:
+            - ocean-build
           matrix:
             parameters:
               python-version: *python-versions
@@ -259,6 +265,8 @@ workflows:
             <<: *always-run
 
       - test-docs:
+          context:
+            - ocean-build
           filters:
             <<: *always-run
 
