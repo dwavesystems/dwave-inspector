@@ -2,7 +2,10 @@ Flask>=1.1.1
 
 dimod>=0.8.17
 dwave-system>=1.0.0
-dwave-cloud-client>=0.8.3
+dwave-cloud-client>=0.8.3,<0.9.2
 
 # backports
 importlib-resources>=3.2.0; python_version<"3.9"
+
+# dev requirements
+reno==3.5.0
