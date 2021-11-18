@@ -6,3 +6,6 @@ dwave-cloud-client>=0.8.3
 
 # backports
 importlib-resources>=3.2.0; python_version<"3.9"
+
+# dev requirements
+reno==3.5.0
