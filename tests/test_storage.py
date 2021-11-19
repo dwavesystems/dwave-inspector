@@ -18,9 +18,9 @@ from functools import partial
 
 import vcr
 
-from dwave.cloud import Client
-
 from dwave.inspector.storage import push_inspector_data, get_solver_data
+
+from tests import BrickedClient
 
 
 rec = vcr.VCR(
@@ -30,10 +30,6 @@ rec = vcr.VCR(
     match_on=['uri', 'method'],
     filter_headers=['x-auth-token'],
 )
-
-
-# we can use a fake token because outbound requests are intercepted anyway
-BrickedClient = partial(Client, token='fake')
 
 
 @mock.patch('dwave.system.samplers.dwave_sampler.Client.from_config', BrickedClient)

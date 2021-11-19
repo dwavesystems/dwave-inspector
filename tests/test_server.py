@@ -19,12 +19,10 @@ from concurrent.futures import ThreadPoolExecutor
 import vcr
 import requests
 
-from dwave.cloud import Client
-
 from dwave.inspector.server import app_server
 from dwave.inspector import show, Block
 
-from tests import RunTimeAssertionMixin
+from tests import RunTimeAssertionMixin, BrickedClient
 
 
 rec = vcr.VCR(
@@ -35,8 +33,6 @@ rec = vcr.VCR(
     filter_headers=['x-auth-token'],
     ignore_localhost=True,
 )
-
-BrickedClient = partial(Client, token='fake')
 
 
 class TestServerRuns(unittest.TestCase):
