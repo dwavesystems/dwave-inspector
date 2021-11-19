@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Tests fixed to work with the latest multi-region cloud-client and
+    dwave-system (Ocean 4.2). See `#120 <https://github.com/dwavesystems/dwave-inspector/issues/120>`_.
