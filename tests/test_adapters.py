@@ -23,7 +23,6 @@ import vcr
 import numpy
 
 import dimod
-from dwave.cloud import Client
 from dwave.cloud.solver import UnstructuredSolver
 from dwave.system import DWaveSampler, FixedEmbeddingComposite
 from dwave.system.testing import MockDWaveSampler
@@ -34,6 +33,8 @@ from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get, active_qubits
 from dwave.inspector.adapters import (
     from_qmi_response, from_bqm_response, from_bqm_sampleset, from_objects,
     _validated_embedding)
+
+from tests import BrickedClient
 
 
 rec = vcr.VCR(
@@ -49,9 +50,6 @@ unstructured_solver_mock = UnstructuredSolver(
     client=None,
     data={'id': 'mock',
           'properties': {'supported_problem_types': ['bqm']}})
-
-# we can use a fake token because outbound requests are intercepted anyway
-BrickedClient = partial(Client, token='fake')
 
 
 @mock.patch('dwave.system.samplers.dwave_sampler.Client.from_config', BrickedClient)
@@ -162,10 +160,10 @@ class TestAdapters(unittest.TestCase):
         # vars = (0, 1, 4, 5)
         # h = {}, J = {(0, 4): 1, (0, 5): 1, (1, 5): -1, (4, 1): 1}
         problem = {
-            (0, 0): 0,   (0, 1): 0,    (0, 4): 0.5, (0, 5): 0.5,
-            (1, 0): 0,   (1, 1): 0,    (1, 4): 0.5, (1, 5): -0.5,
-            (4, 0): 0.5, (4, 1): 0.5,  (4, 4): 0,   (4, 5): 0,
-            (5, 0): 0.5, (5, 1): -0.5, (5, 4): 0,   (5, 5): 0,
+            (0, 4): 0.5, (0, 5): 0.5,
+            (1, 4): 0.5, (1, 5): -0.5,
+            (4, 0): 0.5, (4, 1): 0.5,
+            (5, 0): 0.5, (5, 1): -0.5,
         }
 
         # sample

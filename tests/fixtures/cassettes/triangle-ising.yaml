@@ -9,6 +9,37 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
+      - dwave-cloud-client/0.9.2 python/3.7.6 CPython/3.7.6-64bit machine/x86_64 system/Linux
+        platform/Linux-4.15.0-142-generic-x86_64-with-debian-stretch-sid
+    method: GET
+    uri: https://cloud.dwavesys.com/metadata/v1/regions/
+  response:
+    body:
+      string: '[{"code":"na-west-1","endpoint":"https://cloud.dwavesys.com/sapi/","name":"Mock region"}]'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '206'
+      Content-Type:
+      - application/vnd.dwave.metadata.regions+json; version=1.0.0
+      Date:
+      - Thu, 18 Nov 2021 22:44:27 GMT
+      Server:
+      - awselb/2.0
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
       - dwave-cloud-client/0.6.2 python/3.7.2 CPython/3.7.2-64bit machine/x86_64 system/Linux
         platform/Linux-4.15.0-72-generic-x86_64-with-debian-stretch-sid
     method: GET

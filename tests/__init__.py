@@ -14,6 +14,9 @@
 
 from time import perf_counter
 
+from dwave.cloud import Client
+
+
 # NOTE: copied from dwave-hybrid
 # TODO: Remove/replace when dwave.common utility package is created
 class RunTimeAssertionMixin:
@@ -51,3 +54,17 @@ class RunTimeAssertionMixin:
         def __init__(self, t):
             """Max runtime in milliseconds."""
             self.limits = (None, t)
+
+
+# client factory that turns off on-disk caching and removes the token requirement
+def BrickedClient(**kwargs):
+    # currently, this is the only way to skip on-disk caching (we do not want
+    # the client to use the existing cache during tests -- that way we can control
+    # the SAPI endpoint returned from the Metadata API)
+    # TODO: replace with cache-control when dwave-cloud-client#503 is implemented.
+    Client._fetch_available_regions._cached.cache = {}
+
+    # we can use a fake token because requests are replayed anyway
+    client = Client(token='fake', **kwargs)
+
+    return client
