@@ -114,6 +114,12 @@ class TestAdapters(unittest.TestCase):
         else:
             self.fail("Unknown problem type")
 
+        # make sure BQM views are converted to plain dicts, to prevent bias doubling
+        if not isinstance(linear, dict):
+            linear = dict(linear)
+        if not isinstance(quadratic, dict):
+            quadratic = dict(quadratic)
+
         active_variables = response['active_variables']
         problem_data = {
             "format": "qp",
@@ -151,6 +157,24 @@ class TestAdapters(unittest.TestCase):
 
         # validate data encoding
         self.verify_data_encoding(problem=self.problem, response=response,
+                                  solver=solver, params=self.params, data=data)
+
+    @rec.use_cassette('triangle-ising.yaml')
+    def test_from_qmi_response__ising_bqm(self):
+        """Inspector data is correctly encoded for a simple Ising triangle problem given as a BQM."""
+
+        problem = (self.bqm_embedded.linear, self.bqm_embedded.quadratic)
+
+        # sample
+        with BrickedClient() as client:
+            solver = client.get_solver(qpu=True)
+            response = solver.sample_ising(*problem, **self.params)
+
+        # convert
+        data = from_qmi_response(problem, response, params=self.params)
+
+        # validate data encoding
+        self.verify_data_encoding(problem=problem, response=response,
                                   solver=solver, params=self.params, data=data)
 
     @rec.use_cassette('triangle-qubo.yaml')
