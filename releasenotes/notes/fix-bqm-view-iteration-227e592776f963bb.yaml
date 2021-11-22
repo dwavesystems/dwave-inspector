@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    Fix problem data construction in ``from_qmi_response`` adapter for quadratic
+    biases given as ``dimod.TermsView`` (previous ``dimod.BQMView``).
+    See `#123 <https://github.com/dwavesystems/dwave-inspector/issues/123>`_.

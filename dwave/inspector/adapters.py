@@ -373,10 +373,11 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
     except:
         linear, quadratic = reformat_qubo_as_ising(problem)
 
-    # make sure lin/quad are not dimod views (that handle directed edges)
-    if isinstance(linear, BQMView):
+    # make sure lin/quad are not something like dimod views (that handle
+    # directed edges, and effectively duplicate biases of symmetric couplings)
+    if not isinstance(linear, dict):
         linear = dict(linear)
-    if isinstance(quadratic, BQMView):
+    if not isinstance(quadratic, dict):
         quadratic = dict(quadratic)
 
     solver = response.solver
