@@ -9,12 +9,14 @@ orbs:
   win: circleci/windows@2.2.0
 
 environment:
-  PIP_PROGRESS_BAR: off
+  PIP_PROGRESS_BAR: 'off'
 
 jobs:
   test-linux:
     parameters:
       python-version:
+        type: string
+      dimod-version:
         type: string
 
     docker:
@@ -39,6 +41,16 @@ jobs:
             pip install -r requirements.txt -r tests/requirements.txt
             pip install dwave-inspectorapp --extra-index=https://pypi.dwavesys.com/simple
             pip install wheel twine
+
+      - run:
+          name: Install appropriate dimod version
+          command: |
+            . env/bin/activate
+            if [[ "<< parameters.dimod-version >>" ]]; then
+              pip install 'dimod<< parameters.dimod-version >>'
+            else
+              pip uninstall dimod -y
+            fi
 
       - save_cache: &save-cache-env
           key: v<< pipeline.parameters.cache-generation >>-pip-{{ checksum "requirements.txt" }}-{{ checksum "tests/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
@@ -245,6 +257,7 @@ workflows:
           matrix:
             parameters:
               python-version: &python-versions ["3.6.8", "3.7.9", "3.8.9", "3.9.4"]
+              dimod-version: ["~=0.8.0,>=0.8.17", "~=0.9.0", "~=0.10.0"]
           filters: &always-run  # run on `tags` in addition to `branches` default (deploy dep)
             tags:
               only: /.*/
