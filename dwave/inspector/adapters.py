@@ -32,12 +32,6 @@ from dwave.inspector import storage
 from dwave.inspector.utils import itemsgetter
 
 try:
-    from dimod.core.bqm import BQMView
-except ImportError:
-    # dimod < 0.9
-    from dimod.views.bqm import BQMView
-
-try:
     import dimod.core.bqm
     BQM_CLASSES = (dimod.BinaryQuadraticModel, dimod.core.bqm.BQM)
 except ImportError:
