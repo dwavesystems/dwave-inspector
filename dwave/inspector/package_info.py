@@ -39,6 +39,6 @@ contrib = [{
         'url': 'https://docs.ocean.dwavesys.com/eula',
     },
     'requirements': [
-        'dwave-inspectorapp==0.2.3',
+        'dwave-inspectorapp==0.2.4',
     ]
 }]

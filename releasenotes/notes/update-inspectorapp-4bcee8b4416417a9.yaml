@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Support opening of external visualizer links when running in vscode-based
+    Leap IDE's Simple Browser (`dwave-inspectorapp#97`).
