@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import logging
 import operator
 
+import numpy
+
 __all__ = [
-    'itemsgetter',
+    'itemsgetter', 'NumpyEncoder',
 ]
 
 logger = logging.getLogger(__name__)
@@ -37,3 +40,27 @@ def itemsgetter(*items):
         f = operator.itemgetter(*items)
 
     return f
+
+
+# copied from dwave-hybrid utils
+# (https://github.com/dwavesystems/dwave-hybrid/blob/b9025b5bb3d88dce98ec70e28cfdb25400a10e4a/hybrid/utils.py#L43-L61)
+# TODO: switch to `dwave.common` if and when we create it
+class NumpyEncoder(json.JSONEncoder):
+    """JSON encoder for numpy types.
+
+    Supported types:
+     - basic numeric types: booleans, integers, floats
+     - arrays: ndarray, recarray
+    """
+
+    def default(self, obj):
+        if isinstance(obj, numpy.integer):
+            return int(obj)
+        elif isinstance(obj, numpy.floating):
+            return float(obj)
+        elif isinstance(obj, numpy.bool_):
+            return bool(obj)
+        elif isinstance(obj, numpy.ndarray):
+            return obj.tolist()
+
+        return super().default(obj)
