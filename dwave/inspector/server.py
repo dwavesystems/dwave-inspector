@@ -165,6 +165,10 @@ class WSGIAsyncServer(threading.Thread):
         return 'http://{}:{}/api/callback/{}'.format(
             *self.server.server_address, problem_id)
 
+    def get_problem_url(self, problem_id):
+        return 'http://{}:{}/api/problems/{}'.format(
+            *self.server.server_address, problem_id)
+
     def _ensure_accessible(self, sleep=0.1, tries=100, timeout=10):
         """Ping the canary URL (app root) until the app becomes accessible."""
 
