@@ -1,0 +1,10 @@
+---
+features:
+  - |
+    Add support for (serialization of) NumPy types used anywhere in the
+    inspector data served from the Inspector web server (Flask app).
+fixes:
+  - |
+    Use of embeddings with NumPy types was not previously possible. Now it is,
+    having `#127 <https://github.com/dwavesystems/dwave-inspector/issues/127>`_
+    fixed.
