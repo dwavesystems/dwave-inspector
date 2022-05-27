@@ -31,6 +31,7 @@ from flask import Flask, send_from_directory, make_response
 from werkzeug.exceptions import NotFound
 
 from dwave.inspector.storage import problem_store, problem_access_sem, get_problem, get_solver_data
+from dwave.inspector.utils import NumpyEncoder
 
 
 # get local server/app logger
@@ -165,6 +166,10 @@ class WSGIAsyncServer(threading.Thread):
         return 'http://{}:{}/api/callback/{}'.format(
             *self.server.server_address, problem_id)
 
+    def get_problem_url(self, problem_id):
+        return 'http://{}:{}/api/problems/{}'.format(
+            *self.server.server_address, problem_id)
+
     def _ensure_accessible(self, sleep=0.1, tries=100, timeout=10):
         """Ping the canary URL (app root) until the app becomes accessible."""
 
@@ -212,6 +217,7 @@ class WSGIAsyncServer(threading.Thread):
 
 
 app = Flask(__name__, static_folder=None)
+app.json_encoder = NumpyEncoder
 
 @app.route('/')
 @app.route('/<path:path>')

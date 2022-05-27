@@ -17,7 +17,10 @@ from functools import partial
 from concurrent.futures import ThreadPoolExecutor
 
 import vcr
+import numpy as np
 import requests
+
+from dwave.system import DWaveSampler, FixedEmbeddingComposite
 
 from dwave.inspector.server import app_server
 from dwave.inspector import show, Block
@@ -97,3 +100,34 @@ class TestServerWorks(unittest.TestCase, RunTimeAssertionMixin):
 
         with self.assertMaxRuntime(2000):
             show(self.response, block=True, timeout=1)
+
+    @rec.use_cassette('triangle-ising.yaml')
+    def test_numpy_types_serialized(self):
+        # model and embedding use variables with numpy types
+        h = {}
+        J = {
+            (np.int8(0), np.int16(4)): np.int32(1),
+            (np.int32(0), np.int64(5)): np.int64(1),
+            (4, np.int32(1)): np.float32(1),
+            (np.int32(1), 5): np.float64(-1),
+        }
+        embedding = {
+            np.int8(0): [np.int8(0)],
+            np.int32(1): [np.int32(1)],
+            np.int16(4): [np.int16(4)],
+            np.int64(5): [np.int64(5)],
+        }
+
+        # sample
+        qpu = DWaveSampler()
+        sampler = FixedEmbeddingComposite(qpu, embedding)
+        sampleset = sampler.sample_ising(h, J, return_embedding=True)
+        problem_id = sampleset.info['problem_id']
+
+        # push data, for server to be able to fetch it
+        show(sampleset, block=Block.NEVER)
+
+        # simulate problem data fetch from the inspectorapp
+        url = app_server.get_problem_url(problem_id)
+        res = requests.get(url)
+        self.assertEqual(res.status_code, 200)
