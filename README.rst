@@ -22,7 +22,9 @@ D-Wave Inspector
 .. index-start-marker
 
 A tool for visualizing problems submitted to, and answers received from, a
-D-Wave structured solver such as a D-Wave 2000Q quantum computer.
+D-Wave structured solver such as an Advantage\ |TM| quantum computer.
+
+.. |TM| replace:: :sup:`TM`
 
 .. index-end-marker
 
