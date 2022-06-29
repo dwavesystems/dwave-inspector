@@ -48,7 +48,7 @@ __all__ = [
 
 logger = logging.getLogger(__name__)
 
-SUPPORTED_SOLVER_TOPOLOGY_TYPES = {'chimera', 'pegasus'}
+SUPPORTED_SOLVER_TOPOLOGY_TYPES = {'chimera', 'pegasus', 'zephyr'}
 
 
 def enable_data_capture():
