@@ -67,6 +67,17 @@ class Block(enum.Enum):
     FOREVER = 'forever'
 
 
+class RichDisplay(str):
+    def __init__(self, url):
+        self.url = url
+
+    def _repr_pretty_(self, pp, cycle):
+        return pp.text(f'Serving Inspector on {self.url}')
+
+    def _repr_html_(self):
+        return f'<iframe src={self.url} width="100%" height=640></iframe>'
+
+
 def open_problem(problem_id, block=Block.ONCE, timeout=None):
     """Open the problem inspector for the specified problem.
 
@@ -97,7 +108,7 @@ def open_problem(problem_id, block=Block.ONCE, timeout=None):
     elif block is Block.FOREVER or block is True:
         app_server.wait_shutdown(timeout=timeout)
 
-    return url
+    return RichDisplay(url)
 
 
 def show_qmi(problem, response, embedding_context=None, warnings=None, params=None):
