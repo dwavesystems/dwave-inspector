@@ -47,9 +47,23 @@ def annotated(**kwargs):
     return _decorator
 
 
+@annotated(priority=1000)
+def jupyter_nop(url):
+    """Hijack viewers (use high priority) and prevent browser popping up when
+    running in interactive (GUI) Jupyter session. That way only the inline
+    Inspector is shown.
+    """
+    # note: it's fine to fail, the next viewer is tried in that case
+    ipython = get_ipython()
+    logger.debug('Running inside ipython: %r', ipython)
+    if 'ZMQInteractiveShell' not in type(ipython).__name__:
+        raise ValueError('non-gui interactive shell')
+
+
 @annotated(priority=0)
 def webbrowser_tab(url):
     return webbrowser.open_new_tab(url)
+
 
 @annotated(priority=-10)
 def webbrowser_window(url):
