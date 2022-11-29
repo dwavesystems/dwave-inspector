@@ -56,6 +56,10 @@ class TestAnnotation(unittest.TestCase):
             self.assertEqual(getattr(f, k), v)
 
 
+class DummyZMQInteractiveShell:
+    pass
+
+
 class TestViewers(unittest.TestCase):
 
     def test_registration(self):
@@ -87,3 +91,16 @@ class TestViewers(unittest.TestCase):
         """Fallback to secondary viewer works when primary fails."""
 
         self.assertEqual(view('url'), 'webbrowser_window')
+
+    @mock.patch('dwave.inspector.viewers.get_ipython', DummyZMQInteractiveShell, create=True)
+    def test_hijack(self):
+        """jupyter_nop viewer prevents blocking."""
+
+        self.assertEqual(view('url'), False)
+
+    @mock.patch('webbrowser.open_new_tab', return_value='webbrowser_tab')
+    @mock.patch('dwave.inspector.viewers.get_ipython', object, create=True)
+    def test_terminal_ipython(self, m):
+        """jupyter_nop viewer ignores non-gui ipython."""
+
+        self.assertEqual(view('url'), 'webbrowser_tab')
