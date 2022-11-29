@@ -13,9 +13,8 @@
 # limitations under the License.
 
 import logging
-import functools
-import webbrowser
 import operator
+import webbrowser
 from pkg_resources import iter_entry_points
 
 logger = logging.getLogger(__name__)
@@ -58,6 +57,9 @@ def jupyter_nop(url):
     logger.debug('Running inside ipython: %r', ipython)
     if 'ZMQInteractiveShell' not in type(ipython).__name__:
         raise ValueError('non-gui interactive shell')
+
+    # don't block if gui interactive shell is used
+    return False
 
 
 @annotated(priority=0)
