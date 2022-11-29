@@ -100,13 +100,14 @@ def open_problem(problem_id, block=Block.ONCE, timeout=None):
     app_server.ensure_started()
     url = app_server.get_inspect_url(problem_id)
 
-    # open url and block if requested
-    view(url)
+    # open url and block
+    blockable = view(url)
 
-    if block is Block.ONCE:
-        app_server.wait_problem_accessed(problem_id, timeout=timeout)
-    elif block is Block.FOREVER or block is True:
-        app_server.wait_shutdown(timeout=timeout)
+    if blockable is not False:
+        if block is Block.ONCE:
+            app_server.wait_problem_accessed(problem_id, timeout=timeout)
+        elif block is Block.FOREVER or block is True:
+            app_server.wait_shutdown(timeout=timeout)
 
     return RichDisplay(url)
 
