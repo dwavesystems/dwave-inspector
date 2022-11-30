@@ -104,3 +104,11 @@ class TestViewers(unittest.TestCase):
         """jupyter_nop viewer ignores non-gui ipython."""
 
         self.assertEqual(view('url'), 'webbrowser_tab')
+
+    @mock.patch('webbrowser.open_new_tab', side_effect=ValueError)
+    @mock.patch('webbrowser.open_new', side_effect=ValueError)
+    @mock.patch('dwave.inspector.viewers.get_ipython', side_effect=ValueError, create=True)
+    def test_nonblocking_view(self, m1, m2, m3):
+        """Signal non-blocking show behavior when no viewer succeeds."""
+
+        self.assertEqual(view('url'), False)

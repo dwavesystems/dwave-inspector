@@ -38,9 +38,10 @@ rec = vcr.VCR(
 )
 
 
-class TestServerRuns(unittest.TestCase):
+class FirstTestServerRuns(unittest.TestCase):
 
     def test_lazy_start(self):
+        # note: this test has to run first
         self.assertIsNone(getattr(app_server, '_server', None))
         self.assertIsNotNone(app_server.server)
 
@@ -52,8 +53,7 @@ class TestServerRuns(unittest.TestCase):
 
 
 @unittest.mock.patch('dwave.system.samplers.dwave_sampler.Client.from_config', BrickedClient)
-@unittest.mock.patch('dwave.inspector.view', lambda url: None)
-class TestServerWorks(unittest.TestCase, RunTimeAssertionMixin):
+class TestProblemOpen(unittest.TestCase, RunTimeAssertionMixin):
 
     @rec.use_cassette('triangle-ising.yaml')
     @classmethod
@@ -69,6 +69,7 @@ class TestServerWorks(unittest.TestCase, RunTimeAssertionMixin):
         url = app_server.get_callback_url(problem_id)
         return requests.get(url).json()
 
+    @unittest.mock.patch('dwave.inspector.view', lambda url: None)
     def test_show_no_block(self):
         # exclude potential server start-up time from timing tests below
         app_server.ensure_started()
@@ -77,6 +78,7 @@ class TestServerWorks(unittest.TestCase, RunTimeAssertionMixin):
         with self.assertMaxRuntime(2000):
             show(self.response, block=Block.NEVER)
 
+    @unittest.mock.patch('dwave.inspector.view', lambda url: True)
     def test_show_block_once(self):
         # exclude potential server start-up time from timing tests below
         app_server.ensure_started()
@@ -90,6 +92,7 @@ class TestServerWorks(unittest.TestCase, RunTimeAssertionMixin):
                 show(self.response, block=Block.ONCE)
                 fut.result()
 
+    @unittest.mock.patch('dwave.inspector.view', lambda url: None)
     def test_show_block_timeout(self):
         # exclude potential server start-up time from timing tests below
         app_server.ensure_started()
@@ -101,7 +104,21 @@ class TestServerWorks(unittest.TestCase, RunTimeAssertionMixin):
         with self.assertMaxRuntime(2000):
             show(self.response, block=True, timeout=1)
 
+    @unittest.mock.patch('dwave.inspector.view', lambda url: False)
+    def test_show_blocking_ignored(self):
+        # exclude potential server start-up time from timing tests below
+        app_server.ensure_started()
+
+        # show shouldn't block regardless of problem inspector opening or not
+        with self.assertMaxRuntime(2000):
+            show(self.response, block=Block.ONCE)
+
+
+@unittest.mock.patch('dwave.system.samplers.dwave_sampler.Client.from_config', BrickedClient)
+class TestSerialization(unittest.TestCase):
+
     @rec.use_cassette('triangle-ising.yaml')
+    @unittest.mock.patch('dwave.inspector.view', lambda url: None)
     def test_numpy_types_serialized(self):
         # model and embedding use variables with numpy types
         h = {}

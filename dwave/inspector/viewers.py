@@ -94,4 +94,5 @@ def view(url):
             logger.info('Opening the webapp URL with %r failed with %r',
                         viewer.__name__, exc)
 
+    # caller should not block on server access, since no viewers opened
     return False
