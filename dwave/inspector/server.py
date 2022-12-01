@@ -30,6 +30,7 @@ import requests
 from flask import Flask, send_from_directory, make_response
 from werkzeug.exceptions import NotFound
 
+from dwave.inspector.config import config
 from dwave.inspector.storage import problem_store, problem_access_sem, get_problem, get_solver_data
 from dwave.inspector.utils import NumpyEncoder
 
@@ -261,4 +262,4 @@ def add_header(response):
         response.cache_control.max_age = 86400
     return response
 
-app_server = WSGIAsyncServer(host='127.0.0.1', base_port=18000, app=app)
+app_server = WSGIAsyncServer(host=config.host, base_port=config.base_port, app=app)

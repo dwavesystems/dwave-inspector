@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import enum
 import logging
 
 from dwave.cloud.utils import set_loglevel
 
+from dwave.inspector.config import config
 from dwave.inspector.server import app_server
 from dwave.inspector.adapters import (
     from_qmi_response, from_bqm_response, from_bqm_sampleset, from_objects,
@@ -41,8 +41,8 @@ def _configure_logging(logger, loglevel):
 
     set_loglevel(logger, loglevel)
 
-# configure root logger and apply `DWAVE_INSPECTOR_LOG_LEVEL`
-_configure_logging(logger, os.getenv('DWAVE_INSPECTOR_LOG_LEVEL'))
+# configure root logger
+_configure_logging(logger, config.log_level)
 
 
 # enable inspector data capture on import!

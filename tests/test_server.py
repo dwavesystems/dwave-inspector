@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import unittest
-from functools import partial
 from concurrent.futures import ThreadPoolExecutor
 
 import vcr
