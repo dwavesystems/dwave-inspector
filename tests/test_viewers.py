@@ -93,10 +93,20 @@ class TestViewers(unittest.TestCase):
         self.assertEqual(view('url'), 'webbrowser_window')
 
     @mock.patch('dwave.inspector.viewers.get_ipython', DummyZMQInteractiveShell, create=True)
+    @mock.patch('dwave.inspector.viewers.display', lambda o: None, create=True)
     def test_hijack(self):
         """jupyter_nop viewer prevents blocking."""
 
         self.assertEqual(view('url'), False)
+
+    @mock.patch('dwave.inspector.viewers.get_ipython', DummyZMQInteractiveShell, create=True)
+    @mock.patch('dwave.inspector.viewers.display', create=True)
+    def test_hijack(self, display):
+        """jupyter_nop viewer calls display."""
+
+        url = 'url'
+        self.assertEqual(view(url), False)
+        display.assert_called_once_with(url)
 
     @mock.patch('webbrowser.open_new_tab', return_value='webbrowser_tab')
     @mock.patch('dwave.inspector.viewers.get_ipython', object, create=True)

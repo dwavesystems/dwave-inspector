@@ -47,16 +47,21 @@ def annotated(**kwargs):
 
 
 @annotated(priority=1000)
-def jupyter_nop(url):
+def jupyter_nop(rich_url):
     """Hijack viewers (use high priority) and prevent browser popping up when
     running in interactive (GUI) Jupyter session. That way only the inline
     Inspector is shown.
     """
-    # note: it's fine to fail, the next viewer is tried in that case
+    # note: `get_ipython` is available without import since ipython 5.1
+    # (and it's fine to fail here, since the next viewer is attempted in that case)
     ipython = get_ipython()
     logger.debug('Running inside ipython: %r', ipython)
     if 'ZMQInteractiveShell' not in type(ipython).__name__:
         raise ValueError('non-gui interactive shell')
+
+    # render URL/IFrame inline in jupyter notebook, or fail trying
+    # note: since ipython 5.4/6.1 (May 2017) `display` is available without import
+    display(rich_url)
 
     # don't block if gui interactive shell is used
     return False
