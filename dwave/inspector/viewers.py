@@ -13,9 +13,8 @@
 # limitations under the License.
 
 import logging
-import functools
-import webbrowser
 import operator
+import webbrowser
 from pkg_resources import iter_entry_points
 
 logger = logging.getLogger(__name__)
@@ -47,9 +46,31 @@ def annotated(**kwargs):
     return _decorator
 
 
+@annotated(priority=1000)
+def jupyter_inline(rich_url):
+    """Hijack viewers (use high priority) and prevent browser popping up when
+    running in interactive (GUI) Jupyter session. That way only the inline
+    Inspector is shown.
+    """
+    # note: `get_ipython` is available without import since ipython 5.1
+    # (and it's fine to fail here, since the next viewer is attempted in that case)
+    ipython = get_ipython()
+    logger.debug('Running inside ipython: %r', ipython)
+    if 'ZMQInteractiveShell' not in type(ipython).__name__:
+        raise ValueError('non-gui interactive shell')
+
+    # render URL/IFrame inline in jupyter notebook, or fail trying
+    # note: since ipython 5.4/6.1 (May 2017) `display` is available without import
+    display(rich_url)
+
+    # don't block if gui interactive shell is used
+    return False
+
+
 @annotated(priority=0)
 def webbrowser_tab(url):
     return webbrowser.open_new_tab(url)
+
 
 @annotated(priority=-10)
 def webbrowser_window(url):
@@ -78,4 +99,5 @@ def view(url):
             logger.info('Opening the webapp URL with %r failed with %r',
                         viewer.__name__, exc)
 
+    # caller should not block on server access, since no viewers opened
     return False

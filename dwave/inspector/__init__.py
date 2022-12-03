@@ -67,6 +67,19 @@ class Block(enum.Enum):
     FOREVER = 'forever'
 
 
+class RichDisplayURL(str):
+    """Behaves as `str`, but provides support for rich display in Jupyter.
+
+    In console, the URL pretty-printed, and in GUI the URL is opened in an iframe.
+    """
+
+    def _repr_pretty_(self, pp, cycle):
+        return pp.text(f'Serving Inspector on {self}')
+
+    def _repr_html_(self):
+        return f'<iframe src={self} width="100%" height=640></iframe>'
+
+
 def open_problem(problem_id, block=Block.ONCE, timeout=None):
     """Open the problem inspector for the specified problem.
 
@@ -89,15 +102,19 @@ def open_problem(problem_id, block=Block.ONCE, timeout=None):
     app_server.ensure_started()
     url = app_server.get_inspect_url(problem_id)
 
-    # open url and block if requested
-    view(url)
+    # add support for jupyter inline rendering
+    rich_url = RichDisplayURL(url)
 
-    if block is Block.ONCE:
-        app_server.wait_problem_accessed(problem_id, timeout=timeout)
-    elif block is Block.FOREVER or block is True:
-        app_server.wait_shutdown(timeout=timeout)
+    # open url and block
+    blockable = view(rich_url)
 
-    return url
+    if blockable is not False:
+        if block is Block.ONCE:
+            app_server.wait_problem_accessed(problem_id, timeout=timeout)
+        elif block is Block.FOREVER or block is True:
+            app_server.wait_shutdown(timeout=timeout)
+
+    return rich_url
 
 
 def show_qmi(problem, response, embedding_context=None, warnings=None, params=None):

@@ -1,0 +1,16 @@
+---
+features:
+  - |
+    Render inspector inline in Jupyter notebooks.
+    See `#109 <https://github.com/dwavesystems/dwave-inspector/issues/109>`_
+    and `#133 <https://github.com/dwavesystems/dwave-inspector/issues/133>`_.
+fixes:
+  - |
+    Make ``show()`` non-blocking regardless of the ``block`` argument when
+    no viewer manages to open the inspector page.
+    See `#139 <https://github.com/dwavesystems/dwave-inspector/issues/139>`_.
+upgrade:
+  - |
+    Custom viewer can now return ``False`` to signal a non-blocking ``show()``
+    behavior is desired. Previously the value returned was ignored by the
+    caller.
