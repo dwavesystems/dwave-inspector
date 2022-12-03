@@ -56,7 +56,7 @@ setup(
     packages=packages,
     entry_points={
         'inspectorapp_viewers': [
-            'jupyter_nop = dwave.inspector.viewers:jupyter_nop',
+            'jupyter_inline = dwave.inspector.viewers:jupyter_inline',
             'browser_tab = dwave.inspector.viewers:webbrowser_tab',
             'browser_window = dwave.inspector.viewers:webbrowser_window',
         ],

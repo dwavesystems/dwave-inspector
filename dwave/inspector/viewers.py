@@ -47,7 +47,7 @@ def annotated(**kwargs):
 
 
 @annotated(priority=1000)
-def jupyter_nop(rich_url):
+def jupyter_inline(rich_url):
     """Hijack viewers (use high priority) and prevent browser popping up when
     running in interactive (GUI) Jupyter session. That way only the inline
     Inspector is shown.
