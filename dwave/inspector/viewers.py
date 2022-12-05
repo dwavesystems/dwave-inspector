@@ -17,33 +17,9 @@ import operator
 import webbrowser
 from pkg_resources import iter_entry_points
 
+from dwave.inspector.utils import annotated
+
 logger = logging.getLogger(__name__)
-
-
-def annotated(**kwargs):
-    """Decorator for annotating function objects with **kwargs attributes.
-
-    Args:
-        **kwargs (dict):
-            Map of attribute values to names.
-
-    Example:
-        Decorate `f` with `priority=10`::
-
-            @annotated(priority=10)
-            def f():
-                pass
-
-            assert f.priority == 10
-
-    """
-
-    def _decorator(f):
-        for key, val in kwargs.items():
-            setattr(f, key, val)
-        return f
-
-    return _decorator
 
 
 @annotated(priority=1000)

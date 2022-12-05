@@ -70,7 +70,7 @@ class Block(enum.Enum):
 class RichDisplayURL(str):
     """Behaves as `str`, but provides support for rich display in Jupyter.
 
-    In console, the URL pretty-printed, and in GUI the URL is opened in an iframe.
+    In console, the URL is pretty-printed, and in GUI the URL is opened in an iframe.
     """
 
     def _repr_pretty_(self, pp, cycle):

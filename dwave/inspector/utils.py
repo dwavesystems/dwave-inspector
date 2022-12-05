@@ -42,6 +42,32 @@ def itemsgetter(*items):
     return f
 
 
+def annotated(**kwargs):
+    """Decorator for annotating function objects with **kwargs attributes.
+
+    Args:
+        **kwargs (dict):
+            Map of attribute values to names.
+
+    Example:
+        Decorate `f` with `priority=10`::
+
+            @annotated(priority=10)
+            def f():
+                pass
+
+            assert f.priority == 10
+
+    """
+
+    def _decorator(f):
+        for key, val in kwargs.items():
+            setattr(f, key, val)
+        return f
+
+    return _decorator
+
+
 # copied from dwave-hybrid utils
 # (https://github.com/dwavesystems/dwave-hybrid/blob/b9025b5bb3d88dce98ec70e28cfdb25400a10e4a/hybrid/utils.py#L43-L61)
 # TODO: switch to `dwave.common` if and when we create it
