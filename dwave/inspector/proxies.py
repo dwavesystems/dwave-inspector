@@ -34,9 +34,10 @@ import operator
 from typing import List, Callable
 
 try:
-    from importlib.metadata import entry_points
-except ImportError:  # noqa
     from importlib_metadata import entry_points
+except ImportError:  # noqa
+    # proper native support in py310+
+    from importlib.metadata import entry_points
 
 from dwave.inspector.utils import annotated
 
@@ -46,7 +47,7 @@ logger = logging.getLogger(__name__)
 def prioritized_url_rewriters() -> List[Callable]:
     """Return all registered URL rewriters, ordered by descending priority."""
 
-    proxies = [ep.load() for ep in entry_points(group='inspectorapp_proxies')]
+    proxies = [ep.load() for ep in entry_points().select(group='inspectorapp_proxies')]
     rewriters = filter(lambda f: getattr(f, 'url_rewriter', None), proxies)
     return sorted(rewriters, key=operator.attrgetter('priority'), reverse=True)
 

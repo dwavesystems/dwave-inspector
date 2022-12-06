@@ -28,7 +28,7 @@ extras_require = {
     ':python_version < "3.9"': ['importlib-resources>=3.2.0'],
 
     # importlib.metadata backport needed for entry point tests
-    ':python_version < "3.8"': ['importlib-metadata>=1.4'],
+    ':python_version < "3.10"': ['importlib-metadata>=4.8'],
 }
 
 classifiers = [
