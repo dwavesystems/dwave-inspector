@@ -31,6 +31,7 @@ Concrete URL rewriter function signature::
 
 import logging
 import operator
+from typing import List, Callable
 
 try:
     from importlib.metadata import entry_points
@@ -42,7 +43,7 @@ from dwave.inspector.utils import annotated
 logger = logging.getLogger(__name__)
 
 
-def prioritized_url_rewriters():
+def prioritized_url_rewriters() -> List[Callable]:
     """Return all registered URL rewriters, ordered by descending priority."""
 
     proxies = [ep.load() for ep in entry_points(group='inspectorapp_proxies')]
@@ -50,7 +51,7 @@ def prioritized_url_rewriters():
     return sorted(rewriters, key=operator.attrgetter('priority'), reverse=True)
 
 
-def rewrite_url(url, **kwargs):
+def rewrite_url(url: str, **kwargs) -> str:
     """Rewrite the internal `url` with the highest priority url rewriter that
     accepts it.
     """
