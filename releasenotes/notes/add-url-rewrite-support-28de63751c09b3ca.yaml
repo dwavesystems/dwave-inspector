@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    Add support for running the inspector behind a network proxy.
+    Now users can register a URL rewriter specific to their environment using
+    the ``inspectorapp_proxies`` entry point.
+    See `#141 <https://github.com/dwavesystems/dwave-inspector/issues/141>`_

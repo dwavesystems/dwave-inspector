@@ -24,8 +24,11 @@ install_requires = [
 extras_require = {
     'test': ['coverage', 'vcrpy'],
 
-    # backports
-    ':python_version < "3.9"': ['importlib-resources>=3.2.0']
+    # importlib.resources backport needed for reading distribution data files
+    ':python_version < "3.9"': ['importlib-resources>=3.2.0'],
+
+    # importlib.metadata backport needed for entry point tests
+    ':python_version < "3.8"': ['importlib-metadata>=1.4'],
 }
 
 classifiers = [
@@ -59,6 +62,8 @@ setup(
             'jupyter_inline = dwave.inspector.viewers:jupyter_inline',
             'browser_tab = dwave.inspector.viewers:webbrowser_tab',
             'browser_window = dwave.inspector.viewers:webbrowser_window',
+        ],
+        'inspectorapp_proxies': [
         ],
         'dwave_contrib': [
             'dwave-inspector = dwave.inspector.package_info:contrib'
