@@ -16,44 +16,7 @@ import unittest
 from unittest import mock
 
 from dwave.inspector.viewers import (
-    annotated, prioritized_viewers, webbrowser_tab, webbrowser_window, view)
-
-
-class TestAnnotation(unittest.TestCase):
-
-    def test_nil(self):
-        """Null annotation case correct."""
-
-        f = lambda: None
-        f_attrs = dir(f)
-
-        f_ann = annotated()(f)
-        f_ann_attrs = dir(f_ann)
-
-        self.assertEqual(f_attrs, f_ann_attrs)
-
-    def test_priority(self):
-        """Single (priority) attribute set."""
-
-        priority = 10
-
-        @annotated(priority=priority)
-        def f():
-            pass
-
-        self.assertEqual(f.priority, priority)
-
-    def test_multiple(self):
-        """Multiple function attributes are set."""
-
-        attrs = dict(a=1, b=2, c=3)
-
-        @annotated(**attrs)
-        def f():
-            pass
-
-        for k, v in attrs.items():
-            self.assertEqual(getattr(f, k), v)
+    prioritized_viewers, webbrowser_tab, webbrowser_window, view)
 
 
 class DummyZMQInteractiveShell:

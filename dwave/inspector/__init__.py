@@ -24,6 +24,7 @@ from dwave.inspector.adapters import (
     enable_data_capture)
 from dwave.inspector.storage import push_inspector_data
 from dwave.inspector.viewers import view
+from dwave.inspector.proxies import rewrite_url
 from dwave.inspector.package_info import __version__, __author__, __description__
 
 # expose the root logger to simplify access
@@ -70,7 +71,7 @@ class Block(enum.Enum):
 class RichDisplayURL(str):
     """Behaves as `str`, but provides support for rich display in Jupyter.
 
-    In console, the URL pretty-printed, and in GUI the URL is opened in an iframe.
+    In console, the URL is pretty-printed, and in GUI the URL is opened in an iframe.
     """
 
     def _repr_pretty_(self, pp, cycle):
@@ -102,8 +103,10 @@ def open_problem(problem_id, block=Block.ONCE, timeout=None):
     app_server.ensure_started()
     url = app_server.get_inspect_url(problem_id)
 
+    external_url = rewrite_url(url)
+
     # add support for jupyter inline rendering
-    rich_url = RichDisplayURL(url)
+    rich_url = RichDisplayURL(external_url)
 
     # open url and block
     blockable = view(rich_url)
