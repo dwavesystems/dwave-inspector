@@ -42,3 +42,11 @@ contrib = [{
         'dwave-inspectorapp==0.3.0',
     ]
 }]
+
+
+# all entry point groups in one place
+entry_point_group = {
+    'viewers': 'inspectorapp_viewers',
+    'proxies': 'inspectorapp_proxies',
+    'contrib': 'dwave_contrib',
+}

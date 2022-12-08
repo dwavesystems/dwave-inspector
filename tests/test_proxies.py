@@ -17,6 +17,7 @@ import uuid
 
 from dwave.inspector.utils import annotated, patch_entry_points
 from dwave.inspector.proxies import prioritized_url_rewriters, rewrite_url
+from dwave.inspector.package_info import entry_point_group
 
 
 @annotated(priority=0, url_rewriter=True)
@@ -38,7 +39,7 @@ def proxy_fail(url, **kwargs):
 
 class TestProxies(unittest.TestCase):
 
-    @patch_entry_points(group='inspectorapp_proxies', eps=(proxy_nop, proxy_server, proxy_rewriter))
+    @patch_entry_points(group=entry_point_group['proxies'], eps=(proxy_nop, proxy_server, proxy_rewriter))
     def test_url_rewriters_prioritization(self):
         """URL rewriters are correctly filtered and ordered (by desc priority)."""
 
@@ -53,14 +54,14 @@ class TestProxies(unittest.TestCase):
         url = str(uuid.uuid4())
         self.assertEqual(rewrite_url(url), url)
 
-    @patch_entry_points(group='inspectorapp_proxies', eps=(proxy_nop, proxy_server, proxy_rewriter))
+    @patch_entry_points(group=entry_point_group['proxies'], eps=(proxy_nop, proxy_server, proxy_rewriter))
     def test_rewrite(self):
         """URL rewritten."""
 
         url = str(uuid.uuid4())
         self.assertEqual(rewrite_url(url), f'proxy://{url}')
 
-    @patch_entry_points(group='inspectorapp_proxies', eps=(proxy_fail, proxy_nop, proxy_rewriter))
+    @patch_entry_points(group=entry_point_group['proxies'], eps=(proxy_fail, proxy_nop, proxy_rewriter))
     def test_failure(self):
         """Next rewriter (by priority) is retried on failure."""
 

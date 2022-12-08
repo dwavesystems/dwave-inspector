@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import sys
 import json
 import logging
@@ -23,7 +22,7 @@ from typing import Sequence, Callable, Optional
 
 try:
     from importlib.metadata import EntryPoint, DistributionFinder, Distribution
-except ImportError:
+except ImportError: # noqa
     from importlib_metadata import EntryPoint, DistributionFinder, Distribution
 
 import numpy
@@ -126,9 +125,9 @@ class patch_entry_points:
         @property
         def entry_points(self):
             eps = [EntryPoint(name=ep.__name__,
-                            value=f'{ep.__module__}:{ep.__name__}',
-                            group=self._group)
-                for ep in self._eps]
+                              value=f'{ep.__module__}:{ep.__name__}',
+                              group=self._group)
+                   for ep in self._eps]
             return eps
 
     class InMemoryDistributionFinder(DistributionFinder):

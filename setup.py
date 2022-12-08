@@ -58,14 +58,14 @@ setup(
     license=package_info['__license__'],
     packages=packages,
     entry_points={
-        'inspectorapp_viewers': [
+        package_info['entry_point_group']['viewers']: [
             'jupyter_inline = dwave.inspector.viewers:jupyter_inline',
             'browser_tab = dwave.inspector.viewers:webbrowser_tab',
             'browser_window = dwave.inspector.viewers:webbrowser_window',
         ],
-        'inspectorapp_proxies': [
+        package_info['entry_point_group']['proxies']: [
         ],
-        'dwave_contrib': [
+        package_info['entry_point_group']['contrib']: [
             'dwave-inspector = dwave.inspector.package_info:contrib'
         ]
     },

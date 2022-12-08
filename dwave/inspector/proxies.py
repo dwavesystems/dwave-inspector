@@ -39,6 +39,7 @@ except ImportError:  # noqa
     # proper native support in py310+
     from importlib.metadata import entry_points
 
+from dwave.inspector.package_info import entry_point_group
 from dwave.inspector.utils import annotated
 
 logger = logging.getLogger(__name__)
@@ -47,7 +48,7 @@ logger = logging.getLogger(__name__)
 def prioritized_url_rewriters() -> List[Callable]:
     """Return all registered URL rewriters, ordered by descending priority."""
 
-    proxies = [ep.load() for ep in entry_points().select(group='inspectorapp_proxies')]
+    proxies = [ep.load() for ep in entry_points().select(group=entry_point_group['proxies'])]
     rewriters = filter(lambda f: getattr(f, 'url_rewriter', None), proxies)
     return sorted(rewriters, key=operator.attrgetter('priority'), reverse=True)
 
@@ -67,6 +68,5 @@ def rewrite_url(url: str, **kwargs) -> str:
             logger.info('URL rewriter %r declined to rewrite with %r',
                         rewriter.__name__, exc)
 
-    # default to no rewrite (in case no rewriter are registered or none accepts
-    # the url provided)
+    # fallback to no rewrite
     return url
