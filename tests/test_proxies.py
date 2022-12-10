@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
 import uuid
+import unittest
 
+from dwave.cloud.testing import isolated_environ
+
+from dwave.inspector.config import config
 from dwave.inspector.utils import annotated, patch_entry_points
 from dwave.inspector.proxies import prioritized_url_rewriters, rewrite_url
 from dwave.inspector.package_info import entry_point_group
@@ -67,3 +70,14 @@ class TestProxies(unittest.TestCase):
 
         url = str(uuid.uuid4())
         self.assertEqual(rewrite_url(url), f'proxy://{url}')
+
+    @isolated_environ(empty=True, add=dict(
+        DWAVE_INSPECTOR_JUPYTER_SERVER_PROXY_EXTERNAL_URL='https://example.com/jupyter/'
+    ))
+    def test_jupyter_server_proxy(self):
+        """URL is rewritten properly when jupyter-server-proxy enabled."""
+
+        self.assertEqual(
+            rewrite_url('localhost:18000/?problemId=1'),
+            'https://example.com/jupyter/proxy/18000?problemId=1'
+        )

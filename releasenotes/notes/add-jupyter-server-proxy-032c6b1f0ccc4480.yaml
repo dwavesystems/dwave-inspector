@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    Add support for jupyter-server-proxy. Inspector URL gets rewritten prior to
+    opening/viewing according to external URL as defined by the new config
+    environment variable: ``DWAVE_INSPECTOR_JUPYTER_SERVER_PROXY_EXTERNAL_URL``.
+    See `#144 <https://github.com/dwavesystems/dwave-inspector/issues/144>`_

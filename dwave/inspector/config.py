@@ -38,5 +38,9 @@ class Config:
     def base_port(self):
         return int(self._env('DWAVE_INSPECTOR_BASE_PORT', 18000))
 
+    @property
+    def jupyter_server_proxy_external_url(self):
+        return self._env('DWAVE_INSPECTOR_JUPYTER_SERVER_PROXY_EXTERNAL_URL')
+
 
 config = Config()
