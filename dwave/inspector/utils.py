@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 import sys
 import json
 import logging
 import operator
 import functools
 
-from typing import Sequence, Callable, Optional
+from typing import Sequence, Callable, Optional, Union, Dict
+from urllib.parse import urlparse, urlunparse, ParseResult
 
 try:
     from importlib.metadata import EntryPoint, DistributionFinder, Distribution
@@ -153,3 +155,54 @@ class patch_entry_points:
                 sys.meta_path.remove(finder)
 
         return wrapper
+
+
+def update_url_from(url: Union[str, ParseResult],
+                    patch: Union[str, ParseResult],
+                    **merge_op: Optional[Dict[str, Callable[[str, str], str]]]) -> str:
+    """Update ``url`` with components from ``patch`` using ``merge_op`` functions.
+
+    Inputs can be given in string form, or as :class:`~urllib.parse.ParseResult`
+    (namedtuple). Output type is always string.
+
+    Args:
+        url:
+            Input URL.
+        patch:
+            URL patch.
+        **merge_op:
+            URL component merge operator, one for each component: ``scheme``,
+            ``netloc``, ``path``, ``params``, ``query``, and ``fragment``.
+            If unspecified, a non-null component from patch will overwrite the
+            component from url.
+
+    Returns:
+        Updated ``url`` with components from ``patch`` using ops from ``merge_op``.
+
+    Example::
+
+        url = update_url_from(
+            'http://localhost:8000/notebook',
+            'https://example.com/prefix/?username=lisa',
+            path=lambda key, a, b: b['path'] + a['path'])
+
+        assert(url, 'https://example.com/prefix/notebookx/?usernmae=lisa')
+
+    """
+
+    # handle schemeless urls -> assume http
+    if not re.match("^\w+://", url):
+        url = f"http://{url}"
+
+    # deconstruct source and patch urls
+    if not isinstance(url, ParseResult):
+        url = urlparse(url)
+    if not isinstance(patch, ParseResult):
+        patch = urlparse(patch)
+
+    url = url._asdict()
+    patch = patch._asdict()
+    default_op = lambda key, url, patch: patch[key] if patch[key] else url[key]
+
+    res = {key: merge_op.get(key, default_op)(key, url, patch) for key in url}
+    return ParseResult(**res).geturl()
