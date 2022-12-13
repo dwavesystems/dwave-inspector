@@ -73,13 +73,28 @@ class TestProxies(unittest.TestCase):
         url = str(uuid.uuid4())
         self.assertEqual(rewrite_url(url), f'proxy://{url}')
 
-    @isolated_environ(empty=True, add=dict(
-        DWAVE_INSPECTOR_JUPYTER_SERVER_PROXY_EXTERNAL_URL='https://example.com/jupyter/'
-    ))
     def test_jupyter_server_proxy(self):
-        """URL is rewritten properly when jupyter-server-proxy enabled."""
+        """URL is rewritten properly with jupyter-server-proxy in play."""
 
-        self.assertEqual(
-            rewrite_url('localhost:18000/?problemId=1'),
-            'https://example.com/jupyter/proxy/18000?problemId=1'
-        )
+        port = 18000
+        local_url = f'http://localhost:{port}/?problemId=1'
+        ext_base = 'https://example.com/jupyter/'
+
+        with self.subTest('jupyter-server-proxy env var unset'):
+            with isolated_environ(empty=True):
+                self.assertEqual(rewrite_url(local_url), local_url)
+
+        with self.subTest('jupyter-server-proxy env var set to empty'):
+            with isolated_environ(empty=True, add=dict(
+                DWAVE_INSPECTOR_JUPYTER_SERVER_PROXY_EXTERNAL_URL=''
+            )):
+                self.assertEqual(rewrite_url(local_url), local_url)
+
+        with self.subTest('jupyter-server-proxy configured'):
+            with isolated_environ(empty=True, add=dict(
+                DWAVE_INSPECTOR_JUPYTER_SERVER_PROXY_EXTERNAL_URL=ext_base
+            )):
+                self.assertEqual(
+                    rewrite_url(local_url),
+                    f'{ext_base}proxy/{port}?problemId=1'
+                )
