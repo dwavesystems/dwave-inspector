@@ -96,5 +96,5 @@ class TestProxies(unittest.TestCase):
             )):
                 self.assertEqual(
                     rewrite_url(local_url),
-                    f'{ext_base}proxy/{port}?problemId=1'
+                    f'{ext_base}proxy/{port}/?problemId=1'
                 )

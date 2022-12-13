@@ -55,7 +55,7 @@ def jupyter_server_proxy(url, **kwargs):
 
     return update_url_from(
         url, config.jupyter_server_proxy_external_url,
-        path=lambda local, ext: urljoin(ext.path, f"{local.path}/proxy/{local.port}".lstrip('/')))
+        path=lambda local, ext: urljoin(ext.path, f"{local.path}/proxy/{local.port}/".lstrip('/')))
 
 
 def prioritized_url_rewriters() -> List[Callable]:
