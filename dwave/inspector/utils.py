@@ -159,7 +159,7 @@ class patch_entry_points:
 
 def update_url_from(url: Union[str, ParseResult],
                     patch: Union[str, ParseResult],
-                    **merge_op: Optional[Dict[str, Callable[[str, str], str]]]) -> str:
+                    **merge_op: Optional[Dict[str, Callable[[ParseResult, ParseResult], str]]]) -> str:
     """Update ``url`` with components from ``patch`` using ``merge_op`` functions.
 
     Inputs can be given in string form, or as :class:`~urllib.parse.ParseResult`
@@ -183,10 +183,10 @@ def update_url_from(url: Union[str, ParseResult],
 
         url = update_url_from(
             'http://localhost:8000/notebook',
-            'https://example.com/prefix/?username=lisa',
-            path=lambda key, a, b: b['path'] + a['path'])
+            'https://example.com/prefix?username=lisa',
+            path=lambda src, dst: f'{dst.path}{src.path}')
 
-        assert(url, 'https://example.com/prefix/notebookx/?usernmae=lisa')
+        assert(url, 'https://example.com/prefix/notebook?usernmae=lisa')
 
     """
 
@@ -200,9 +200,9 @@ def update_url_from(url: Union[str, ParseResult],
     if not isinstance(patch, ParseResult):
         patch = urlparse(patch)
 
-    url = url._asdict()
-    patch = patch._asdict()
-    default_op = lambda key, url, patch: patch[key] if patch[key] else url[key]
+    default_for = \
+        lambda field: \
+            lambda url, patch: getattr(patch, field, '') or getattr(url, field)
 
-    res = {key: merge_op.get(key, default_op)(key, url, patch) for key in url}
+    res = {field: merge_op.get(field, default_for(field))(url, patch) for field in url._fields}
     return ParseResult(**res).geturl()
