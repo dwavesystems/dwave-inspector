@@ -23,19 +23,19 @@ from dwave.inspector.proxies import prioritized_url_rewriters, rewrite_url
 from dwave.inspector.package_info import entry_point_group
 
 
-@annotated(priority=0, url_rewriter=True)
+@annotated(priority=0, test_proxy=True, url_rewriter=True)
 def proxy_nop(url, **kwargs):
     return url
 
-@annotated(priority=1, proxy_server=True)
+@annotated(priority=1, test_proxy=True, proxy_server=True)
 def proxy_server(**kwargs):
     return
 
-@annotated(priority=2, url_rewriter=True)
+@annotated(priority=2, test_proxy=True, url_rewriter=True)
 def proxy_rewriter(url, **kwargs):
     return f'proxy://{url}'
 
-@annotated(priority=3, url_rewriter=True)
+@annotated(priority=3, test_proxy=True, url_rewriter=True)
 def proxy_fail(url, **kwargs):
     raise ValueError
 
@@ -46,7 +46,9 @@ class TestProxies(unittest.TestCase):
     def test_url_rewriters_prioritization(self):
         """URL rewriters are correctly filtered and ordered (by desc priority)."""
 
-        pri = [v.priority for v in prioritized_url_rewriters()]
+        # note: we only want to consider test proxies added
+        pri = [v.priority for v in prioritized_url_rewriters()
+               if getattr(v, 'test_proxy', False)]
 
         self.assertEqual(len(pri), 2)
         self.assertEqual(pri, sorted(pri, reverse=True))

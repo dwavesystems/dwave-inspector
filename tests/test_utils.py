@@ -14,7 +14,10 @@
 
 import unittest
 
-from dwave.inspector.utils import itemsgetter, annotated
+from uuid import uuid4
+from urllib.parse import ParseResult, urlparse
+
+from dwave.inspector.utils import itemsgetter, annotated, update_url_from
 
 
 class TestItemsgetter(unittest.TestCase):
@@ -73,3 +76,24 @@ class TestAnnotation(unittest.TestCase):
 
         for k, v in attrs.items():
             self.assertEqual(getattr(f, k), v)
+
+
+class TestUrlRewrite(unittest.TestCase):
+
+    def test_default(self):
+        src, dst = 'http://localhost/', 'https://example.com/path'
+        url = update_url_from(src, dst)
+        self.assertEqual(url, dst)
+
+    def test_partial(self):
+        for field in ParseResult._fields:
+            with self.subTest(field):
+                val = str(uuid4())
+                val = f'/{val}' if field == 'path' else val
+                res = urlparse(update_url_from('', '', **{field: lambda *args: val}))
+                self.assertEqual(getattr(res, field), val)
+
+    def test_mix(self):
+        src, dst = 'http://localhost:9000/', 'https://example.com/path'
+        url = update_url_from(src, dst, netloc=lambda src, dst: f'{src.port}-{dst.hostname}')
+        self.assertEqual(url, 'https://9000-example.com/path')
