@@ -15,7 +15,7 @@
 import unittest
 
 from uuid import uuid4
-from urllib.parse import ParseResult, urlparse
+from urllib.parse import ParseResult, urlparse, urljoin
 
 from dwave.inspector.utils import itemsgetter, annotated, update_url_from
 
@@ -97,3 +97,8 @@ class TestUrlRewrite(unittest.TestCase):
         src, dst = 'http://localhost:9000/', 'https://example.com/path'
         url = update_url_from(src, dst, netloc=lambda src, dst: f'{src.port}-{dst.hostname}')
         self.assertEqual(url, 'https://9000-example.com/path')
+
+    def test_path_join(self):
+        src, dst = 'http://localhost:9000/local', 'https://example.com/external/'
+        url = update_url_from(src, dst, path=lambda src, dst: urljoin(dst.path, src.path.lstrip('/')))
+        self.assertEqual(url, 'https://example.com/external/local')

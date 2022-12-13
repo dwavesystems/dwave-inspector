@@ -32,6 +32,7 @@ Concrete URL rewriter function signature::
 import logging
 import operator
 from typing import List, Callable
+from urllib.parse import urljoin
 
 try:
     from importlib_metadata import entry_points
@@ -54,7 +55,7 @@ def jupyter_server_proxy(url, **kwargs):
 
     return update_url_from(
         url, config.jupyter_server_proxy_external_url,
-        path=lambda local, ext: f"{ext.path}/{local.path}/proxy/{local.port}")
+        path=lambda local, ext: urljoin(ext.path, f"{local.path}/proxy/{local.port}".lstrip('/')))
 
 
 def prioritized_url_rewriters() -> List[Callable]:
