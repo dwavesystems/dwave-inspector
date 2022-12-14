@@ -32,6 +32,7 @@ Concrete URL rewriter function signature::
 import logging
 import operator
 from typing import List, Callable
+from urllib.parse import urljoin
 
 try:
     from importlib_metadata import entry_points
@@ -40,9 +41,21 @@ except ImportError:  # noqa
     from importlib.metadata import entry_points
 
 from dwave.inspector.package_info import entry_point_group
-from dwave.inspector.utils import annotated
+from dwave.inspector.utils import annotated, update_url_from
+from dwave.inspector.config import config
 
 logger = logging.getLogger(__name__)
+
+
+@annotated(priority=-10, url_rewriter=True)
+def jupyter_server_proxy(url, **kwargs):
+    # note: jupyter server proxy has to be installed and configured
+    if not config.jupyter_server_proxy_external_url:
+        raise ValueError('jupyter-server-proxy external URL not configured')
+
+    return update_url_from(
+        url, config.jupyter_server_proxy_external_url,
+        path=lambda local, ext: urljoin(ext.path, f"{local.path}/proxy/{local.port}/".lstrip('/')))
 
 
 def prioritized_url_rewriters() -> List[Callable]:

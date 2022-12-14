@@ -64,6 +64,7 @@ setup(
             'browser_window = dwave.inspector.viewers:webbrowser_window',
         ],
         package_info['entry_point_group']['proxies']: [
+            'jupyter_server_proxy = dwave.inspector.proxies:jupyter_server_proxy',
         ],
         package_info['entry_point_group']['contrib']: [
             'dwave-inspector = dwave.inspector.package_info:contrib'

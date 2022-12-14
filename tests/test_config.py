@@ -31,8 +31,10 @@ class TestConfig(unittest.TestCase):
         DWAVE_INSPECTOR_LOG_LEVEL='debug',
         DWAVE_INSPECTOR_HOST='localhost',
         DWAVE_INSPECTOR_BASE_PORT='9000',
+        DWAVE_INSPECTOR_JUPYTER_SERVER_PROXY_EXTERNAL_URL='url'
     ))
     def test_env(self):
         self.assertEqual(config.log_level, 'debug')
         self.assertEqual(config.host, 'localhost')
         self.assertEqual(config.base_port, 9000)
+        self.assertEqual(config.jupyter_server_proxy_external_url, 'url')
