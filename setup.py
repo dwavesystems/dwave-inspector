@@ -17,7 +17,7 @@ install_requires = [
     'dwave-cloud-client>=0.8.3',
     'Flask>=1.1.1',
     'numpy',
-    # dwave-inspectorapp==0.3.0
+    # dwave-inspectorapp==0.3.1
 ]
 
 # Package extras requirements

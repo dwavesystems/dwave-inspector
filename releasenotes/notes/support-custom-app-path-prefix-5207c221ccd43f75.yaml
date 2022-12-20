@@ -1,0 +1,9 @@
+---
+features:
+  - |
+    Use relative API paths to enable app hosting on externally-configured
+    paths (app#110).
+    See `#146 <https://github.com/dwavesystems/dwave-inspector/issues/146>`_.
+fixes:
+  - |
+    Improve error handling and display in ``dwave-inspectorapp`` (app#100)
