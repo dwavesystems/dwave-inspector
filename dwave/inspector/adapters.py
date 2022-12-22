@@ -19,6 +19,7 @@ import itertools
 from collections import abc, Counter
 
 import dimod
+import dimod.core.bqm
 import dwave.cloud
 from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get, active_qubits
 from dwave.cloud.events import add_handler
@@ -31,13 +32,6 @@ from dwave.system.warnings import WarningAction
 from dwave.inspector import storage
 from dwave.inspector.utils import itemsgetter
 
-try:
-    import dimod.core.bqm
-    BQM_CLASSES = (dimod.BinaryQuadraticModel, dimod.core.bqm.BQM)
-except ImportError:
-    # dimod < 0.9
-    BQM_CLASSES = (dimod.BinaryQuadraticModel, )
-
 __all__ = [
     'from_qmi_response',
     'from_bqm_response',
@@ -49,6 +43,8 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 SUPPORTED_SOLVER_TOPOLOGY_TYPES = {'chimera', 'pegasus', 'zephyr'}
+
+BQM_CLASSES = (dimod.BinaryQuadraticModel, dimod.core.bqm.BQM)
 
 
 def enable_data_capture():

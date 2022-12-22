@@ -293,13 +293,7 @@ workflows:
           matrix:
             parameters:
               python-version: &python-versions ["3.6.8", "3.7.9", "3.8.9", "3.9.4", "3.10.0"]
-              dimod-version: ["~=0.8.0,>=0.8.17", "~=0.9.0", "~=0.10.0"]
-            exclude:
-              # dimod>=0.10.10 required for py310
-              - python-version: "3.10.0"
-                dimod-version: "~=0.8.0,>=0.8.17"
-              - python-version: "3.10.0"
-                dimod-version: "~=0.9.0"
+              dimod-version: ["~=0.10.0"]
           filters: &always-run  # run on `tags` in addition to `branches` default (deploy dep)
             tags:
               only: /.*/
