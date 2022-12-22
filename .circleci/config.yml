@@ -3,7 +3,7 @@ version: 2.1
 parameters:
   cache-generation:
     type: integer
-    default: 2
+    default: 3
 
 orbs:
   win: circleci/windows@2.2.0
@@ -17,7 +17,7 @@ jobs:
       python-version:
         type: string
       # package requirements; default to no-update
-      dimod-version:
+      dimod-preprocessing-version:
         type: string
         default: ''
       system-client-version:
@@ -25,7 +25,7 @@ jobs:
         default: ''
 
     docker:
-      - image: circleci/python:<< parameters.python-version >>
+      - image: cimg/python:<< parameters.python-version >>
 
     steps:
       - checkout
@@ -53,13 +53,14 @@ jobs:
             - env
 
       - when:
-          condition: << parameters.dimod-version >>
+          condition: << parameters.dimod-preprocessing-version >>
           steps:
             - run:
-                name: Install appropriate dimod version
+                name: Install appropriate dimod/preprocessing version
                 command: |
                   . env/bin/activate
-                  pip install 'dimod<< parameters.dimod-version >>'
+                  pip uninstall -y dimod dwave-preprocessing
+                  pip install << parameters.dimod-preprocessing-version >>
 
       - when:
           condition: << parameters.system-client-version >>
@@ -114,6 +115,16 @@ jobs:
       - checkout
 
       # install `python-version` and cache it
+      - when:
+          condition:
+            matches:
+              pattern: "^3\\.[123][123456789].*$"
+              value: << parameters.python-version >>
+          steps:
+            - run:
+                name: Update brew to get latest pyenv
+                command: brew update
+
       - run: &brew-install-pyenv
           name: Install pyenv
           command: |
@@ -122,20 +133,6 @@ jobs:
       - restore_cache: &restore-cache-pyenv
           keys:
             - v<< pipeline.parameters.cache-generation >>-pyenv-{{ .Environment.CIRCLE_JOB }}-xcode-<< parameters.xcode >>
-
-      - when:
-          # backport https://github.com/python/cpython/pull/21113 to support macOS 11 when building py36
-          # see also: https://github.com/pyenv/pyenv/issues/1737.
-          condition:
-            matches:
-              pattern: "^3\\.6.*$"
-              value: << parameters.python-version >>
-          steps:
-            - run:
-                name: Install Python 3.6 with a patch for macOS 11
-                command: |
-                  curl -LO https://github.com/python/cpython/commit/8ea6353.patch
-                  pyenv install << parameters.python-version>> -s -p < 8ea6353.patch
 
       - run: &pyenv-install-python
           name: Install python
@@ -215,7 +212,7 @@ jobs:
 
   test-docs:
     docker:
-      - image: circleci/python:3.9
+      - image: cimg/python:3.9
 
     steps:
       - checkout
@@ -263,7 +260,7 @@ jobs:
 
   pypi-deploy:
     docker:
-      - image: circleci/python:3.9
+      - image: cimg/python:3.9
 
     steps:
       - checkout
@@ -289,17 +286,20 @@ workflows:
   test-deploy:
     jobs:
       - test-linux:
-          name: test-linux-<< matrix.python-version >> | dimod<< matrix.dimod-version >>
+          name: test-linux-<< matrix.python-version >> | << matrix.dimod-preprocessing-version >>
           matrix:
             parameters:
-              python-version: &python-versions ["3.6.8", "3.7.9", "3.8.9", "3.9.4", "3.10.0"]
-              dimod-version: ["~=0.8.0,>=0.8.17", "~=0.9.0", "~=0.10.0"]
+              python-version: &python-versions ["3.7.9", "3.8.9", "3.9.4", "3.10.0", "3.11.0"]
+              dimod-preprocessing-version:
+                - "dimod~=0.10.0 dwave-preprocessing~=0.3.0"
+                - "dimod~=0.11.0 dwave-preprocessing~=0.4.0"
+                - "dimod~=0.12.0 dwave-preprocessing~=0.5.0"
             exclude:
-              # dimod>=0.10.10 required for py310
-              - python-version: "3.10.0"
-                dimod-version: "~=0.8.0,>=0.8.17"
-              - python-version: "3.10.0"
-                dimod-version: "~=0.9.0"
+              # dimod < 0.12 not supported on py311+
+              - python-version: "3.11.0"
+                dimod-preprocessing-version: "dimod~=0.10.0 dwave-preprocessing~=0.3.0"
+              - python-version: "3.11.0"
+                dimod-preprocessing-version: "dimod~=0.11.0 dwave-preprocessing~=0.4.0"
           filters: &always-run  # run on `tags` in addition to `branches` default (deploy dep)
             tags:
               only: /.*/
@@ -322,6 +322,13 @@ workflows:
               - python-version: "3.10.0"
                 system-client-version: "dwave-system~=1.8.0 dwave-cloud-client==0.8.7"
               - python-version: "3.10.0"
+                system-client-version: "dwave-system~=1.9.0 dwave-cloud-client==0.9.0"
+              # dwave-system>=1.16 required for py311
+              - python-version: "3.11.0"
+                system-client-version: "dwave-system~=1.3.0 dwave-cloud-client==0.8.3"
+              - python-version: "3.11.0"
+                system-client-version: "dwave-system~=1.8.0 dwave-cloud-client==0.8.7"
+              - python-version: "3.11.0"
                 system-client-version: "dwave-system~=1.9.0 dwave-cloud-client==0.9.0"
           filters:
             <<: *always-run

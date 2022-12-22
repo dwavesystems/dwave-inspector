@@ -28,7 +28,7 @@ from dwave.system import DWaveSampler, FixedEmbeddingComposite
 from dwave.system.testing import MockDWaveSampler
 from dwave.embedding import embed_bqm
 from dwave.embedding.utils import edgelist_to_adjacency
-from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get, active_qubits
+from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get
 
 from dwave.inspector.adapters import (
     from_qmi_response, from_bqm_response, from_bqm_sampleset, from_objects,
@@ -298,34 +298,6 @@ class TestAdapters(unittest.TestCase):
     def test_from_old_bqm_response(self):
         self._test_from_bqm_response(self.bqm)
 
-    @unittest.skipUnless('AdjVectorBQM' in dir(dimod), 'requires dimod.AdjVectorBQM')
-    def test_from_AdjVectorBQM_response(self):
-        # cast dict bqm to AdjVectorBQM
-        bqm = dimod.as_bqm(self.bqm, cls=[dimod.AdjVectorBQM])
-
-        self._test_from_bqm_response(bqm)
-
-    @unittest.skipUnless('AdjArrayBQM' in dir(dimod), 'requires dimod.AdjArrayBQM')
-    def test_from_AdjArrayBQM_response(self):
-        # cast dict bqm to AdjArrayBQM
-        bqm = dimod.as_bqm(self.bqm, cls=[dimod.AdjArrayBQM])
-
-        self._test_from_bqm_response(bqm)
-
-    @unittest.skipUnless('AdjDictBQM' in dir(dimod), 'requires dimod.AdjDictBQM')
-    def test_from_AdjDictBQM_response(self):
-        # cast dict bqm to AdjDictBQM
-        bqm = dimod.as_bqm(self.bqm, cls=[dimod.AdjDictBQM])
-
-        self._test_from_bqm_response(bqm)
-
-    @unittest.skipUnless('AdjMapBQM' in dir(dimod), 'requires dimod.AdjMapBQM')
-    def test_from_AdjMapBQM_response(self):
-        # cast dict bqm to AdjMapBQM
-        bqm = dimod.as_bqm(self.bqm, cls=[dimod.AdjMapBQM])
-
-        self._test_from_bqm_response(bqm)
-
     @rec.use_cassette('triangle-ising.yaml')
     def _test_from_bqm_sampleset(self, bqm):
         # sample
@@ -362,34 +334,6 @@ class TestAdapters(unittest.TestCase):
 
     def test_from_old_bqm_sampleset(self):
         self._test_from_bqm_sampleset(self.bqm)
-
-    @unittest.skipUnless('AdjVectorBQM' in dir(dimod), 'requires dimod.AdjVectorBQM')
-    def test_from_AdjVectorBQM_sampleset(self):
-        # cast dict bqm to AdjVectorBQM
-        bqm = dimod.as_bqm(self.bqm, cls=[dimod.AdjVectorBQM])
-
-        self._test_from_bqm_sampleset(bqm)
-
-    @unittest.skipUnless('AdjArrayBQM' in dir(dimod), 'requires dimod.AdjArrayBQM')
-    def test_from_AdjArrayBQM_sampleset(self):
-        # cast dict bqm to AdjArrayBQM
-        bqm = dimod.as_bqm(self.bqm, cls=[dimod.AdjArrayBQM])
-
-        self._test_from_bqm_sampleset(bqm)
-
-    @unittest.skipUnless('AdjDictBQM' in dir(dimod), 'requires dimod.AdjDictBQM')
-    def test_from_AdjDictBQM_sampleset(self):
-        # cast dict bqm to AdjDictBQM
-        bqm = dimod.as_bqm(self.bqm, cls=[dimod.AdjDictBQM])
-
-        self._test_from_bqm_sampleset(bqm)
-
-    @unittest.skipUnless('AdjMapBQM' in dir(dimod), 'requires dimod.AdjMapBQM')
-    def test_from_AdjMapBQM_sampleset(self):
-        # cast dict bqm to AdjMapBQM
-        bqm = dimod.as_bqm(self.bqm, cls=[dimod.AdjMapBQM])
-
-        self._test_from_bqm_sampleset(bqm)
 
     @mock.patch('dwave.inspector.adapters.from_qmi_response', return_value='qmi_response')
     @mock.patch('dwave.inspector.adapters.from_bqm_response', return_value='bqm_response')

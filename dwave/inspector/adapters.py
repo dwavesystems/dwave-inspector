@@ -31,13 +31,6 @@ from dwave.system.warnings import WarningAction
 from dwave.inspector import storage
 from dwave.inspector.utils import itemsgetter
 
-try:
-    import dimod.core.bqm
-    BQM_CLASSES = (dimod.BinaryQuadraticModel, dimod.core.bqm.BQM)
-except ImportError:
-    # dimod < 0.9
-    BQM_CLASSES = (dimod.BinaryQuadraticModel, )
-
 __all__ = [
     'from_qmi_response',
     'from_bqm_response',
@@ -49,6 +42,9 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 SUPPORTED_SOLVER_TOPOLOGY_TYPES = {'chimera', 'pegasus', 'zephyr'}
+
+# only one BQM class since dimod 0.10 (with a few aliases/subclasses for default dtype)
+BQM_CLASSES = (dimod.BinaryQuadraticModel, )
 
 
 def enable_data_capture():
