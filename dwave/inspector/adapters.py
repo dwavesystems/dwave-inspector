@@ -19,7 +19,6 @@ import itertools
 from collections import abc, Counter
 
 import dimod
-import dimod.core.bqm
 import dwave.cloud
 from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get, active_qubits
 from dwave.cloud.events import add_handler
@@ -44,7 +43,8 @@ logger = logging.getLogger(__name__)
 
 SUPPORTED_SOLVER_TOPOLOGY_TYPES = {'chimera', 'pegasus', 'zephyr'}
 
-BQM_CLASSES = (dimod.BinaryQuadraticModel, dimod.core.bqm.BQM)
+# only one BQM class since dimod 0.10 (with a few aliases/subclasses for default dtype)
+BQM_CLASSES = (dimod.BinaryQuadraticModel, )
 
 
 def enable_data_capture():
