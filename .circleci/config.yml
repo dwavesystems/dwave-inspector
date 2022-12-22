@@ -3,7 +3,7 @@ version: 2.1
 parameters:
   cache-generation:
     type: integer
-    default: 2
+    default: 3
 
 orbs:
   win: circleci/windows@2.2.0
@@ -25,7 +25,7 @@ jobs:
         default: ''
 
     docker:
-      - image: circleci/python:<< parameters.python-version >>
+      - image: cimg/python:<< parameters.python-version >>
 
     steps:
       - checkout
@@ -115,6 +115,16 @@ jobs:
       - checkout
 
       # install `python-version` and cache it
+      - when:
+          condition:
+            matches:
+              pattern: "^3\\.[123][123456789].*$"
+              value: << parameters.python-version >>
+          steps:
+            - run:
+                name: Update brew to get latest pyenv
+                command: brew update
+
       - run: &brew-install-pyenv
           name: Install pyenv
           command: |
@@ -202,7 +212,7 @@ jobs:
 
   test-docs:
     docker:
-      - image: circleci/python:3.9
+      - image: cimg/python:3.9
 
     steps:
       - checkout
@@ -250,7 +260,7 @@ jobs:
 
   pypi-deploy:
     docker:
-      - image: circleci/python:3.9
+      - image: cimg/python:3.9
 
     steps:
       - checkout
@@ -279,11 +289,17 @@ workflows:
           name: test-linux-<< matrix.python-version >> | << matrix.dimod-preprocessing-version >>
           matrix:
             parameters:
-              python-version: &python-versions ["3.7.9", "3.8.9", "3.9.4", "3.10.0"]
+              python-version: &python-versions ["3.7.9", "3.8.9", "3.9.4", "3.10.0", "3.11.0"]
               dimod-preprocessing-version:
                 - "dimod~=0.10.0 dwave-preprocessing~=0.3.0"
                 - "dimod~=0.11.0 dwave-preprocessing~=0.4.0"
                 - "dimod~=0.12.0 dwave-preprocessing~=0.5.0"
+            exclude:
+              # dimod < 0.12 not supported on py311+
+              - python-version: "3.11.0"
+                dimod-preprocessing-version: "dimod~=0.10.0 dwave-preprocessing~=0.3.0"
+              - python-version: "3.11.0"
+                dimod-preprocessing-version: "dimod~=0.11.0 dwave-preprocessing~=0.4.0"
           filters: &always-run  # run on `tags` in addition to `branches` default (deploy dep)
             tags:
               only: /.*/
@@ -306,6 +322,13 @@ workflows:
               - python-version: "3.10.0"
                 system-client-version: "dwave-system~=1.8.0 dwave-cloud-client==0.8.7"
               - python-version: "3.10.0"
+                system-client-version: "dwave-system~=1.9.0 dwave-cloud-client==0.9.0"
+              # dwave-system>=1.16 required for py311
+              - python-version: "3.11.0"
+                system-client-version: "dwave-system~=1.3.0 dwave-cloud-client==0.8.3"
+              - python-version: "3.11.0"
+                system-client-version: "dwave-system~=1.8.0 dwave-cloud-client==0.8.7"
+              - python-version: "3.11.0"
                 system-client-version: "dwave-system~=1.9.0 dwave-cloud-client==0.9.0"
           filters:
             <<: *always-run
