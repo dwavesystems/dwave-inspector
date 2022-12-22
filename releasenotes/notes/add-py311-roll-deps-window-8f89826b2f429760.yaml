@@ -1,0 +1,7 @@
+---
+features:
+  - Add support for Python 3.11
+  - Add support for `dimod~=0.11.0` and `dimod~=0.12.0`
+upgrade:
+  - Drop Python 3.6 support
+  - Drop `dimod~=0.8.0` and `dimod~=0.9.0` support
