@@ -32,7 +32,7 @@ from werkzeug.exceptions import NotFound
 
 from dwave.inspector.config import config
 from dwave.inspector.storage import problem_store, problem_access_sem, get_problem, get_solver_data
-from dwave.inspector.utils import NumpyEncoder
+from dwave.inspector.utils import NumpyJSONProvider
 
 
 # get local server/app logger
@@ -218,7 +218,7 @@ class WSGIAsyncServer(threading.Thread):
 
 
 app = Flask(__name__, static_folder=None)
-app.json_encoder = NumpyEncoder
+app.json = NumpyJSONProvider(app)
 
 @app.route('/')
 @app.route('/<path:path>')

@@ -1,0 +1,9 @@
+---
+upgrade:
+  - |
+    Lower bound on Flask version is now 2.2.
+fixes:
+  - |
+    Upgraded JSON serialization to use Flask's new ``DefaultJSONProvider``
+    (introduced in Flask 2.2). The "old" way is deprecated by Flask in 2.2, to be
+    dropped in next minor release, 2.3.

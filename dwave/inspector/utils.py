@@ -14,23 +14,23 @@
 
 import re
 import sys
-import json
 import logging
 import operator
 import functools
 
 from typing import Sequence, Callable, Optional, Union, Dict
-from urllib.parse import urlparse, urlunparse, ParseResult
+from urllib.parse import urlparse, ParseResult
 
 try:
     from importlib.metadata import EntryPoint, DistributionFinder, Distribution
-except ImportError: # noqa
+except ImportError: # pragma: no cover
     from importlib_metadata import EntryPoint, DistributionFinder, Distribution
 
+import flask
 import numpy
 
 __all__ = [
-    'itemsgetter', 'annotated', 'NumpyEncoder', 'patch_entry_points',
+    'itemsgetter', 'annotated', 'NumpyJSONProvider', 'patch_entry_points',
 ]
 
 logger = logging.getLogger(__name__)
@@ -79,10 +79,10 @@ def annotated(**kwargs):
     return _decorator
 
 
-# copied from dwave-hybrid utils
+# adapted from dwave-hybrid utils
 # (https://github.com/dwavesystems/dwave-hybrid/blob/b9025b5bb3d88dce98ec70e28cfdb25400a10e4a/hybrid/utils.py#L43-L61)
-# TODO: switch to `dwave.common` if and when we create it
-class NumpyEncoder(json.JSONEncoder):
+# to provide numpy types serialization in flask 2.2+ (see https://github.com/pallets/flask/pull/4692)
+class NumpyJSONProvider(flask.json.provider.DefaultJSONProvider):
     """JSON encoder for numpy types.
 
     Supported types:
@@ -90,7 +90,8 @@ class NumpyEncoder(json.JSONEncoder):
      - arrays: ndarray, recarray
     """
 
-    def default(self, obj):
+    @staticmethod
+    def default(obj):
         if isinstance(obj, numpy.integer):
             return int(obj)
         elif isinstance(obj, numpy.floating):
