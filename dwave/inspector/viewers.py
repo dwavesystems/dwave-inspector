@@ -18,13 +18,13 @@ import webbrowser
 from pkg_resources import iter_entry_points
 
 from dwave.inspector.package_info import entry_point_group
-from dwave.inspector.utils import annotated
+from dwave.inspector.utils import annotated, RichDisplayURL
 
 logger = logging.getLogger(__name__)
 
 
 @annotated(priority=1000)
-def jupyter_inline(rich_url):
+def jupyter_inline(url):
     """Hijack viewers (use high priority) and prevent browser popping up when
     running in interactive (GUI) Jupyter session. That way only the inline
     Inspector is shown.
@@ -38,6 +38,7 @@ def jupyter_inline(rich_url):
 
     # render URL/IFrame inline in jupyter notebook, or fail trying
     # note: since ipython 5.4/6.1 (May 2017) `display` is available without import
+    rich_url = RichDisplayURL(url)
     display(rich_url)
 
     # don't block if gui interactive shell is used

@@ -93,11 +93,8 @@ def open_problem(problem_id, block=Block.ONCE, timeout=None):
 
     external_url = rewrite_url(url)
 
-    # add support for jupyter inline rendering
-    rich_url = RichDisplayURL(external_url)
-
     # open url and block
-    blockable = view(rich_url)
+    blockable = view(external_url)
 
     if blockable is not False:
         if block is Block.ONCE:
@@ -105,7 +102,7 @@ def open_problem(problem_id, block=Block.ONCE, timeout=None):
         elif block is Block.FOREVER or block is True:
             app_server.wait_shutdown(timeout=timeout)
 
-    return rich_url
+    return external_url
 
 
 def show_qmi(problem, response, embedding_context=None, warnings=None, params=None):
