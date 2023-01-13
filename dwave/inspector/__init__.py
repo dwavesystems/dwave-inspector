@@ -26,6 +26,7 @@ from dwave.inspector.storage import push_inspector_data
 from dwave.inspector.viewers import view
 from dwave.inspector.proxies import rewrite_url
 from dwave.inspector.package_info import __version__, __author__, __description__
+from dwave.inspector.utils import RichDisplayURL    # bring back into top-level namespace
 
 # expose the root logger to simplify access
 logger = logging.getLogger(__name__)
@@ -66,19 +67,6 @@ class Block(enum.Enum):
     NEVER = 'never'
     ONCE = 'once'
     FOREVER = 'forever'
-
-
-class RichDisplayURL(str):
-    """Behaves as `str`, but provides support for rich display in Jupyter.
-
-    In console, the URL is pretty-printed, and in GUI the URL is opened in an iframe.
-    """
-
-    def _repr_pretty_(self, pp, cycle):
-        return pp.text(f'Serving Inspector on {self}')
-
-    def _repr_html_(self):
-        return f'<iframe src={self} width="100%" height=640></iframe>'
 
 
 def open_problem(problem_id, block=Block.ONCE, timeout=None):
