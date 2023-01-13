@@ -83,6 +83,10 @@ def open_problem(problem_id, block=Block.ONCE, timeout=None):
         timeout (float):
             Blocking behavior timeout in seconds.
 
+    Returns:
+        str:
+            URL of the inspector application. This URL is opened with the
+            highest-priority viewer that accepts it.
     """
     # accept string name for `block`
     if isinstance(block, str):
