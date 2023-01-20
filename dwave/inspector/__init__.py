@@ -26,6 +26,7 @@ from dwave.inspector.storage import push_inspector_data
 from dwave.inspector.viewers import view
 from dwave.inspector.proxies import rewrite_url
 from dwave.inspector.package_info import __version__, __author__, __description__
+from dwave.inspector.utils import RichDisplayURL    # bring back into top-level namespace
 
 # expose the root logger to simplify access
 logger = logging.getLogger(__name__)
@@ -68,19 +69,6 @@ class Block(enum.Enum):
     FOREVER = 'forever'
 
 
-class RichDisplayURL(str):
-    """Behaves as `str`, but provides support for rich display in Jupyter.
-
-    In console, the URL is pretty-printed, and in GUI the URL is opened in an iframe.
-    """
-
-    def _repr_pretty_(self, pp, cycle):
-        return pp.text(f'Serving Inspector on {self}')
-
-    def _repr_html_(self):
-        return f'<iframe src={self} width="100%" height=640></iframe>'
-
-
 def open_problem(problem_id, block=Block.ONCE, timeout=None):
     """Open the problem inspector for the specified problem.
 
@@ -95,6 +83,10 @@ def open_problem(problem_id, block=Block.ONCE, timeout=None):
         timeout (float):
             Blocking behavior timeout in seconds.
 
+    Returns:
+        str:
+            URL of the inspector application. This URL is opened with the
+            highest-priority viewer that accepts it.
     """
     # accept string name for `block`
     if isinstance(block, str):
@@ -105,11 +97,8 @@ def open_problem(problem_id, block=Block.ONCE, timeout=None):
 
     external_url = rewrite_url(url)
 
-    # add support for jupyter inline rendering
-    rich_url = RichDisplayURL(external_url)
-
     # open url and block
-    blockable = view(rich_url)
+    blockable = view(external_url)
 
     if blockable is not False:
         if block is Block.ONCE:
@@ -117,7 +106,7 @@ def open_problem(problem_id, block=Block.ONCE, timeout=None):
         elif block is Block.FOREVER or block is True:
             app_server.wait_shutdown(timeout=timeout)
 
-    return rich_url
+    return external_url
 
 
 def show_qmi(problem, response, embedding_context=None, warnings=None, params=None):

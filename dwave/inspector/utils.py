@@ -31,6 +31,7 @@ import numpy
 
 __all__ = [
     'itemsgetter', 'annotated', 'NumpyJSONProvider', 'patch_entry_points',
+    'RichDisplayURL',
 ]
 
 logger = logging.getLogger(__name__)
@@ -207,3 +208,16 @@ def update_url_from(url: Union[str, ParseResult],
 
     res = {field: merge_op.get(field, default_for(field))(url, patch) for field in url._fields}
     return ParseResult(**res).geturl()
+
+
+class RichDisplayURL(str):
+    """Behaves as `str`, but provides support for rich display in Jupyter.
+
+    In console, the URL is pretty-printed, and in GUI the URL is opened in an iframe.
+    """
+
+    def _repr_pretty_(self, pp, cycle):
+        return pp.text(f'Serving Inspector on {self}')
+
+    def _repr_html_(self):
+        return f'<iframe src={self} width="100%" height=640></iframe>'

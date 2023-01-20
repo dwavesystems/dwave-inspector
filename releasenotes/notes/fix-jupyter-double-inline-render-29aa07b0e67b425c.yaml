@@ -1,0 +1,21 @@
+---
+upgrade:
+  - |
+    The ``.show()`` call does not return a ``RichDisplayURL`` anymore. Instead,
+    we reverted to returning URL in a plain ``str``. Jupyter viewer will display
+    the inspector inline if possible, otherwise the URL is opened in a browser.
+
+    To render the inspector URL inline in a Jupyter notebook cell, independently
+    of the ``.show()`` call, you can do::
+
+      url = dwave.inspector.show(...)
+      ...
+      from dwave.inspector.utils import RichDisplayURL
+      RichDisplayURL(url)
+
+fixes:
+  - |
+    Fix duplicated inline render of the Inspector in GUI Jupyter in case when
+    the returned (rich URL) object is displayed in the same cell the
+    ``dwave.inspector.show()`` was called.
+    See `#152 <https://github.com/dwavesystems/dwave-inspector/issues/152>`_
