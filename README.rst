@@ -34,8 +34,8 @@ Example
 
 .. example-start-marker
 
-This example shows the canonical usage: a :term:`binary quadratic model` 
-minor-embedded onto a quantum processing unit (QPU).
+This example shows a typical usage: a binary quadratic model minor-embedded 
+onto a quantum processing unit (QPU).
 
 .. code-block:: python
 
