@@ -60,7 +60,7 @@ quantum processing unit (QPU).
 >>> import dwave.inspector
 ...
 >>> # Get solver 
->>> sampler = DWaveSampler()
+>>> sampler = DWaveSampler(solver=dict(topology__type='pegasus'))
 ...
 >>> # Define a problem (actual qubits depend on the selected QPU's working graph)
 >>> h = {}
