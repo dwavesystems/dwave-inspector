@@ -45,8 +45,10 @@ Import the problem inspector to enable it\ [#]_ to hook into your problem submis
     data such as embedding be returned with the response).
 
 The following examples demonstrate the use of the ``show()`` method to visualize 
-an `embedded problem <Inspecting an Embedded Problem>`_ and a 
-`logical problem <Inspecting a Logical Problem>`_ in your default browser.
+an :ref:`embedded problem <inspector_intro_embedded_problem>` and a 
+:ref:`logical problem <inspector_intro_logical_problem>` in your default browser.
+
+.. _inspector_intro_embedded_problem:
 
 Inspecting an Embedded Problem
 ------------------------------
@@ -82,6 +84,8 @@ True
     Edge values between qubits ``2136``, ``4181``, ``2151``, and ``4196``, and the 
     selected solution, are shown by color on the left; a histogram, on the right, 
     shows the energies of returned samples.
+
+.. _inspector_intro_logical_problem:
 
 Inspecting a Logical Problem
 ----------------------------
