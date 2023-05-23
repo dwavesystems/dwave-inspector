@@ -34,24 +34,24 @@ Example
 
 .. example-start-marker
 
-This example shows the canonical usage: samples representing physical qubits on
-a quantum processing unit (QPU).
+This example shows a typical usage: a binary quadratic model minor-embedded 
+onto a quantum processing unit (QPU).
 
 .. code-block:: python
 
-    import dwave.system
+    from dwave.system import DWaveSampler, EmbeddingComposite
+    import dimod
     import dwave.inspector
 
     # Get sampler
-    sampler = dwave.system.DWaveSampler()
+    sampler = EmbeddingComposite(DWaveSampler())
 
-    # Define a problem (actual qubits depend on the selected QPU's working graph)
-    h = {}
-    J = {(0, 4): 1, (0, 5): 1, (1, 4): 1, (1, 5): -1}
-    assert all(edge in sampler.edgelist for edge in J)
+    # Define a problem
+    x, y, z = dimod.Binaries(['x', 'y', 'z'])
+    bqm = x*y - x*z + 2*y
 
     # Sample
-    sampleset = sampler.sample_ising(h, J, num_reads=100)
+    sampleset = sampler.sample(bqm, num_reads=100)
 
     # Inspect
     dwave.inspector.show(sampleset)
