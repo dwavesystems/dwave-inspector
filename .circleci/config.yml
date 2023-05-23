@@ -301,6 +301,7 @@ workflows:
                 dimod-preprocessing-version: "dimod~=0.10.0 dwave-preprocessing~=0.3.0"
               - python-version: "3.11.0"
                 dimod-preprocessing-version: "dimod~=0.11.0 dwave-preprocessing~=0.4.0"
+          context: &ctx-build "ocean-build"
           filters: &always-run  # run on `tags` in addition to `branches` default (deploy dep)
             tags:
               only: /.*/
@@ -331,6 +332,7 @@ workflows:
                 system-client-version: "dwave-system~=1.8.0 dwave-cloud-client==0.8.7"
               - python-version: "3.11.0"
                 system-client-version: "dwave-system~=1.9.0 dwave-cloud-client==0.9.0"
+          context: *ctx-build
           filters:
             <<: *always-run
 
@@ -338,6 +340,7 @@ workflows:
           matrix:
             parameters:
               python-version: *python-versions
+          context: *ctx-build
           filters:
             <<: *always-run
 
@@ -345,10 +348,12 @@ workflows:
           matrix:
             parameters:
               python-version: *python-versions
+          context: *ctx-build
           filters:
             <<: *always-run
 
       - test-docs:
+          context: *ctx-build
           filters:
             <<: *always-run
 
@@ -357,6 +362,7 @@ workflows:
             - test-linux
             - test-macos
             - test-windows
+          context: ocean-publish
           filters:
             tags:
               only: /^[0-9]+(\.[0-9]+)*((\.dev|rc)([0-9]+)?)?$/
