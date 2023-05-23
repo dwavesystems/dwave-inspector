@@ -1,3 +1,9 @@
 coverage
 codecov
+
+# temporary fix for https://github.com/kevin1024/vcrpy/issues/688 is to
+# avoid urllib 2.x
+# NOTE: this should be a short-term fix, and the upper-bound removed as soon
+# as the new version of vcrpy is released.
 vcrpy
+urllib3<2
