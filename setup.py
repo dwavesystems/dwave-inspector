@@ -36,7 +36,6 @@ classifiers = [
     'Operating System :: OS Independent',
     'Development Status :: 3 - Alpha',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
@@ -45,7 +44,7 @@ classifiers = [
 
 packages = ['dwave', 'dwave.inspector']
 
-python_requires = '>=3.7'
+python_requires = '>=3.8'
 
 setup(
     name=package_info['__package_name__'],
