@@ -3,10 +3,10 @@ version: 2.1
 parameters:
   cache-generation:
     type: integer
-    default: 3
+    default: 4
 
 orbs:
-  win: circleci/windows@2.2.0
+  win: circleci/windows@5.0
   codecov: codecov/codecov@3
 
 environment:
@@ -37,6 +37,7 @@ jobs:
       - run: &create-virtualenv
           name: Create virtual environment
           command: |
+            python -V
             python -m venv env
 
       - run: &install-requirements
@@ -107,7 +108,7 @@ jobs:
         type: string
       xcode:
         type: string
-        default: "13.2.0"
+        default: "14.2.0"
 
     macos:
       xcode: << parameters.xcode >>
@@ -115,21 +116,9 @@ jobs:
     steps:
       - checkout
 
-      # install `python-version` and cache it
-      - when:
-          condition:
-            matches:
-              pattern: "^3\\.[123][123456789].*$"
-              value: << parameters.python-version >>
-          steps:
-            - run:
-                name: Update brew to get latest pyenv
-                command: brew update
-
       - run: &brew-install-pyenv
           name: Install pyenv
-          command: |
-            HOMEBREW_NO_AUTO_UPDATE=1 brew install pyenv
+          command: brew install pyenv
 
       - restore_cache: &restore-cache-pyenv
           keys:
@@ -176,20 +165,20 @@ jobs:
     steps:
       - checkout
 
-      - restore_cache:
-          keys:
-            - v<< pipeline.parameters.cache-generation >>-nuget-python-<< parameters.python-version >>-{{ .Environment.CIRCLE_JOB }}
-
       - run:
           name: Install python and create virtualenv
+          shell: bash -eo pipefail
           command: |
-            nuget install python -Version << parameters.python-version >>
-            python.<< parameters.python-version >>\tools\python -m venv env
-
-      - save_cache:
-          key: v<< pipeline.parameters.cache-generation >>-nuget-python-<< parameters.python-version >>-{{ .Environment.CIRCLE_JOB }}
-          paths:
-            - python.<< parameters.python-version >>
+            # resolve python MAJOR.MINOR version to latest MAJOR.MINOR.PATCH version available on NuGet
+            full_version=$(
+              curl -s 'https://azuresearch-usnc.nuget.org/query?q=python' \
+              | jq -r '.data[] | select(.id == "python") .versions[] | .version' \
+              | awk -F. -v ver='<< parameters.python-version >>' \
+                  'index($0, ver".") == 1 && $3 > m { m = $3; v = $0 } END { print v }'
+            )
+            nuget install python -Version "$full_version" -ExcludeVersion
+            python/tools/python -V
+            python/tools/python -m venv env
 
       - run:
           name: Install requirements
@@ -290,16 +279,16 @@ workflows:
           name: test-linux-<< matrix.python-version >> | << matrix.dimod-preprocessing-version >>
           matrix:
             parameters:
-              python-version: &python-versions ["3.7.9", "3.8.9", "3.9.4", "3.10.0", "3.11.0"]
+              python-version: &python-versions ["3.8", "3.9", "3.10", "3.11"]
               dimod-preprocessing-version:
                 - "dimod~=0.10.0 dwave-preprocessing~=0.3.0"
                 - "dimod~=0.11.0 dwave-preprocessing~=0.4.0"
                 - "dimod~=0.12.0 dwave-preprocessing~=0.5.0"
             exclude:
               # dimod < 0.12 not supported on py311+
-              - python-version: "3.11.0"
+              - python-version: "3.11"
                 dimod-preprocessing-version: "dimod~=0.10.0 dwave-preprocessing~=0.3.0"
-              - python-version: "3.11.0"
+              - python-version: "3.11"
                 dimod-preprocessing-version: "dimod~=0.11.0 dwave-preprocessing~=0.4.0"
           context: &ctx-build "ocean-build"
           filters: &always-run  # run on `tags` in addition to `branches` default (deploy dep)
@@ -319,18 +308,18 @@ workflows:
                 - "dwave-system~=1.0"
             exclude:
               # dwave-system>=1.11 required for py310
-              - python-version: "3.10.0"
+              - python-version: "3.10"
                 system-client-version: "dwave-system~=1.3.0 dwave-cloud-client==0.8.3"
-              - python-version: "3.10.0"
+              - python-version: "3.10"
                 system-client-version: "dwave-system~=1.8.0 dwave-cloud-client==0.8.7"
-              - python-version: "3.10.0"
+              - python-version: "3.10"
                 system-client-version: "dwave-system~=1.9.0 dwave-cloud-client==0.9.0"
               # dwave-system>=1.16 required for py311
-              - python-version: "3.11.0"
+              - python-version: "3.11"
                 system-client-version: "dwave-system~=1.3.0 dwave-cloud-client==0.8.3"
-              - python-version: "3.11.0"
+              - python-version: "3.11"
                 system-client-version: "dwave-system~=1.8.0 dwave-cloud-client==0.8.7"
-              - python-version: "3.11.0"
+              - python-version: "3.11"
                 system-client-version: "dwave-system~=1.9.0 dwave-cloud-client==0.9.0"
           context: *ctx-build
           filters:

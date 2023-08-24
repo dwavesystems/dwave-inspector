@@ -226,10 +226,8 @@ def send_static(path='index.html'):
     # NOTE: backport required for `.files` prior to py39
     basedir = importlib_resources.files(app.webappdata).joinpath('build')
 
-    # NOTE: cast `basedir: PosixPath` to `str` to work on Flask@py35
     # NOTE: safe to do because inspectorapp (webappdata) is `zip_safe=False`!
-    # XXX: remove when py35 is dropped; consider using werkzeug.safe_join directly
-    return send_from_directory(str(basedir), path)
+    return send_from_directory(basedir, path)
 
 @app.route('/api/problems/<problem_id>')
 def send_problem(problem_id):

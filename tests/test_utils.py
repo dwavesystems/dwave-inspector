@@ -90,6 +90,7 @@ class TestUrlRewrite(unittest.TestCase):
             with self.subTest(field):
                 val = str(uuid4())
                 val = f'/{val}' if field == 'path' else val
+                val = f'a{val}' if field == 'scheme' else val
                 res = urlparse(update_url_from('', '', **{field: lambda *args: val}))
                 self.assertEqual(getattr(res, field), val)
 
