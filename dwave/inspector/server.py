@@ -174,9 +174,9 @@ class WSGIAsyncServer(threading.Thread):
             *self.server.server_address, problem_id)
 
     def _ensure_accessible(self, sleep=0.1, tries=100, timeout=10):
-        """Ping the canary URL (app root) until the app becomes accessible."""
+        """Ping the canary URL (`/ping`) until the app becomes accessible."""
 
-        canary = 'http://{}:{}/'.format(*self.server.server_address)
+        canary = 'http://{}:{}/ping'.format(*self.server.server_address)
 
         for _ in range(tries):
             try:
@@ -221,6 +221,10 @@ class WSGIAsyncServer(threading.Thread):
 
 app = Flask(__name__, static_folder=None)
 app.json = NumpyJSONProvider(app)
+
+@app.route('/ping')
+def ping():
+    return 'pong'
 
 @app.route('/')
 @app.route('/<path:path>')
