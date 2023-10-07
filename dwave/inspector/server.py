@@ -27,11 +27,13 @@ except ImportError:
     import importlib.resources as importlib_resources
 
 import requests
-from flask import Flask, send_from_directory, make_response
+from flask import Flask, send_from_directory, make_response, request, redirect
 from werkzeug.exceptions import NotFound
 
 from dwave.inspector.config import config
-from dwave.inspector.storage import problem_store, problem_access_sem, get_problem, get_solver_data
+from dwave.inspector.storage import (
+    problem_store, problem_access_sem,
+    get_last_problem_id, get_solver_data)
 from dwave.inspector.utils import NumpyJSONProvider
 
 
@@ -222,11 +224,23 @@ app.json = NumpyJSONProvider(app)
 
 @app.route('/')
 @app.route('/<path:path>')
-def send_static(path='index.html'):
+def send_static(path=None):
+    # handle with missing problem id by redirecting to the last problem stored
+    problem_id = request.args.get('problemId')
+    if path is None and problem_id is None:
+        last_problem_id = get_last_problem_id()
+        if last_problem_id is not None:
+            logger.debug('redirecting to last_problem_id=%r', last_problem_id)
+            response = redirect(f'/?problemId={last_problem_id}')
+            # make sure we don't cache this (see `add_header()` below)
+            response.cache_control.no_store = True
+            return response
+
     # NOTE: backport required for `.files` prior to py39
     basedir = importlib_resources.files(app.webappdata).joinpath('build')
 
     # NOTE: safe to do because inspectorapp (webappdata) is `zip_safe=False`!
+    path = 'index.html' if path is None else path
     return send_from_directory(basedir, path)
 
 @app.route('/api/problems/<problem_id>')

@@ -17,6 +17,7 @@ import logging
 import threading
 import functools
 from collections import OrderedDict, defaultdict
+from typing import Optional
 
 from dwave.cloud.solver import StructuredSolver
 
@@ -145,6 +146,15 @@ def get_problem(problem_id):
 
     # possibly fail with KeyError
     return problemdata[problem_id]
+
+
+def get_last_problem_id() -> Optional[str]:
+    """Return last problem inserted, or None if problem store is empty."""
+
+    if not problem_store:
+        return None
+
+    return next(reversed(problem_store))
 
 
 def get_solver_data(solver_id):

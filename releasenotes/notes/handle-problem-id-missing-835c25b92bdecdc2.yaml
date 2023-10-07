@@ -1,0 +1,8 @@
+---
+features:
+  - |
+    Handle web browser requests to the inspector server with problem ID missing
+    by redirecting to the last problem `show()` was called for.
+
+    Besides being practical, this mitigates issues in some environments/setups
+    with URL rewriters/proxies dropping URL path and/or query.
