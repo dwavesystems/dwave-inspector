@@ -10,10 +10,6 @@
     :target: https://codecov.io/gh/dwavesystems/dwave-inspector
     :alt: Coverage report
 
-.. image:: https://readthedocs.com/projects/d-wave-systems-dwave-inspector/badge/?version=latest
-    :target: https://docs.ocean.dwavesys.com/projects/inspector/en/latest/?badge=latest
-    :alt: Documentation Status
-
 
 ================
 D-Wave Inspector
@@ -106,7 +102,7 @@ Released under the Apache License 2.0. See `<LICENSE>`_ file.
 
 Visualization component released under the `D-Wave EULA`_.
 
-.. _D-Wave EULA: https://docs.ocean.dwavesys.com/projects/inspector/en/latest/license.html#inspector-eula
+.. _D-Wave EULA: https://docs.ocean.dwavesys.com/en/stable/licenses/inspector.html
 
 
 Contributing
