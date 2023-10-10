@@ -14,6 +14,7 @@
 
 import unittest
 from concurrent.futures import ThreadPoolExecutor
+from urllib.parse import urlsplit
 
 import vcr
 import numpy as np
@@ -111,6 +112,26 @@ class TestProblemOpen(unittest.TestCase, RunTimeAssertionMixin):
         # show shouldn't block regardless of problem inspector opening or not
         with self.assertMaxRuntime(2000):
             show(self.response, block=Block.ONCE)
+
+    @unittest.mock.patch('dwave.inspector.view', lambda url: None)
+    def test_redirect_root_to_last_problem(self):
+        # push data, for server to be able to fetch it
+        show(self.response, block=Block.NEVER)
+
+        # verify base case: url with problemId
+        url = app_server.get_problem_url(self.problem_id)
+        res = requests.get(url)
+        self.assertEqual(len(res.history), 0)   # no redirects
+        self.assertEqual(res.status_code, 200)
+
+        # verify redirect from root to last problem id
+        base_url = urlsplit(url)._replace(path='/', query='', fragment='').geturl()
+        res = requests.get(base_url)
+        # one redirect
+        self.assertEqual(len(res.history), 1)
+        self.assertEqual(res.history[0].status_code, 302)
+        # correct final location
+        self.assertIn(self.problem_id, res.url)
 
 
 @unittest.mock.patch('dwave.system.samplers.dwave_sampler.Client.from_config', BrickedClient)
