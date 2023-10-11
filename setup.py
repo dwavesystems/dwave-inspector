@@ -14,7 +14,7 @@ with open(package_info_path, encoding='utf-8') as f:
 install_requires = [
     'dimod>=0.10.0',
     'dwave-system>=1.3.0',
-    'dwave-cloud-client>=0.8.3',
+    'dwave-cloud-client>=0.8.3',    # for <0.10.6, also pydantic<2 is required!
     'Flask>=2.2',
     'numpy',
     # dwave-inspectorapp==0.3.1
