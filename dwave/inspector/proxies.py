@@ -37,7 +37,7 @@ from urllib.parse import urljoin
 try:
     from importlib_metadata import entry_points
 except ImportError:  # noqa
-    # proper native support in py310+
+    # selectable entry points natively supported in py310+
     from importlib.metadata import entry_points
 
 from dwave.inspector.package_info import entry_point_group

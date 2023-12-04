@@ -15,7 +15,12 @@
 import logging
 import operator
 import webbrowser
-from pkg_resources import iter_entry_points
+
+try:
+    from importlib_metadata import entry_points
+except ImportError:  # noqa
+    # selectable entry points natively supported in py310+
+    from importlib.metadata import entry_points
 
 from dwave.inspector.package_info import entry_point_group
 from dwave.inspector.utils import annotated, RichDisplayURL
@@ -60,7 +65,7 @@ def prioritized_viewers():
     priority.
     """
 
-    viewers = [ep.load() for ep in iter_entry_points(entry_point_group['viewers'])]
+    viewers = [ep.load() for ep in entry_points(group=entry_point_group['viewers'])]
     return sorted(viewers, key=operator.attrgetter('priority'), reverse=True)
 
 
