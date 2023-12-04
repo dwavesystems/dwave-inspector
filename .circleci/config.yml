@@ -49,10 +49,9 @@ jobs:
           name: Install requirements
           command: |
             . env/bin/activate
-            pip install -U pip setuptools
+            pip install -U pip
             pip install -r requirements.txt -r tests/requirements.txt
             pip install dwave-inspectorapp --extra-index=https://pypi.dwavesys.com/simple
-            pip install wheel twine
 
       - save_cache: &save-cache-env
           key: v<< pipeline.parameters.cache-generation >>-python-{{ checksum "/tmp/python-V.txt" }}-pip-{{ checksum "requirements.txt" }}-{{ checksum "tests/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
@@ -78,20 +77,6 @@ jobs:
                   . env/bin/activate
                   pip uninstall -y dwave-system dwave-cloud-client pydantic
                   pip install << parameters.system-client-version >>
-
-      - run: &build-package
-          name: Build package
-          command: env/bin/python setup.py sdist bdist_wheel
-
-      - when:
-          condition:
-            matches:
-              pattern: "^3\\.9.*$"    # can't do "^3\\.9" only due to (likely) circleci regex matching bug
-              value: << parameters.python-version >>
-          steps:
-            - persist_to_workspace:
-                root: dist
-                paths: .
 
       - run: &install-package
           name: Install package
@@ -199,7 +184,7 @@ jobs:
           name: Install package
           command: |
             env\Scripts\activate.ps1
-            python setup.py install
+            pip install .
 
       - run:
           name: Run tests
@@ -223,7 +208,7 @@ jobs:
           name: Install requirements
           command: |
             . env/bin/activate
-            pip install -U pip setuptools
+            pip install -U pip
             pip install -r requirements.txt -r docs/requirements.txt
             pip install dwave-inspectorapp --extra-index=https://pypi.dwavesys.com/simple
 
@@ -255,9 +240,9 @@ jobs:
             . env/bin/activate
             make -C docs/ linkcheck
 
-  pypi-deploy:
+  build-dist:
     docker:
-      - image: cimg/python:3.9
+      - image: cimg/python:3.10
 
     steps:
       - checkout
@@ -266,17 +251,39 @@ jobs:
 
       - run: *install-requirements
 
-      - run: *build-package
+      - run:
+          name: Install build deps
+          command: env/bin/pip install setuptools wheel
+
+      - run: &build-package
+          name: Build package
+          command: env/bin/python setup.py sdist bdist_wheel
 
       - store_artifacts:
           path: ./dist
 
+      - persist_to_workspace:
+          root: ./dist
+          paths: .
+
+  pypi-deploy:
+    docker:
+      - image: cimg/python:3.10
+
+    steps:
+      - attach_workspace:
+          at: ./dist
+
       - run:
           name: Upload package to PyPI
-          command: env/bin/twine upload -u "$PYPI_USERNAME" -p "$PYPI_PASSWORD" --skip-existing ./dist/*
+          command: |
+            python -m venv env
+            . env/bin/activate
+            pip install twine
+            twine upload -u "$PYPI_USERNAME" -p "$PYPI_PASSWORD" --skip-existing ./dist/*
 
 workflows:
-  test-deploy:
+  test:
     jobs:
       - test-linux:
           name: test-linux-<< matrix.python-version >> | << matrix.dimod-preprocessing-version >>
@@ -302,9 +309,6 @@ workflows:
               - python-version: "3.12"
                 dimod-preprocessing-version: "dimod==0.12.5 dwave-preprocessing~=0.5.0"
           context: &ctx-build "ocean-build"
-          filters: &always-run  # run on `tags` in addition to `branches` default (deploy dep)
-            tags:
-              only: /.*/
 
       - test-linux:
           name: test-linux-<< matrix.python-version >> | << matrix.system-client-version >>
@@ -340,38 +344,37 @@ workflows:
               - python-version: "3.12"
                 system-client-version: "dwave-system~=1.9.0 dwave-cloud-client==0.9.0 pydantic~=1.0"
           context: *ctx-build
-          filters:
-            <<: *always-run
 
       - test-macos:
           matrix:
             parameters:
               python-version: *python-versions
           context: *ctx-build
-          filters:
-            <<: *always-run
 
       - test-windows:
           matrix:
             parameters:
               python-version: *python-versions
           context: *ctx-build
-          filters:
-            <<: *always-run
 
       - test-docs:
           context: *ctx-build
-          filters:
-            <<: *always-run
 
-      - pypi-deploy:
-          requires:
-            - test-linux
-            - test-macos
-            - test-windows
-          context: ocean-publish
-          filters:
+      - build-dist:
+          context: *ctx-build
+
+  deploy:
+    jobs:
+      - build-dist:
+          context: &ctx-deploy "ocean-publish"
+          filters: &on-tag
             tags:
               only: /^[0-9]+(\.[0-9]+)*((\.dev|rc)([0-9]+)?)?$/
             branches:
               ignore: /.*/
+
+      - pypi-deploy:
+          requires:
+            - build-dist
+          context: *ctx-deploy
+          filters: *on-tag
