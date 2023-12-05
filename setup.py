@@ -27,7 +27,7 @@ extras_require = {
     # importlib.resources backport needed for reading distribution data files
     ':python_version < "3.9"': ['importlib-resources>=3.2.0'],
 
-    # importlib.metadata backport needed for entry point tests
+    # importlib.metadata backport needed for selectable entry point prior to py310
     ':python_version < "3.10"': ['importlib-metadata>=4.8'],
 }
 
@@ -40,6 +40,7 @@ classifiers = [
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
 ]
 
 packages = ['dwave', 'dwave.inspector']
