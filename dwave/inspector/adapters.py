@@ -189,15 +189,12 @@ def _expand_params(solver, params=None, timing=None):
         "annealing_time": annealing_time,
         "answer_mode": params.get("answer_mode", "histogram"),
         "auto_scale": params.get("auto_scale", True if not flux_biases else False),
-        "beta": params.get("beta", 10 if solver.is_vfyc else 1),
-        "chains": params.get("chains"),
         "flux_biases": flux_biases,
         "flux_drift_compensation": params.get("flux_drift_compensation", True),
         "h_gain_schedule": params.get("h_gain_schedule", [[0, 1], [annealing_time, 1]]),
         "initial_state": initial_state,
         "max_answers": params.get("max_answers"),
         "num_reads": params.get("num_reads", 1),
-        "postprocess": params.get("postprocess", "sampling" if solver.is_vfyc else ""),
         "programming_thermalization": params.get("programming_thermalization", default_programming_thermalization),
         "readout_thermalization": params.get("readout_thermalization", default_readout_thermalization),
         "reduce_intersample_correlation": params.get("reduce_intersample_correlation", False),
@@ -207,6 +204,15 @@ def _expand_params(solver, params=None, timing=None):
     # num_spin_reversal_transforms has been removed from SAPI as of 2023-11-15
     if "num_spin_reversal_transforms" in solver.parameters:
         expanded.update(num_spin_reversal_transforms=params.get("num_spin_reversal_transforms", 0))
+
+    # post-processing and VFYC were last available on Chimera solvers, last
+    # of which (DW_2000Q_6) was decommissioned on 2023-05-31
+    if "postprocess" in solver.parameters:
+        expanded.update(postprocess=params.get("postprocess", "sampling" if solver.is_vfyc else ""))
+    if "beta" in solver.parameters:
+        expanded.update(beta=params.get("beta", 10 if solver.is_vfyc else 1))
+    if "chains" in solver.parameters:
+        expanded.update(chains=params.get("chains"))
 
     return expanded
 
