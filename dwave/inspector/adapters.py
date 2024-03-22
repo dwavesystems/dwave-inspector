@@ -183,7 +183,7 @@ def _expand_params(solver, params=None, timing=None):
     # set each parameter individually because defaults are not necessarily
     # constant; they can depend on one or more other parameters
     # TODO: cast to primary types for safe JSON serialization
-    return {
+    expanded = {
         "anneal_offsets": params.get("anneal_offsets"),
         "anneal_schedule": anneal_schedule,
         "annealing_time": annealing_time,
@@ -197,13 +197,19 @@ def _expand_params(solver, params=None, timing=None):
         "initial_state": initial_state,
         "max_answers": params.get("max_answers"),
         "num_reads": params.get("num_reads", 1),
-        "num_spin_reversal_transforms": params.get("num_spin_reversal_transforms", 0),
         "postprocess": params.get("postprocess", "sampling" if solver.is_vfyc else ""),
         "programming_thermalization": params.get("programming_thermalization", default_programming_thermalization),
         "readout_thermalization": params.get("readout_thermalization", default_readout_thermalization),
         "reduce_intersample_correlation": params.get("reduce_intersample_correlation", False),
         "reinitialize_state": params.get("reinitialize_state", True if initial_state else False)
     }
+
+    # num_spin_reversal_transforms has been removed from SAPI as of 2023-11-15
+    if "num_spin_reversal_transforms" in solver.parameters:
+        expanded.update(num_spin_reversal_transforms=params.get("num_spin_reversal_transforms", 0))
+
+    return expanded
+
 
 def _validated_problem_data(data):
     "Basic types validation/conversion."
