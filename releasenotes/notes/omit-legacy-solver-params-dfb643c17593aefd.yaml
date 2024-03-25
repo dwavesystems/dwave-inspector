@@ -1,0 +1,8 @@
+---
+fixes:
+  - |
+    Omit legacy solver parameters, like ``num_spin_reversal_transforms`` and 
+    postprocessing params (``postprocess``, ``beta``, ``chains``) from the
+    visualizer.
+    See `#166 <https://github.com/dwavesystems/dwave-inspector/issues/166>`_ and
+    `#168 <https://github.com/dwavesystems/dwave-inspector/issues/168>`_.
