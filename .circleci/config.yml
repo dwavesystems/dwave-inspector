@@ -106,13 +106,12 @@ jobs:
     steps:
       - checkout
 
+      - restore_cache: &restore-cache-pyenv
+          key: &brew-pyenv-cache-key v<< pipeline.parameters.cache-generation >>-brew-pyenv-{{ .Environment.CIRCLE_JOB }}-xcode-<< parameters.xcode >>
+
       - run: &brew-install-pyenv
           name: Install pyenv
           command: brew install pyenv
-
-      - restore_cache: &restore-cache-pyenv
-          keys:
-            - v<< pipeline.parameters.cache-generation >>-pyenv-{{ .Environment.CIRCLE_JOB }}-xcode-<< parameters.xcode >>
 
       - run: &pyenv-install-python
           name: Install python
@@ -127,8 +126,10 @@ jobs:
             pyenv global << parameters.python-version >>
 
       - save_cache: &save-cache-pyenv
-          key: v<< pipeline.parameters.cache-generation >>-pyenv-{{ .Environment.CIRCLE_JOB }}-xcode-<< parameters.xcode >>
+          key: *brew-pyenv-cache-key
           paths:
+            - /Users/distiller/Library/Caches/Homebrew
+            - /usr/local/Homebrew
             - ~/.pyenv
 
       # install dependencies and cache them
@@ -194,32 +195,22 @@ jobs:
 
   test-docs:
     docker:
-      - image: cimg/python:3.9
+      - image: cimg/python:3.11
 
     steps:
       - checkout
 
-      - restore_cache: &restore-cache-docs
-          key: v<< pipeline.parameters.cache-generation >>-pip-{{ checksum "requirements.txt" }}-{{ checksum "docs/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
-
       - run: *create-virtualenv
 
-      - run: &install-requirements-docs
-          name: Install requirements
-          command: |
-            . env/bin/activate
-            pip install -U pip
-            pip install -r requirements.txt -r docs/requirements.txt
-            pip install dwave-inspectorapp --extra-index=https://pypi.dwavesys.com/simple
+      - run: *install-requirements
 
-      - save_cache: &save-cache-docs
-          key: v<< pipeline.parameters.cache-generation >>-pip-{{ checksum "requirements.txt" }}-{{ checksum "docs/requirements.txt" }}-{{ .Environment.CIRCLE_JOB }}
-          paths:
-            - env
+      - run:
+          name: Install docs requirements
+          command: env/bin/pip install -r docs/requirements.txt
 
       - run: *install-package
 
-      - run: &build-docs
+      - run:
           name: Build docs
           command: |
             . env/bin/activate
@@ -228,21 +219,21 @@ jobs:
       - store_artifacts:
           path: ./docs/build/html
 
-      - run: &run-doctest
-          name: doctest
+      - run:
+          name: Test docs
           command: |
             . env/bin/activate
             make -C docs/ doctest
 
-      - run: &run-linkcheck
-          name: linkcheck
+      - run:
+          name: Test links
           command: |
             . env/bin/activate
             make -C docs/ linkcheck
 
   build-dist:
     docker:
-      - image: cimg/python:3.10
+      - image: cimg/python:3.11
 
     steps:
       - checkout
@@ -268,7 +259,7 @@ jobs:
 
   pypi-deploy:
     docker:
-      - image: cimg/python:3.10
+      - image: cimg/python:3.11
 
     steps:
       - attach_workspace:
