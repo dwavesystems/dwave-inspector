@@ -160,6 +160,7 @@ def _expand_params(solver, params=None, timing=None):
     default_readout_thermalization = solver.properties['default_readout_thermalization']
 
     # figure out `annealing_time`
+    # (valid for fast anneal as well)
     if "qpu_anneal_time_per_sample" in timing:
         # actual value is known
         annealing_time = timing["qpu_anneal_time_per_sample"]
@@ -213,6 +214,10 @@ def _expand_params(solver, params=None, timing=None):
         expanded.update(beta=params.get("beta", 10 if solver.is_vfyc else 1))
     if "chains" in solver.parameters:
         expanded.update(chains=params.get("chains"))
+
+    # add fast anneal only if supported by the solver
+    if "fast_anneal" in solver.parameters:
+        expanded.update(fast_anneal=params.get("fast_anneal", False))
 
     return expanded
 
