@@ -17,7 +17,7 @@ install_requires = [
     'dwave-cloud-client>=0.8.3',    # for <0.10.6, also pydantic<2 is required!
     'Flask>=2.2',
     'numpy',
-    # dwave-inspectorapp==0.3.2
+    # dwave-inspectorapp==0.3.3
 ]
 
 # Package extras requirements
