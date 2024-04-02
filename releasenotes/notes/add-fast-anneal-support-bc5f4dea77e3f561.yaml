@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    Add support for fast anneal protocol. Display the new solver parameter
+    ``fast_anneal`` and the new solver property ``fast_anneal_time_range``
+    in the visualizer.
+    See `#170 <https://github.com/dwavesystems/dwave-inspector/issues/170>`_
