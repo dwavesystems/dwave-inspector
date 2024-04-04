@@ -186,7 +186,7 @@ def update_url_from(url: Union[str, ParseResult],
     """
 
     # handle schemeless urls -> assume http
-    if not re.match("^\w+://", url):
+    if not re.match(r"^\w+://", url):
         url = f"http://{url}"
 
     # deconstruct source and patch urls
