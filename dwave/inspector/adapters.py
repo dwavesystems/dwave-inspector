@@ -98,19 +98,28 @@ def _get_solver_topology(solver, default=None):
 
     return default
 
-def solver_data_postprocessed(solver):
+def solver_data_postprocessed(solver, inplace=False):
     """Returns (possibly an old) solver's updated `data` that includes the
     missing properties like topology. Also, removes large unused properties.
+
+    Setting ``inplace`` flag will make permanent changes to ``solver`` data,
+    otherwise a copy will be returned.
     """
 
-    # make a copy to avoid modifying the original solver.data
-    data = copy.deepcopy(solver.data)
+    if inplace:
+        data = solver.data
+    else:
+        # make a copy to avoid modifying the original solver.data
+        data = copy.deepcopy(solver.data)
 
     # add missing but used properties
     data['properties'].setdefault('topology', _get_solver_topology(solver))
 
     # remove unused properties
-    del data['properties']['anneal_offset_ranges']
+    unused = {'anneal_offset_ranges'}
+    for key in unused:
+        if key in data['properties']:
+            del data['properties'][key]
 
     return data
 

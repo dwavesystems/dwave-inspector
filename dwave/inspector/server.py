@@ -257,7 +257,7 @@ def send_problem(problem_id):
 @app.route('/api/problems/<problem_id>/solver')
 def send_solver(problem_id):
     try:
-        return get_solver_data(problem_store[problem_id]['details']['solver'])
+        return get_solver_data(problem_store[problem_id]['details']['solver'], update_inplace=True)
     except KeyError:
         raise NotFound
 

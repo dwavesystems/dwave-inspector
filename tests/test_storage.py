@@ -53,7 +53,7 @@ class TestStorage(unittest.TestCase):
         push_inspector_data(inspector_data)
 
         # get solver data
-        solver_data = get_solver_data(solver.id)
+        solver_data = get_solver_data(solver.id, update_inplace=False)
 
         # verify missing data is recreated
         self.assertIn('topology', solver_data['properties'])
