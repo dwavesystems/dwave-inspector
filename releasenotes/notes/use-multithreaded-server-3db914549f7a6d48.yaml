@@ -6,3 +6,8 @@ features:
     By using a multi-threaded server we improve the visualizer app load time,
     as browsers can download static files and make API requests in parallel now.
     See `#165 <https://github.com/dwavesystems/dwave-inspector/issues/165>`_.
+upgrade:
+  - |
+    Minimal version of ``dwave-cloud-client`` required is now 0.11.0 to
+    support `#165 <https://github.com/dwavesystems/dwave-inspector/issues/165>`_
+    and fix `#164 <https://github.com/dwavesystems/dwave-inspector/issues/164>`_.
