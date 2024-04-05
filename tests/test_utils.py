@@ -119,8 +119,8 @@ class TestOrJSONProvider(unittest.TestCase):
         (numpy.ubyte(1), 1), (numpy.uint8(1), 1),
         (numpy.short(1), 1), (numpy.int16(1), 1),
         (numpy.ushort(1), 1), (numpy.uint16(1), 1),
-        (numpy.intc(1), 1), (numpy.int32(1), 1),
-        (numpy.uintc(1), 1), (numpy.uint32(1), 1),
+        (numpy.int32(1), 1),
+        (numpy.uint32(1), 1),
         (numpy.int_(1), 1), (numpy.int32(1), 1),
         (numpy.uint(1), 1), (numpy.uint32(1), 1),
         (numpy.int64(1), 1),
@@ -128,7 +128,7 @@ class TestOrJSONProvider(unittest.TestCase):
         (numpy.half(1.0), 1.0), (numpy.float16(1.0), 1.0),
         (numpy.single(1.0), 1.0), (numpy.float32(1.0), 1.0),
         (numpy.double(1.0), 1.0), (numpy.float64(1.0), 1.0),
-        # note: orjson does not currently support: longlong, ulonglong, longdouble
+        # note: orjson does not currently support: longlong, ulonglong, longdouble, intc, uintc
         # see https://github.com/ijl/orjson/issues/469
     ])
     def test_numpy_primary_type_encode(self, np_val, py_val):
