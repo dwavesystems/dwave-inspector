@@ -98,11 +98,13 @@ class TestProblemOpen(unittest.TestCase, RunTimeAssertionMixin):
         app_server.ensure_started()
 
         # show blocks until timeout
-        with self.assertMaxRuntime(2000):
-            show(self.response, block=Block.ONCE, timeout=1)
+        with self.assertRaises(TimeoutError):
+            with self.assertMaxRuntime(2000):
+                show(self.response, block=Block.ONCE, timeout=1)
 
-        with self.assertMaxRuntime(2000):
-            show(self.response, block=True, timeout=1)
+        with self.assertRaises(TimeoutError):
+            with self.assertMaxRuntime(2000):
+                show(self.response, block=True, timeout=1)
 
     @unittest.mock.patch('dwave.inspector.view', lambda url: False)
     def test_show_blocking_ignored(self):

@@ -86,7 +86,8 @@ class InspectorAppServer(BackgroundAppServer):
         return False
 
     def wait_problem_accessed(self, problem_id: str, timeout: Optional[float] = None):
-        """Blocks until problem access semaphore is notified.
+        """Blocks until problem access semaphore is notified, or timeout exceeded,
+        in which case it raises a :exc:`TimeoutError`.
 
         Problem semaphore is created on access, so this method can be called
         even before the problem is created, or access is notified.
@@ -94,7 +95,10 @@ class InspectorAppServer(BackgroundAppServer):
         logger.debug('%s.wait_problem_accessed(problem_id=%r, timeout=%r)',
                      type(self).__name__, problem_id, timeout)
 
-        problem_access_sem[problem_id].acquire(blocking=True, timeout=timeout)
+        acquired = problem_access_sem[problem_id].acquire(blocking=True, timeout=timeout)
+
+        if timeout is not None and not acquired:
+            raise TimeoutError("Problem not accessed within the specified timeout.")
 
     def notify_problem_accessed(self, problem_id: str):
         """Notifies problem access semaphore of one access (full load).
