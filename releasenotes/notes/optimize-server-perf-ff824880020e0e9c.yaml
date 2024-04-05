@@ -1,0 +1,16 @@
+---
+fixes:
+  - |
+    Improve performance of the inspector server by postprocessing solver data
+    inplace, saving one deep copy of solver metadata (~600kB for Advantage) on
+    each API request of solver data.
+
+features:
+  - |
+    Replace builtin JSON encoder with ``orjson``, achieving 2-5x speed-up of
+    problem and solver API endpoints.
+
+upgrade:
+  - |
+    ``dwave.inspector.utils.NumpyJSONProvider`` is removed and no longer available.
+    Use ``orjson.dumps`` with ``option=orjson.OPT_SERIALIZE_NUMPY`` instead.

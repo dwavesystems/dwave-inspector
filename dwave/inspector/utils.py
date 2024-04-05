@@ -18,7 +18,7 @@ import logging
 import operator
 import functools
 
-from typing import Sequence, Callable, Optional, Union, Dict
+from typing import Sequence, Callable, Optional, Union, Dict, Any
 from urllib.parse import urlparse, ParseResult
 
 try:
@@ -26,11 +26,11 @@ try:
 except ImportError: # pragma: no cover
     from importlib_metadata import EntryPoint, DistributionFinder, Distribution
 
-import flask
-import numpy
+from flask.json.provider import JSONProvider
+import orjson
 
 __all__ = [
-    'itemsgetter', 'annotated', 'NumpyJSONProvider', 'patch_entry_points',
+    'itemsgetter', 'annotated', 'OrJSONProvider', 'patch_entry_points',
     'RichDisplayURL',
 ]
 
@@ -80,29 +80,22 @@ def annotated(**kwargs):
     return _decorator
 
 
-# adapted from dwave-hybrid utils
-# (https://github.com/dwavesystems/dwave-hybrid/blob/b9025b5bb3d88dce98ec70e28cfdb25400a10e4a/hybrid/utils.py#L43-L61)
-# to provide numpy types serialization in flask 2.2+ (see https://github.com/pallets/flask/pull/4692)
-class NumpyJSONProvider(flask.json.provider.DefaultJSONProvider):
-    """JSON encoder for numpy types.
+# provide faster json serialization in flask 2.2+, with numpy support
+# (see https://github.com/pallets/flask/pull/4692)
+class OrJSONProvider(JSONProvider):
+    """Flask-specialized JSON encoder/decoder that uses ``orjson``.
 
-    Supported types:
-     - basic numeric types: booleans, integers, floats
-     - arrays: ndarray, recarray
+    By default, NumPy types are serialized, and non-string keys are supported.
     """
 
-    @staticmethod
-    def default(obj):
-        if isinstance(obj, numpy.integer):
-            return int(obj)
-        elif isinstance(obj, numpy.floating):
-            return float(obj)
-        elif isinstance(obj, numpy.bool_):
-            return bool(obj)
-        elif isinstance(obj, numpy.ndarray):
-            return obj.tolist()
+    def loads(self, s: str, **kwargs: Any) -> Any:
+        return orjson.loads(s, **kwargs)
 
-        return super().default(obj)
+    def dumps(self, obj: Any, **kwargs: Any) -> bytes:
+        kwargs.setdefault('option', (orjson.OPT_SERIALIZE_NUMPY
+                                     | orjson.OPT_NON_STR_KEYS
+                                     | orjson.OPT_NAIVE_UTC))
+        return orjson.dumps(obj, **kwargs)
 
 
 # TODO: move to `dwave.common.testing` or similar
@@ -193,7 +186,7 @@ def update_url_from(url: Union[str, ParseResult],
     """
 
     # handle schemeless urls -> assume http
-    if not re.match("^\w+://", url):
+    if not re.match(r"^\w+://", url):
         url = f"http://{url}"
 
     # deconstruct source and patch urls

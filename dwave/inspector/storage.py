@@ -157,11 +157,11 @@ def get_last_problem_id() -> Optional[str]:
     return next(reversed(problem_store))
 
 
-def get_solver_data(solver_id):
+def get_solver_data(solver_id, update_inplace=False):
     """Return solver data dict for `solver_id`. If solver hasn't been seen in
     any of the problems cached so far, fail with :exc:`KeyError`.
     """
     if solver_id in solvers:
-        return solver_data_postprocessed(solvers[solver_id])
+        return solver_data_postprocessed(solvers[solver_id], inplace=update_inplace)
 
     raise KeyError('solver not found')

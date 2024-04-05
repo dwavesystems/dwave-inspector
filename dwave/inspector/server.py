@@ -34,7 +34,7 @@ from dwave.inspector.config import config
 from dwave.inspector.storage import (
     problem_store, problem_access_sem,
     get_last_problem_id, get_solver_data)
-from dwave.inspector.utils import NumpyJSONProvider
+from dwave.inspector.utils import OrJSONProvider
 
 
 # get local server/app logger
@@ -220,7 +220,7 @@ class WSGIAsyncServer(threading.Thread):
 
 
 app = Flask(__name__, static_folder=None)
-app.json = NumpyJSONProvider(app)
+app.json = OrJSONProvider(app)
 
 @app.route('/ping')
 def ping():
@@ -257,7 +257,7 @@ def send_problem(problem_id):
 @app.route('/api/problems/<problem_id>/solver')
 def send_solver(problem_id):
     try:
-        return get_solver_data(problem_store[problem_id]['details']['solver'])
+        return get_solver_data(problem_store[problem_id]['details']['solver'], update_inplace=True)
     except KeyError:
         raise NotFound
 
