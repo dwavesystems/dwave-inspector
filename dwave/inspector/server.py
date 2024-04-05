@@ -12,13 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 import time
-import random
 import logging
-import traceback
-import threading
-from wsgiref.simple_server import make_server, WSGIRequestHandler, WSGIServer
+from typing import Optional
+from urllib.parse import urljoin
 
 try:
     # use a backport for python_version < 3.9
@@ -29,6 +26,8 @@ except ImportError:
 import requests
 from flask import Flask, send_from_directory, make_response, request, redirect
 from werkzeug.exceptions import NotFound
+
+from dwave.cloud.auth.server import BackgroundAppServer
 
 from dwave.inspector.config import config
 from dwave.inspector.storage import (
@@ -44,80 +43,14 @@ logger = logging.getLogger(__name__)
 logging.getLogger('werkzeug').addHandler(logging.NullHandler(logging.DEBUG))
 
 
-class LoggingStream(object):
-    """Provide file-like interface to a logger."""
-
-    def __init__(self, logger, level):
-        self.logger = logger
-        self.level = level
-
-    def write(self, message):
-        for line in message.split('\n'):
-            if line:
-                self.logger.log(self.level, line)
-
-    def flush(self):
-        pass
-
-# stream interface to our local logger
-logging_stream = LoggingStream(logger, logging.DEBUG)
-
-
-class LoggingWSGIRequestHandler(WSGIRequestHandler):
-    """WSGIRequestHandler subclass that logs to our logger, instead of to
-    ``sys.stderr`` (as hardcoded in ``http.server.BaseHTTPRequestHandler``).
+class InspectorAppServer(BackgroundAppServer):
+    """An extension of :class:`~dwave.cloud.auth.server.BackgroundAppServer`
+    that provides inspector-specific control over background server termination.
     """
-
-    def log_message(self, format, *args):
-        logger.info(format, *args)
-
-    def get_stderr(self):
-        return logging_stream
-
-
-class LoggingWSGIServer(WSGIServer):
-    """WSGIServer subclass that logs to our logger, instead of to ``sys.stderr``
-    (as hardcoded in ``socketserver.BaseServer.handle_error``).
-    """
-
-    def handle_error(self, request, client_address):
-        traceback.print_exception(*sys.exc_info(), file=logging_stream)
-
-
-class WSGIAsyncServer(threading.Thread):
-    """WSGI server container for a wsgi app that runs asynchronously (in a
-    separate thread).
-    """
-
-    def _safe_make_server(self, host, base_port, app, tries=20):
-        """Instantiate a http server. Discover available port starting with
-        `base_port` (use linear and random search).
-        """
-
-        def ports(start, linear=5):
-            """Server port proposal generator. Starts with a linear search, then
-            converts to a random look up.
-            """
-            for port in range(start, start + linear):
-                yield port
-            while True:
-                yield random.randint(port + 1, (1<<16) - 1)
-
-        for _, port in zip(range(tries), ports(start=base_port)):
-            try:
-                return make_server(host, port, app,
-                                   server_class=LoggingWSGIServer,
-                                   handler_class=LoggingWSGIRequestHandler)
-            except OSError as exc:
-                # handle only "[Errno 98] Address already in use"
-                if exc.errno != 98:
-                    raise
-
-        raise RuntimeError("unable to find available port to bind local "
-                           "webserver to even after {} tries".format(tries))
 
     def _make_server(self):
-        # ensure inspector web app static data is available
+        # ensure inspector web app static data is available before we
+        # create the server (that starts the app on request)
         try:
             import dwave._inspectorapp as webappdata
         except ImportError:
@@ -128,56 +61,21 @@ class WSGIAsyncServer(threading.Thread):
 
         self.app.webappdata = webappdata
 
-        # create http server, and bind it to first available port >= base_port
-        return self._safe_make_server(self.host, self.base_port, self.app)
+        # proceed with server creation
+        return super()._make_server()
 
-    @property
-    def server(self):
-        """HTTP server accessor that creates the actual server instance
-        (and binds it to host:port) on first access.
-        """
+    def ensure_started(self, timeout: Optional[float] = None):
+        if not self.is_alive():
+            self.start()
+            self.wait_ready(timeout=timeout)
+            return self.wait_app_alive()
 
-        with self._server_lock:
-            self._server = getattr(self, '_server', None)
+        return True
 
-            if self._server is None:
-                self._server = self._make_server()
+    def wait_app_alive(self, sleep: float = 0.1, tries: int = 100, timeout: float = 10):
+        """Ping the canary URL (`/ping`) until the app becomes responsive."""
 
-            return self._server
-
-    def __init__(self, host, base_port, app):
-        super(WSGIAsyncServer, self).__init__(daemon=True)
-
-        # store config, but start the web server (and bind to address) on run()
-        self.host = host
-        self.base_port = base_port
-        self.app = app
-        self._server_lock = threading.RLock()
-
-    def run(self):
-        self.server.serve_forever()
-
-    def stop(self):
-        self.server.shutdown()
-        self.join()
-
-    def get_inspect_url(self, problem_id):
-        return 'http://{}:{}/?problemId={}'.format(
-            *self.server.server_address, problem_id)
-
-    def get_callback_url(self, problem_id):
-        return 'http://{}:{}/api/callback/{}'.format(
-            *self.server.server_address, problem_id)
-
-    def get_problem_url(self, problem_id):
-        return 'http://{}:{}/api/problems/{}'.format(
-            *self.server.server_address, problem_id)
-
-    def _ensure_accessible(self, sleep=0.1, tries=100, timeout=10):
-        """Ping the canary URL (`/ping`) until the app becomes accessible."""
-
-        canary = 'http://{}:{}/ping'.format(*self.server.server_address)
-
+        canary = urljoin(self.root_url, '/ping')
         for _ in range(tries):
             try:
                 requests.get(canary, timeout=timeout).raise_for_status()
@@ -187,22 +85,7 @@ class WSGIAsyncServer(threading.Thread):
 
         return False
 
-    def ensure_started(self):
-        if not self.is_alive():
-            self.start()
-            return self._ensure_accessible()
-
-        return True
-
-    def ensure_stopped(self):
-        if self.is_alive():
-            self.stop()
-
-    def wait_shutdown(self, timeout=None):
-        logger.debug('%s.wait_shutdown(timeout=%r)', type(self).__name__, timeout)
-        self.join(timeout)
-
-    def wait_problem_accessed(self, problem_id, timeout=None):
+    def wait_problem_accessed(self, problem_id: str, timeout: Optional[float] = None):
         """Blocks until problem access semaphore is notified.
 
         Problem semaphore is created on access, so this method can be called
@@ -210,13 +93,25 @@ class WSGIAsyncServer(threading.Thread):
         """
         logger.debug('%s.wait_problem_accessed(problem_id=%r, timeout=%r)',
                      type(self).__name__, problem_id, timeout)
+
         problem_access_sem[problem_id].acquire(blocking=True, timeout=timeout)
 
-    def notify_problem_accessed(self, problem_id):
-        """Notifies problem access semaphore of one access (full load)."""
+    def notify_problem_accessed(self, problem_id: str):
+        """Notifies problem access semaphore of one access (full load).
+        """
         logger.debug('%s.notify_problem_accessed(problem_id=%r)',
                      type(self).__name__, problem_id)
+
         problem_access_sem[problem_id].release()
+
+    def get_inspect_url(self, problem_id):
+        return urljoin(self.root_url, f'/?problemId={problem_id}')
+
+    def get_callback_url(self, problem_id):
+        return urljoin(self.root_url, f'/api/callback/{problem_id}')
+
+    def get_problem_url(self, problem_id):
+        return urljoin(self.root_url, f'/api/problems/{problem_id}')
 
 
 app = Flask(__name__, static_folder=None)
@@ -278,4 +173,11 @@ def add_header(response):
         response.cache_control.max_age = 86400
     return response
 
-app_server = WSGIAsyncServer(host=config.host, base_port=config.base_port, app=app)
+app_server = InspectorAppServer(
+    host=config.host,
+    base_port=config.base_port,
+    max_port=config.max_port,
+    linear_tries=config.port_search_linear_tries,
+    randomized_tries=config.port_search_randomized_tries,
+    app=app
+)

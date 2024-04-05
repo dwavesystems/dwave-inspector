@@ -1,0 +1,8 @@
+---
+features:
+  - |
+    Replace ``WSGIAsyncServer`` with ``dwave.cloud.auth.server.BackgroundAppServer``,
+    a more robust and stable multi-threaded server.
+    By using a multi-threaded server we improve the visualizer app load time,
+    as browsers can download static files and make API requests in parallel now.
+    See `#165 <https://github.com/dwavesystems/dwave-inspector/issues/165>`_.
