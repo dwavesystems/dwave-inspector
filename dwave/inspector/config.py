@@ -39,6 +39,20 @@ class Config:
         return int(self._env('DWAVE_INSPECTOR_BASE_PORT', 18000))
 
     @property
+    def max_port(self):
+        return int(self._env('DWAVE_INSPECTOR_MAX_PORT', 18999))
+
+    @property
+    def port_search_linear_tries(self):
+        # hard-code for now. unlikely users will want to control this from env
+        return 5
+
+    @property
+    def port_search_randomized_tries(self):
+        # hard-code for now. unlikely users will want to control this from env
+        return 50
+
+    @property
     def jupyter_server_proxy_external_url(self):
         return self._env('DWAVE_INSPECTOR_JUPYTER_SERVER_PROXY_EXTERNAL_URL')
 
