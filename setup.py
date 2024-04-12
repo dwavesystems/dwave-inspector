@@ -15,7 +15,7 @@ install_requires = [
     'dimod>=0.10.0',
     'dwave-system>=1.3.0',
     'dwave-cloud-client>=0.11.0,<0.12.0',
-    'Flask>=2.2,<3',
+    'Flask>=2.2,<4',
     'numpy',
     'orjson>=3.10.0',
     # dwave-inspectorapp==0.3.3
