@@ -4,7 +4,7 @@ dimod>=0.10.0
 dwave-system>=1.3.0
 dwave-cloud-client>=0.11.0,<0.13.0
 numpy    # comes with dimod, but be explicit
-orjson>=3.10.0
+orjson>=3.10.0,<3.10.7
 
 # backports
 importlib-resources>=3.2.0; python_version<"3.9"
