@@ -29,6 +29,7 @@ rec = vcr.VCR(
     record_mode='none',
     match_on=['uri', 'method'],
     filter_headers=['x-auth-token'],
+    filter_query_parameters=['timeout'],
 )
 
 
