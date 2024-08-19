@@ -19,7 +19,8 @@ import itertools
 from collections import abc, Counter
 
 import dimod
-import dwave.cloud
+import dwave.cloud.computation
+# note: import from utils.qubo submodule when we increase cc lower bound to 0.12
 from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get, active_qubits
 from dwave.cloud.events import add_handler
 from dwave.cloud.solver import StructuredSolver
@@ -778,7 +779,7 @@ def from_objects(*args, **kwargs):
     bqm_cls = BQM_CLASSES
     sampleset_cls = dimod.SampleSet
     sampler_cls = (dimod.Sampler, dimod.ComposedSampler)
-    response_cls = dwave.cloud.Future
+    response_cls = dwave.cloud.computation.Future
     is_embedding_ctx = lambda x: isinstance(x, abc.Mapping) and 'embedding' in x
     is_warnings = \
         lambda x: isinstance(x, abc.Sequence) and len(x) > 0 \

@@ -31,6 +31,8 @@ from dwave.inspector.utils import RichDisplayURL    # bring back into top-level 
 # expose the root logger to simplify access
 logger = logging.getLogger(__name__)
 
+# TODO: replace with `dwave.cloud.utils.logging.configure_logging` when we increase
+# the cloud-client lower bound to 0.12.0
 def _configure_logging(logger, loglevel):
     """Configure `logger` root logger."""
     # TODO: move to dwave "common utils" module
