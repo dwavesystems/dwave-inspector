@@ -110,6 +110,9 @@ def add_problem(problem, solver, response):
 
 
 def add_solver(solver):
+    # convert pydantic SolverConfiguration model if used instead of dict for data
+    if callable(getattr(solver.data, 'model_dump', None)):
+        solver.data = solver.data.model_dump()
     solvers[solver.id] = solver
 
 
