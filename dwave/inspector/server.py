@@ -117,6 +117,9 @@ class InspectorAppServer(BackgroundAppServer):
     def get_problem_url(self, problem_id):
         return urljoin(self.root_url, f'/api/problems/{problem_id}')
 
+    def get_solver_url(self, problem_id):
+        return urljoin(self.root_url, f'/api/problems/{problem_id}/solver')
+
 
 app = Flask(__name__, static_folder=None)
 app.json = OrJSONProvider(app)

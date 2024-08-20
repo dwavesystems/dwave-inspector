@@ -117,6 +117,26 @@ class TestProblemOpen(unittest.TestCase, RunTimeAssertionMixin):
             show(self.response, block=Block.ONCE)
 
     @unittest.mock.patch('dwave.inspector.view', lambda url: None)
+    def test_api_access(self):
+        # push data, for server to be able to fetch it
+        show(self.response, block=Block.NEVER)
+
+        # verify problem data access
+        url = app_server.get_problem_url(self.problem_id)
+        res = requests.get(url)
+        self.assertEqual(res.status_code, 200)
+
+        # verify solver data access
+        url = app_server.get_solver_url(self.problem_id)
+        res = requests.get(url)
+        self.assertEqual(res.status_code, 200)
+
+        # verify problem data access
+        url = app_server.get_callback_url(self.problem_id)
+        res = requests.get(url)
+        self.assertEqual(res.status_code, 200)
+
+    @unittest.mock.patch('dwave.inspector.view', lambda url: None)
     def test_redirect_root_to_last_problem(self):
         # push data, for server to be able to fetch it
         show(self.response, block=Block.NEVER)
