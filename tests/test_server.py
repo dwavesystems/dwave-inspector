@@ -22,8 +22,9 @@ import requests
 
 from dwave.system import DWaveSampler, FixedEmbeddingComposite
 
-from dwave.inspector.server import app_server
 from dwave.inspector import show, Block
+from dwave.inspector.server import app_server
+from dwave.inspector.storage import problem_access_sem
 
 from tests import RunTimeAssertionMixin, BrickedClient
 
@@ -56,6 +57,20 @@ class FirstTestServerRuns(unittest.TestCase):
 @unittest.mock.patch('dwave.system.samplers.dwave_sampler.Client.from_config', BrickedClient)
 class TestProblemOpen(unittest.TestCase, RunTimeAssertionMixin):
 
+    @staticmethod
+    def notify_problem_loaded(problem_id):
+        url = app_server.get_callback_url(problem_id)
+        return requests.get(url).json()
+
+    @staticmethod
+    def reset_problem_access_sem(problem_id):
+        cnt = 0
+        if problem_id not in problem_access_sem:
+            return cnt
+        while problem_access_sem[problem_id].acquire(blocking=False):
+            cnt += 1
+        return cnt
+
     @rec.use_cassette('triangle-ising.yaml')
     @classmethod
     def setUpClass(cls):
@@ -65,25 +80,21 @@ class TestProblemOpen(unittest.TestCase, RunTimeAssertionMixin):
             cls.response = solver.sample_ising({}, {(0, 4): 1, (0, 5): 1, (4, 1): 1, (1, 5): -1})
             cls.problem_id = cls.response.wait_id()
 
-    @staticmethod
-    def notify_problem_loaded(problem_id):
-        url = app_server.get_callback_url(problem_id)
-        return requests.get(url).json()
+    def setUp(self):
+        # exclude potential server start-up time from timing tests
+        app_server.ensure_started()
+
+        # reset inspector app access counter
+        self.reset_problem_access_sem(self.problem_id)
 
     @unittest.mock.patch('dwave.inspector.view', lambda url: None)
     def test_show_no_block(self):
-        # exclude potential server start-up time from timing tests below
-        app_server.ensure_started()
-
         # show shouldn't block regardless of problem inspector opening or not
         with self.assertMaxRuntime(2000):
             show(self.response, block=Block.NEVER)
 
     @unittest.mock.patch('dwave.inspector.view', lambda url: True)
     def test_show_block_once(self):
-        # exclude potential server start-up time from timing tests below
-        app_server.ensure_started()
-
         # show should block until first access
         with ThreadPoolExecutor(max_workers=1) as executor:
             with self.assertMaxRuntime(2000):
@@ -95,9 +106,6 @@ class TestProblemOpen(unittest.TestCase, RunTimeAssertionMixin):
 
     @unittest.mock.patch('dwave.inspector.view', lambda url: None)
     def test_show_block_timeout(self):
-        # exclude potential server start-up time from timing tests below
-        app_server.ensure_started()
-
         # show blocks until timeout
         with self.assertRaises(TimeoutError):
             with self.assertMaxRuntime(2000):
@@ -109,9 +117,6 @@ class TestProblemOpen(unittest.TestCase, RunTimeAssertionMixin):
 
     @unittest.mock.patch('dwave.inspector.view', lambda url: False)
     def test_show_blocking_ignored(self):
-        # exclude potential server start-up time from timing tests below
-        app_server.ensure_started()
-
         # show shouldn't block regardless of problem inspector opening or not
         with self.assertMaxRuntime(2000):
             show(self.response, block=Block.ONCE)
