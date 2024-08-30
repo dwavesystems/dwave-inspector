@@ -1,0 +1,4 @@
+---
+features:
+  - |
+    Add support for ``dwave-cloud-client~=0.13.0``.
