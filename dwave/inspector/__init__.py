@@ -31,6 +31,8 @@ from dwave.inspector.utils import RichDisplayURL    # bring back into top-level 
 
 # expose the root logger to simplify access and configure it from the env var
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
+
 if config.log_level:
     configure_logging(logger, level=config.log_level)
 
