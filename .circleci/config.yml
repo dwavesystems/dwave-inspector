@@ -26,7 +26,7 @@ jobs:
         default: ''
 
     docker:
-      - image: cimg/python:<< parameters.python-version >>
+      - image: python:<< parameters.python-version >>
 
     steps:
       - checkout
@@ -98,7 +98,7 @@ jobs:
         type: string
       xcode:
         type: string
-        default: "14.2.0"
+        default: "16.0.0"
 
     macos:
       xcode: << parameters.xcode >>
@@ -111,7 +111,9 @@ jobs:
 
       - run: &brew-install-pyenv
           name: Install pyenv
-          command: brew install pyenv
+          command: |
+            brew update
+            brew install pyenv
 
       - run: &pyenv-install-python
           name: Install python
@@ -195,7 +197,7 @@ jobs:
 
   test-docs:
     docker:
-      - image: cimg/python:3.11
+      - image: python:3.12
 
     steps:
       - checkout
@@ -233,7 +235,7 @@ jobs:
 
   build-dist:
     docker:
-      - image: cimg/python:3.11
+      - image: python:3.12
 
     steps:
       - checkout
@@ -259,7 +261,7 @@ jobs:
 
   pypi-deploy:
     docker:
-      - image: cimg/python:3.11
+      - image: python:3.12
 
     steps:
       - attach_workspace:
@@ -280,7 +282,7 @@ workflows:
           name: test-linux-<< matrix.python-version >> | << matrix.dimod-preprocessing-version >>
           matrix:
             parameters:
-              python-version: &python-versions ["3.8", "3.9", "3.10", "3.11", "3.12"]
+              python-version: &python-versions ["3.9", "3.10", "3.11", "3.12", "3.13"]
               dimod-preprocessing-version:
                 - "dimod~=0.10.0 dwave-preprocessing~=0.3.0"
                 - "dimod~=0.11.0 dwave-preprocessing~=0.4.0"
@@ -298,6 +300,13 @@ workflows:
               - python-version: "3.12"
                 dimod-preprocessing-version: "dimod~=0.11.0 dwave-preprocessing~=0.4.0"
               - python-version: "3.12"
+                dimod-preprocessing-version: "dimod==0.12.5 dwave-preprocessing~=0.5.0"
+              # dimod < 0.12.17 not supported on py313
+              - python-version: "3.13"
+                dimod-preprocessing-version: "dimod~=0.10.0 dwave-preprocessing~=0.3.0"
+              - python-version: "3.13"
+                dimod-preprocessing-version: "dimod~=0.11.0 dwave-preprocessing~=0.4.0"
+              - python-version: "3.13"
                 dimod-preprocessing-version: "dimod==0.12.5 dwave-preprocessing~=0.5.0"
           context: &ctx-build "ocean-build"
 
