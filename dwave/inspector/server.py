@@ -12,16 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import time
+import importlib.resources
 import logging
+import time
 from typing import Optional
 from urllib.parse import urljoin
 
-try:
-    # use a backport for python_version < 3.9
-    import importlib_resources
-except ImportError:
-    import importlib.resources as importlib_resources
 
 import requests
 from flask import Flask, send_from_directory, make_response, request, redirect
@@ -142,8 +138,7 @@ def send_static(path=None):
             response.cache_control.no_store = True
             return response
 
-    # NOTE: backport required for `.files` prior to py39
-    basedir = importlib_resources.files(app.webappdata).joinpath('build')
+    basedir = importlib.resources.files(app.webappdata).joinpath('build')
 
     # NOTE: safe to do because inspectorapp (webappdata) is `zip_safe=False`!
     path = 'index.html' if path is None else path

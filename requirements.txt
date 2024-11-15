@@ -7,7 +7,6 @@ numpy    # comes with dimod, but be explicit
 orjson>=3.10.0
 
 # backports
-importlib-resources>=3.2.0; python_version<"3.9"
 importlib-metadata>=4.8; python_version<"3.10"
 
 # dev requirements

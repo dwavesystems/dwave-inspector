@@ -25,9 +25,6 @@ install_requires = [
 extras_require = {
     'test': ['coverage', 'vcrpy'],
 
-    # importlib.resources backport needed for reading distribution data files
-    ':python_version < "3.9"': ['importlib-resources>=3.2.0'],
-
     # importlib.metadata backport needed for selectable entry point prior to py310
     ':python_version < "3.10"': ['importlib-metadata>=4.8'],
 }
@@ -37,7 +34,6 @@ classifiers = [
     'Operating System :: OS Independent',
     'Development Status :: 3 - Alpha',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
@@ -46,7 +42,7 @@ classifiers = [
 
 packages = ['dwave', 'dwave.inspector']
 
-python_requires = '>=3.8'
+python_requires = '>=3.9'
 
 setup(
     name=package_info['__package_name__'],
