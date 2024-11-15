@@ -1,0 +1,4 @@
+---
+upgrade:
+  - |
+    Drop support for ``dwave-cloud-client<0.12``.

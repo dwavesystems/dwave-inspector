@@ -20,8 +20,7 @@ from collections import abc, Counter
 
 import dimod
 import dwave.cloud.computation
-# note: import from utils.qubo submodule when we increase cc lower bound to 0.12
-from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get, active_qubits
+from dwave.cloud.utils.qubo import reformat_qubo_as_ising, active_qubits
 from dwave.cloud.events import add_handler
 from dwave.cloud.solver import StructuredSolver
 from dwave.embedding import embed_bqm
@@ -429,7 +428,7 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
     # visualizer accepts decoded lists (and nulls instead of NaNs)
     problem_data = {
         "format": "qp",         # SAPI non-conforming (nulls vs nans)
-        "lin": [uniform_get(linear, v, 0 if v in active else None)
+        "lin": [linear.get(v, 0 if v in active else None)
                 for v in solver._encoding_qubits],
         "quad": [quadratic.get((q1,q2), 0) + quadratic.get((q2,q1), 0)
                  for (q1,q2) in solver._encoding_couplers
@@ -553,7 +552,7 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
     linear, quadratic, offset = bqm_embedded.to_ising()
     problem_data = {
         "format": "qp",         # SAPI non-conforming (nulls vs nans)
-        "lin": [uniform_get(linear, v, 0 if v in active else None)
+        "lin": [linear.get(v, 0 if v in active else None)
                 for v in solver._encoding_qubits],
         "quad": [quadratic.get((q1,q2), 0) + quadratic.get((q2,q1), 0)
                  for (q1,q2) in solver._encoding_couplers
@@ -719,7 +718,7 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
     linear, quadratic, offset = bqm_embedded.to_ising()
     problem_data = {
         "format": "qp",         # SAPI non-conforming (nulls vs nans)
-        "lin": [uniform_get(linear, v, 0 if v in active_variables_set else None)
+        "lin": [linear.get(v, 0 if v in active_variables_set else None)
                 for v in solver._encoding_qubits],
         "quad": [quadratic.get((q1,q2), 0) + quadratic.get((q2,q1), 0)
                  for (q1,q2) in solver._encoding_couplers

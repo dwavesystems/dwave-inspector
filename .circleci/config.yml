@@ -308,33 +308,9 @@ workflows:
             parameters:
               python-version: *python-versions
               system-client-version:
-                - "dwave-system~=1.3.0 dwave-cloud-client==0.8.3 pydantic~=1.0"
-                - "dwave-system~=1.8.0 dwave-cloud-client==0.8.7 pydantic~=1.0"
-                - "dwave-system~=1.9.0 dwave-cloud-client==0.9.0 pydantic~=1.0"
                 - "dwave-system~=1.0 dwave-cloud-client~=0.12.0"
+                - "dwave-system~=1.0 dwave-cloud-client~=0.13.0"
                 - "dwave-system~=1.0"
-            exclude:
-              # dwave-system>=1.11 required for py310
-              - python-version: "3.10"
-                system-client-version: "dwave-system~=1.3.0 dwave-cloud-client==0.8.3 pydantic~=1.0"
-              - python-version: "3.10"
-                system-client-version: "dwave-system~=1.8.0 dwave-cloud-client==0.8.7 pydantic~=1.0"
-              - python-version: "3.10"
-                system-client-version: "dwave-system~=1.9.0 dwave-cloud-client==0.9.0 pydantic~=1.0"
-              # dwave-system>=1.16 required for py311
-              - python-version: "3.11"
-                system-client-version: "dwave-system~=1.3.0 dwave-cloud-client==0.8.3 pydantic~=1.0"
-              - python-version: "3.11"
-                system-client-version: "dwave-system~=1.8.0 dwave-cloud-client==0.8.7 pydantic~=1.0"
-              - python-version: "3.11"
-                system-client-version: "dwave-system~=1.9.0 dwave-cloud-client==0.9.0 pydantic~=1.0"
-              # dwave-cloud-client>=0.11.2 required for py312+
-              - python-version: "3.12"
-                system-client-version: "dwave-system~=1.3.0 dwave-cloud-client==0.8.3 pydantic~=1.0"
-              - python-version: "3.12"
-                system-client-version: "dwave-system~=1.8.0 dwave-cloud-client==0.8.7 pydantic~=1.0"
-              - python-version: "3.12"
-                system-client-version: "dwave-system~=1.9.0 dwave-cloud-client==0.9.0 pydantic~=1.0"
           context: *ctx-build
 
       - test-macos:

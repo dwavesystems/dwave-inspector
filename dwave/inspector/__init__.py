@@ -15,7 +15,7 @@
 import enum
 import logging
 
-from dwave.cloud.utils import set_loglevel
+from dwave.cloud.utils.logging import configure_logging
 
 from dwave.inspector.config import config
 from dwave.inspector.server import app_server
@@ -28,25 +28,13 @@ from dwave.inspector.proxies import rewrite_url
 from dwave.inspector.package_info import __version__, __author__, __description__
 from dwave.inspector.utils import RichDisplayURL    # bring back into top-level namespace
 
-# expose the root logger to simplify access
+
+# expose the root logger to simplify access and configure it from the env var
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
-# TODO: replace with `dwave.cloud.utils.logging.configure_logging` when we increase
-# the cloud-client lower bound to 0.12.0
-def _configure_logging(logger, loglevel):
-    """Configure `logger` root logger."""
-    # TODO: move to dwave "common utils" module
-
-    formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(threadName)s %(message)s')
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-
-    logger.addHandler(handler)
-
-    set_loglevel(logger, loglevel)
-
-# configure root logger
-_configure_logging(logger, config.log_level)
+if config.log_level:
+    configure_logging(logger, level=config.log_level)
 
 
 # enable inspector data capture on import!
