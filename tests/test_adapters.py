@@ -24,11 +24,11 @@ import numpy
 
 import dimod
 from dwave.cloud.solver import UnstructuredSolver
-from dwave.system import DWaveSampler, FixedEmbeddingComposite
-from dwave.system.testing import MockDWaveSampler
+from dwave.cloud.utils.qubo import reformat_qubo_as_ising
 from dwave.embedding import embed_bqm
 from dwave.embedding.utils import edgelist_to_adjacency
-from dwave.cloud.utils import reformat_qubo_as_ising, uniform_get
+from dwave.system import DWaveSampler, FixedEmbeddingComposite
+from dwave.system.testing import MockDWaveSampler
 
 from dwave.inspector.adapters import (
     from_qmi_response, from_bqm_response, from_bqm_sampleset, from_objects,
@@ -124,7 +124,7 @@ class TestAdapters(unittest.TestCase):
         active_variables = response['active_variables']
         problem_data = {
             "format": "qp",
-            "lin": [uniform_get(linear, v, 0 if v in active_variables else None)
+            "lin": [linear.get(v, 0 if v in active_variables else None)
                     for v in solver._encoding_qubits],
             "quad": [quadratic.get((q1,q2), 0) + quadratic.get((q2,q1), 0)
                     for (q1,q2) in solver._encoding_couplers
