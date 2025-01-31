@@ -14,19 +14,18 @@ dwave-inspector
         :start-after: start_inspector_example
         :end-before: end_inspector_example
 
+
+Release Notes and Source
+========================
+
+*   `Release notes <https://github.com/dwavesystems/dwave-inspector/releases>`_
+*   `Source code <https://github.com/dwavesystems/dwave-inspector>`_
+
+
 Reference Documentation
 =======================
 
 .. toctree::
     :maxdepth: 1
 
-    show
-    Release Notes <https://github.com/dwavesystems/dwave-inspector/releases>
-
-Code
-====
-
-.. toctree::
-    :maxdepth: 1
-
-    Source <https://github.com/dwavesystems/dwave-inspector>
+    api_ref

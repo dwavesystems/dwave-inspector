@@ -1,8 +1,8 @@
-.. _show_inspector:
+.. _inspector_api_ref:
 
-====================
-Visualizing Problems
-====================
+=============
+API Reference
+=============
 
 Typically you use the :func:`~dwave.inspector.show` function on a
 :class:`~dimod.SampleSet` returned from the quantum computer or on the SAPI
