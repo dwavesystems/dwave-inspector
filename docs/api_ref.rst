@@ -9,10 +9,9 @@ Typically you use the :func:`~dwave.inspector.show` function on a
 problem ID\ [#active-problem]_. Other problem inputs, such as the binary
 quadratic model---in BQM, Ising, or QUBO formats---and an embedding, are
 optional.
-However, to visualize a logical problem if
-:std:doc:`dimod <oceandocs:docs_dimod/sdk_index>`\ 's
-:class:`~dwave.system.composites.EmbeddingComposite` or derived classes are not
-used, you must supply the embedding.
+However, to visualize a logical problem if the :ref:`dimod <index_dimod>`
+package's :class:`~dwave.system.composites.EmbeddingComposite` or derived
+classes are not used, you must supply the embedding.
 
 Below are some options for providing problem data to the
 :func:`~dwave.inspector.show` function, where
