@@ -15,13 +15,6 @@ dwave-inspector
         :end-before: end_inspector_example
 
 
-Release Notes and Source
-========================
-
-*   `Release notes <https://github.com/dwavesystems/dwave-inspector/releases>`_
-*   `Source code <https://github.com/dwavesystems/dwave-inspector>`_
-
-
 Reference Documentation
 =======================
 
