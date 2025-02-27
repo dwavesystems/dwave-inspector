@@ -4,21 +4,16 @@
 dwave-inspector
 ===============
 
-.. dropdown:: About dwave-inspector
-
-    .. include:: README.rst
-        :start-after: start_inspector_about
-        :end-before: end_inspector_about
-
-    .. include:: README.rst
-        :start-after: start_inspector_example
-        :end-before: end_inspector_example
-
-
-Reference Documentation
-=======================
-
 .. toctree::
+    :caption: Reference documentation for dwave-inspector:
     :maxdepth: 1
 
     api_ref
+
+
+About dwave-inspector
+=====================
+
+.. include:: README.rst
+    :start-after: start_inspector_about
+    :end-before: end_inspector_about

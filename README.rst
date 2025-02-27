@@ -11,27 +11,19 @@
     :alt: Coverage report
 
 
-================
-D-Wave Inspector
-================
+===============
+dwave-inspector
+===============
+
+.. |tm| replace:: :sup:`TM`
 
 .. start_inspector_about
 
 A tool for visualizing problems submitted to, and answers received from, a
-D-Wave structured solver such as an Advantage\ |TM| quantum computer.
+D-Wave structured solver such as an Advantage\ |tm| quantum computer.
 
-.. |TM| replace:: :sup:`TM`
-
-.. end_inspector_about
-
-
-Example
-=======
-
-.. start_inspector_example
-
-This example shows a typical usage: a binary quadratic model minor-embedded
-onto a quantum processing unit (QPU).
+This example shows a typical usage: a binary quadratic model minor-embedded onto
+a quantum processing unit (QPU).
 
 .. code-block:: python
 
@@ -52,13 +44,14 @@ onto a quantum processing unit (QPU).
     # Inspect
     dwave.inspector.show(sampleset)
 
-.. end_inspector_example
+.. end_inspector_about
 
 
 Installation or Building
 ========================
 
-If `D-Wave Ocean SDK 2.0+ <https://docs.ocean.dwavesys.com/>`_ is installed:
+If `Ocean SDK 2.0+ <https://github.com/dwavesystems/dwave-ocean-sdk>`_ is
+installed:
 
 .. code-block:: bash
 
@@ -75,6 +68,8 @@ and then install the closed-source dependency with:
 .. code-block:: bash
 
     pip install dwave-inspectorapp --extra-index=https://pypi.dwavesys.com/simple
+
+.. todo:: update this link
 
 Please note this closed-source dependency is released under the
 `D-Wave EULA <https://docs.ocean.dwavesys.com/en/stable/licenses/inspector.html>`_
@@ -98,12 +93,16 @@ License
 
 Released under the Apache License 2.0. See `<LICENSE>`_ file.
 
+.. todo:: update this link
+
 Visualization component released under the
 `D-Wave EULA <https://docs.ocean.dwavesys.com/en/stable/licenses/inspector.html>`_.
 
 
 Contributing
 ============
+
+.. todo:: update this link
 
 Ocean's `contributing guide <https://docs.ocean.dwavesys.com/en/stable/contributing.html>`_
 has guidelines for contributing to Ocean packages.
