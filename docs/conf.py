@@ -66,6 +66,5 @@ html_sidebars = {"**": ["search-field", "sidebar-nav-bs"]}  # remove ads
 # TODO: replace oceandocs & sysdocs_gettingstarted
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
-    'oceandocs': ('https://docs.ocean.dwavesys.com/en/latest/', None),
-    'sysdocs_gettingstarted': ('https://docs.dwavesys.com/docs/latest/', None),
+    'dwave': ('https://docs.dwavequantum.com/en/latest/', None),
 }
