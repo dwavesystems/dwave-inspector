@@ -26,5 +26,5 @@ Usage Information
 *   :ref:`index_concepts` for terminology
 *   :ref:`qpu_embedding_intro` for an introduction to :term:`minor-embedding`
 *   :ref:`qpu_embedding_guidance` for best practices in minor embedding
-*   :ref:`qpu_problem_inspector` fo ran end-to-end example of using the problem
-    inspector on a problem. 
+*   :ref:`qpu_example_inspector_graph_partitioning` for an end-to-end example
+    of using the problem inspector on a problem.
