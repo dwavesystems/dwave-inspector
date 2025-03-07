@@ -15,12 +15,10 @@
 dwave-inspector
 ===============
 
-.. |tm| replace:: :sup:`TM`
-
 .. start_inspector_about
 
 A tool for visualizing problems submitted to, and answers received from, a
-D-Wave structured solver such as an Advantage\ |tm| quantum computer.
+D-Wave structured solver such as an Advantage\ :sup:`TM` quantum computer.
 
 This example shows a typical usage: a binary quadratic model minor-embedded onto
 a quantum processing unit (QPU).
