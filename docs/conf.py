@@ -63,7 +63,6 @@ html_theme_options = {
 }
 html_sidebars = {"**": ["search-field", "sidebar-nav-bs"]}  # remove ads
 
-# TODO: replace oceandocs & sysdocs_gettingstarted
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
     'dwave': ('https://docs.dwavequantum.com/en/latest/', None),

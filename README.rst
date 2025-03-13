@@ -67,10 +67,8 @@ and then install the closed-source dependency with:
 
     pip install dwave-inspectorapp --extra-index=https://pypi.dwavesys.com/simple
 
-.. todo:: update this link
-
 Please note this closed-source dependency is released under the
-`D-Wave EULA <https://docs.ocean.dwavesys.com/en/stable/licenses/inspector.html>`_
+`D-Wave EULA <https://docs.dwavequantum.com/en/latest/licenses.html>`_
 license.
 
 Alternatively, clone and build from source:
@@ -91,18 +89,14 @@ License
 
 Released under the Apache License 2.0. See `<LICENSE>`_ file.
 
-.. todo:: update this link
-
 Visualization component released under the
-`D-Wave EULA <https://docs.ocean.dwavesys.com/en/stable/licenses/inspector.html>`_.
+`D-Wave EULA <https://docs.dwavequantum.com/en/latest/licenses.html>`_.
 
 
 Contributing
 ============
 
-.. todo:: update this link
-
-Ocean's `contributing guide <https://docs.ocean.dwavesys.com/en/stable/contributing.html>`_
+Ocean's `contributing guide <https://docs.dwavequantum.com/en/latest/ocean/index_ocean_sdk.html>`_
 has guidelines for contributing to Ocean packages.
 
 Release Notes
