@@ -23,8 +23,8 @@ Usage Information
 
 .. todo:: add the intersphinx prefix to enable these links for self builds
 
-*   :ref:`index_concepts` for terminology
-*   :ref:`qpu_embedding_intro` for an introduction to :term:`minor-embedding`
-*   :ref:`qpu_embedding_guidance` for best practices in minor embedding
+*   :ref:`index_concepts` for terminology.
+*   :ref:`qpu_embedding_intro` for an introduction to minor embedding.
+*   :ref:`qpu_embedding_guidance` for advanced information.
 *   :ref:`qpu_example_inspector_graph_partitioning` for an end-to-end example
     of using the problem inspector on a problem.

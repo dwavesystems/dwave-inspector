@@ -96,7 +96,7 @@ Visualization component released under the
 Contributing
 ============
 
-Ocean's `contributing guide <https://docs.dwavequantum.com/en/latest/ocean/index_ocean_sdk.html>`_
+Ocean's `contributing guide <https://docs.dwavequantum.com/en/latest/ocean/ocean_contribute.html>`_
 has guidelines for contributing to Ocean packages.
 
 Release Notes
