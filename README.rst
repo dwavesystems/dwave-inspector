@@ -11,27 +11,17 @@
     :alt: Coverage report
 
 
-================
-D-Wave Inspector
-================
+===============
+dwave-inspector
+===============
 
-.. index-start-marker
+.. start_inspector_about
 
 A tool for visualizing problems submitted to, and answers received from, a
-D-Wave structured solver such as an Advantage\ |TM| quantum computer.
+D-Wave structured solver such as an Advantage\ :sup:`TM` quantum computer.
 
-.. |TM| replace:: :sup:`TM`
-
-.. index-end-marker
-
-
-Example
-=======
-
-.. example-start-marker
-
-This example shows a typical usage: a binary quadratic model minor-embedded 
-onto a quantum processing unit (QPU).
+This example shows a typical usage: a binary quadratic model minor-embedded onto
+a quantum processing unit (QPU).
 
 .. code-block:: python
 
@@ -52,15 +42,14 @@ onto a quantum processing unit (QPU).
     # Inspect
     dwave.inspector.show(sampleset)
 
-.. example-end-marker
+.. end_inspector_about
 
 
 Installation or Building
 ========================
 
-.. installation-start-marker
-
-If `D-Wave Ocean SDK 2.0+ <https://docs.ocean.dwavesys.com/>`_ is installed:
+If `Ocean SDK 2.0+ <https://github.com/dwavesystems/dwave-ocean-sdk>`_ is
+installed:
 
 .. code-block:: bash
 
@@ -78,8 +67,8 @@ and then install the closed-source dependency with:
 
     pip install dwave-inspectorapp --extra-index=https://pypi.dwavesys.com/simple
 
-Please note this closed-source dependency is released under the 
-`D-Wave EULA <https://docs.ocean.dwavesys.com/en/stable/licenses/inspector.html>`_ 
+Please note this closed-source dependency is released under the
+`D-Wave EULA <https://docs.dwavequantum.com/en/latest/licenses.html>`_
 license.
 
 Alternatively, clone and build from source:
@@ -94,21 +83,20 @@ Alternatively, clone and build from source:
 When building from source, the closed-source component still needs to be
 installed as above.
 
-.. installation-end-marker
-
 
 License
 =======
 
 Released under the Apache License 2.0. See `<LICENSE>`_ file.
 
-Visualization component released under the 
-`D-Wave EULA <https://docs.ocean.dwavesys.com/en/stable/licenses/inspector.html>`_.
+Visualization component released under the
+`D-Wave EULA <https://docs.dwavequantum.com/en/latest/licenses.html>`_.
+
 
 Contributing
 ============
 
-Ocean's `contributing guide <https://docs.ocean.dwavesys.com/en/stable/contributing.html>`_
+Ocean's `contributing guide <https://docs.dwavequantum.com/en/latest/ocean/contribute.html>`_
 has guidelines for contributing to Ocean packages.
 
 Release Notes

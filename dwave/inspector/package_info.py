@@ -36,7 +36,7 @@ contrib = [{
     'description': 'This tool visualizes problems submitted to the quantum computer and the results returned.',
     'license': {
         'name': 'D-Wave EULA',
-        'url': 'https://docs.ocean.dwavesys.com/eula',
+        'url': 'https://docs.dwavequantum.com/en/latest/licenses.html',
     },
     'requirements': [
         'dwave-inspectorapp==0.3.3',

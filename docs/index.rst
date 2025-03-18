@@ -1,76 +1,30 @@
-..  -*- coding: utf-8 -*-
-
 .. _index_inspector:
 
-========================
-D-Wave Problem Inspector
-========================
+===============
+dwave-inspector
+===============
+
+.. toctree::
+    :caption: Reference documentation for dwave-inspector:
+    :maxdepth: 1
+
+    api_ref
+
+
+About dwave-inspector
+=====================
 
 .. include:: README.rst
-  :start-after: index-start-marker
-  :end-before: index-end-marker
+    :start-after: start_inspector_about
+    :end-before: end_inspector_about
 
-Example
-=======
+Usage Information
+=================
 
-.. include:: intro.rst
-  :start-after: inspecting-embedded-problem-start-marker
-  :end-before: inspecting-embedded-problem-end-marker
+.. todo:: add the intersphinx prefix to enable these links for self builds
 
-Documentation
-=============
-
-.. only:: html
-
-  :Release: |version|
-  :Date: |today|
-
-.. note:: This documentation is for the latest version of
-   `dwave-inspector <https://github.com/dwavesystems/dwave-inspector>`_.
-   Documentation for the version currently installed by
-   `dwave-ocean-sdk <https://github.com/dwavesystems/dwave-ocean-sdk>`_
-   is here: :std:doc:`dwave-inspector <oceandocs:docs_inspector/sdk_index>`.
-
-.. sdk-start-marker
-
-.. toctree::
-  :maxdepth: 1
-
-  intro
-  reference/index
-  release_notes
-
-.. sdk-end-marker
-
-.. toctree::
-  :caption: Code
-  :maxdepth: 1
-
-  Source <https://github.com/dwavesystems/dwave-inspector>
-  installation
-  license
-
-.. toctree::
-  :caption: Ocean Software
-  :maxdepth: 1
-
-  Ocean Home <https://ocean.dwavesys.com/>
-  Ocean Documentation <https://docs.ocean.dwavesys.com>
-  Ocean Glossary <https://docs.ocean.dwavesys.com/en/stable/concepts/index.html>
-
-.. toctree::
-  :caption: D-Wave
-  :maxdepth: 1
-
-  D-Wave <https://www.dwavesys.com>
-  Leap <https://cloud.dwavesys.com/leap/>
-  D-Wave System Documentation <https://docs.dwavesys.com/docs/latest/index.html>
-
-
-Indices and tables
-------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-* `Glossary <https://docs.ocean.dwavesys.com/en/stable/concepts/index.html>`_
+*   :ref:`index_concepts` for terminology.
+*   :ref:`qpu_embedding_intro` for an introduction to minor embedding.
+*   :ref:`qpu_embedding_guidance` for advanced information.
+*   :ref:`qpu_example_inspector_graph_partitioning` for an end-to-end example
+    of using the problem inspector on a problem.
