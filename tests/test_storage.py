@@ -14,7 +14,6 @@
 
 import unittest
 from unittest import mock
-from functools import partial
 
 import vcr
 

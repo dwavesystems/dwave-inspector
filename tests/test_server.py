@@ -79,6 +79,7 @@ class TestProblemOpen(unittest.TestCase, RunTimeAssertionMixin):
             solver = client.get_solver(qpu=True)
             cls.response = solver.sample_ising({}, {(0, 4): 1, (0, 5): 1, (4, 1): 1, (1, 5): -1})
             cls.problem_id = cls.response.wait_id()
+            cls.response.wait()
 
     def setUp(self):
         # exclude potential server start-up time from timing tests
