@@ -79,8 +79,9 @@ class TestAdapters(unittest.TestCase):
             cls.params = dict(num_reads=100)
             cls.label = "pretty-label"
 
-            # get the expected response (from VCR)
+            # get the expected response (from VCR); make sure it's resolved
             cls.response = cls.solver.sample_ising(*cls.problem, **cls.params)
+            cls.response.wait()
 
     def verify_data_encoding(self, problem, response, solver, params, data, embedding_context=None):
         # avoid persistent data modification
@@ -152,6 +153,7 @@ class TestAdapters(unittest.TestCase):
         with BrickedClient() as client:
             solver = client.get_solver(qpu=True)
             response = solver.sample_ising(*self.problem, **self.params)
+            response.wait()
 
         # convert
         data = from_qmi_response(self.problem, response, params=self.params)
@@ -170,6 +172,7 @@ class TestAdapters(unittest.TestCase):
         with BrickedClient() as client:
             solver = client.get_solver(qpu=True)
             response = solver.sample_ising(*problem, **self.params)
+            response.wait()
 
         # convert
         data = from_qmi_response(problem, response, params=self.params)
@@ -195,6 +198,7 @@ class TestAdapters(unittest.TestCase):
         with BrickedClient() as client:
             solver = client.get_solver(qpu=True)
             response = solver.sample_qubo(problem, **self.params)
+            response.wait()
 
         # convert
         data = from_qmi_response(problem, response, params=self.params)
@@ -213,6 +217,7 @@ class TestAdapters(unittest.TestCase):
         with BrickedClient() as client:
             solver = client.get_solver(qpu=True)
             response = solver.sample_ising(*problem, **self.params)
+            response.wait()
 
         # convert
         data = from_qmi_response(problem, response, params=self.params)
@@ -231,6 +236,7 @@ class TestAdapters(unittest.TestCase):
         with BrickedClient() as client:
             solver = client.get_solver(qpu=True)
             response = solver.sample_ising(*problem, **self.params)
+            response.wait()
 
         # convert
         data = from_qmi_response(problem, response, params=self.params)
@@ -265,6 +271,7 @@ class TestAdapters(unittest.TestCase):
         with BrickedClient() as client:
             solver = client.get_solver(qpu=True)
             response = solver.sample_ising(*problem, **self.params)
+            response.wait()
 
         # convert
         data = from_qmi_response(problem, response, params=self.params)
@@ -279,6 +286,7 @@ class TestAdapters(unittest.TestCase):
         with BrickedClient() as client:
             solver = client.get_solver(qpu=True)
             response = solver.sample_ising(*self.problem, **self.params)
+            response.wait()
 
             # induce sampleset production in response, to test serialization of
             # sampleset-provided data, like `num_occurrences` (an numpy.ndarray)
@@ -382,8 +390,9 @@ class TestAdapters(unittest.TestCase):
             solver = client.get_solver(qpu=True)
             response = solver.sample_ising(*self.problem, **self.params)
 
-        # resolve it before we mangle with it
-        response.result()
+            # resolve it before we mangle with it
+            response.result()
+
         # change solver to unstructured to test solver validation
         response.solver = unstructured_solver_mock
 
@@ -423,8 +432,9 @@ class TestAdapters(unittest.TestCase):
             solver = client.get_solver(qpu=True)
             response = solver.sample_ising(*self.problem, **self.params)
 
-        # resolve it before we mangle with it
-        response.result()
+            # resolve it before we mangle with it
+            response.result()
+
         # change solver topology to non-chimera/pegasus to test solver validation
         response.solver.properties['topology']['type'] = 'unknown'
 
@@ -463,6 +473,7 @@ class TestAdapters(unittest.TestCase):
         with BrickedClient() as client:
             solver = client.get_solver(qpu=True)
             response = solver.sample_ising(*self.problem, label=self.label, **self.params)
+            response.wait()
 
         # ensure `from_qmi_response` adapter propagates label
         data = from_qmi_response(self.problem, response, params=self.params)
@@ -493,6 +504,7 @@ class TestAdapters(unittest.TestCase):
         with BrickedClient() as client:
             solver = client.get_solver(qpu=True)
             response = solver.sample_ising(*self.problem, **self.params)
+            response.wait()
 
         # simulate old solver, without explicit topology property
         del response.solver.properties['topology']
