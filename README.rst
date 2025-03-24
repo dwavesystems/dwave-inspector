@@ -87,7 +87,7 @@ installed as above.
 License
 =======
 
-Released under the Apache License 2.0. See `<LICENSE>`_ file.
+Released under the Apache License 2.0. See LICENSE file.
 
 Visualization component released under the
 `D-Wave EULA <https://docs.dwavequantum.com/en/latest/licenses.html>`_.
