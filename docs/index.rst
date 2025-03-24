@@ -21,8 +21,6 @@ About dwave-inspector
 Usage Information
 =================
 
-.. todo:: add the intersphinx prefix to enable these links for self builds
-
 *   :ref:`index_concepts` for terminology.
 *   :ref:`qpu_embedding_intro` for an introduction to minor embedding.
 *   :ref:`qpu_embedding_guidance` for advanced information.

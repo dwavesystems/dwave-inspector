@@ -22,7 +22,6 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
     'sphinx.ext.ifconfig',
-    'sphinx_design',
     'reno.sphinxext',
 ]
 
@@ -37,7 +36,7 @@ language = 'en'
 
 add_module_names = False
 
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'sdk_index.rst']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'README.rst']
 
 linkcheck_retries = 2
 linkcheck_anchors = False
