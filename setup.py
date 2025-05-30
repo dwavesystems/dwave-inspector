@@ -23,7 +23,7 @@ install_requires = [
 
 # Package extras requirements
 extras_require = {
-    'test': ['coverage', 'vcrpy'],
+    'test': ['coverage>=7.0.0', 'vcrpy'],
 
     # importlib.metadata backport needed for selectable entry point prior to py310
     ':python_version < "3.10"': ['importlib-metadata>=4.8'],
