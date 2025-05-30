@@ -1,5 +1,5 @@
 import os
-from setuptools import setup
+from setuptools import setup, find_namespace_packages
 
 
 # Load package info, without importing the package
@@ -41,7 +41,7 @@ classifiers = [
     'Programming Language :: Python :: 3.13',
 ]
 
-packages = ['dwave', 'dwave.inspector']
+packages = find_namespace_packages(include=['dwave.*'])
 
 python_requires = '>=3.9'
 
