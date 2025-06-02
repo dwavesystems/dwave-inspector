@@ -1,5 +1,5 @@
 import os
-from setuptools import setup
+from setuptools import setup, find_namespace_packages
 
 
 # Load package info, without importing the package
@@ -23,7 +23,7 @@ install_requires = [
 
 # Package extras requirements
 extras_require = {
-    'test': ['coverage', 'vcrpy'],
+    'test': ['coverage>=7.0.0', 'vcrpy'],
 
     # importlib.metadata backport needed for selectable entry point prior to py310
     ':python_version < "3.10"': ['importlib-metadata>=4.8'],
@@ -41,7 +41,7 @@ classifiers = [
     'Programming Language :: Python :: 3.13',
 ]
 
-packages = ['dwave', 'dwave.inspector']
+packages = find_namespace_packages(include=['dwave.*'])
 
 python_requires = '>=3.9'
 
