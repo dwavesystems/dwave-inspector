@@ -15,21 +15,9 @@
 import unittest
 from unittest import mock
 
-import vcr
-
 from dwave.inspector.storage import push_inspector_data, get_solver_data
 
-from tests import BrickedClient
-
-
-rec = vcr.VCR(
-    serializer='yaml',
-    cassette_library_dir='tests/fixtures/cassettes',
-    record_mode='none',
-    match_on=['uri', 'method'],
-    filter_headers=['x-auth-token'],
-    filter_query_parameters=['timeout'],
-)
+from tests import BrickedClient, sapi_vcr as rec
 
 
 @mock.patch('dwave.system.samplers.dwave_sampler.Client.from_config', BrickedClient)

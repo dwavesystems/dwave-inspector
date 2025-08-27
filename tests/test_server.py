@@ -16,7 +16,6 @@ import unittest
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlsplit
 
-import vcr
 import numpy as np
 import requests
 
@@ -26,18 +25,7 @@ from dwave.inspector import show, Block
 from dwave.inspector.server import app_server
 from dwave.inspector.storage import problem_access_sem
 
-from tests import RunTimeAssertionMixin, BrickedClient
-
-
-rec = vcr.VCR(
-    serializer='yaml',
-    cassette_library_dir='tests/fixtures/cassettes',
-    record_mode='none',
-    match_on=['uri', 'method'],
-    filter_headers=['x-auth-token'],
-    filter_query_parameters=['timeout'],
-    ignore_localhost=True,
-)
+from tests import RunTimeAssertionMixin, BrickedClient, sapi_vcr as rec
 
 
 class FirstTestServerRuns(unittest.TestCase):

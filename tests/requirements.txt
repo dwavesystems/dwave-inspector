@@ -1,4 +1,5 @@
 coverage>=7.0.0     # native namespace package support added in 7.0.0
+packaging>=15.2     # in `SpecifierSet` test
 parameterized
 
 # temporary fix for https://github.com/kevin1024/vcrpy/issues/688 is to

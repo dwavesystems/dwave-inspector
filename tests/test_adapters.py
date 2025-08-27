@@ -17,9 +17,7 @@ import unittest
 from unittest import mock
 from decimal import Decimal
 from fractions import Fraction
-from functools import partial
 
-import vcr
 import numpy
 
 import dimod
@@ -34,17 +32,8 @@ from dwave.inspector.adapters import (
     from_qmi_response, from_bqm_response, from_bqm_sampleset, from_objects,
     _validated_embedding)
 
-from tests import BrickedClient
+from tests import BrickedClient, sapi_vcr as rec
 
-
-rec = vcr.VCR(
-    serializer='yaml',
-    cassette_library_dir='tests/fixtures/cassettes',
-    record_mode='none',
-    match_on=['uri', 'method'],
-    filter_headers=['x-auth-token'],
-    filter_query_parameters=['timeout'],
-)
 
 # minimal mock of an unstructured solver
 unstructured_solver_mock = UnstructuredSolver(

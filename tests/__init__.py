@@ -14,7 +14,11 @@
 
 from time import perf_counter
 
+import vcr
+from packaging.specifiers import SpecifierSet
+
 from dwave.cloud import Client
+from dwave.cloud.package_info import __version__ as cc_version
 
 
 # NOTE: copied from dwave-hybrid
@@ -72,3 +76,20 @@ def BrickedClient(**kwargs):
     client = Client(token='fake', **kwargs)
 
     return client
+
+
+# SAPI responses changed in v3 (with cloud-client 0.14.0)
+if cc_version in SpecifierSet('>=0.14.0rc', prereleases=True):
+    sapi_version = 'v3'
+else:
+    sapi_version = 'v2'
+
+sapi_vcr = vcr.VCR(
+    serializer='yaml',
+    cassette_library_dir=f'tests/fixtures/cassettes/{sapi_version}',
+    record_mode='none',
+    match_on=['uri', 'method'],
+    filter_headers=['x-auth-token'],
+    filter_query_parameters=['timeout'],
+    ignore_localhost=True,
+)
