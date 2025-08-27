@@ -21,7 +21,7 @@ from typing import Optional
 
 from dwave.cloud.solver import StructuredSolver
 
-from dwave.inspector.adapters import solver_data_postprocessed
+from dwave.inspector.adapters import solver_data_postprocessed, _get_solver_id
 
 logger = logging.getLogger(__name__)
 
@@ -113,7 +113,7 @@ def add_solver(solver):
     # convert pydantic SolverConfiguration model if used instead of dict for data
     if callable(getattr(solver.data, 'model_dump', None)):
         solver.data = solver.data.model_dump()
-    solvers[solver.id] = solver
+    solvers[_get_solver_id(solver)] = solver
 
 
 def index_resolved_problems():
