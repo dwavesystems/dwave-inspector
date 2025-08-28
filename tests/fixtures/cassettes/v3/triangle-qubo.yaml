@@ -1,0 +1,117 @@
+interactions:
+- request:
+    body: !!binary |
+      eJztzLFKw1AUBuB3OatFU1EpAQfBwdFdpFxJogWTtEnaIiXvbgpaNyfdvjOde7//P0+H6Nv3XdlF
+      fogm1WXkcVfsUjOk1/Jy2X/0Q1nPz69jFlOoX7XNMfjapfXbclVM4Wy+KG6qdFNkMY6zKNKQjomq
+      7eo0TL5ZT9X3VXO8+9s8vl18r2cPi6/t/qra/73/zP/c55xzzjnnnHPOOeecc84555xzzjnnnHPO
+      Oeecc84555xzzjnnnHPOOeecc84555xzzjnnnHPOOeecc84555xzzjnnnHPOOeecc84555xzzjnn
+      nHPOOeecc84555xzzjnnnHPOOeecc84555xzzjnnnHPOOeecc37y25jFZpuKyOP7d3F/au0fT627
+      iynZVlVfDpFn4yyGj3U5tTbbl3aSdepS3Ud+iGZbL7syFdNjnmXj+PwJTFMJug==
+    headers:
+      Accept:
+      - application/vnd.dwave.sapi.problems+json; version=3.0.0
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Length:
+      - '331'
+      User-Agent:
+      - dwave-cloud-client/0.14.0rc1 python/3.13.0 CPython/3.13.0-64bit machine/x86_64
+        system/Linux platform/Linux-4.15.0-213-generic-x86_64-with-glibc2.27
+    method: POST
+    uri: https://cloud.dwavesys.com/sapi/problems/
+  response:
+    body:
+      string: '[{"status":"PENDING","id":"0f54e5a8-d375-43d5-828d-c8002336ff02","solver":{"name":"Advantage2_system1.5","version":{"graph_id":"018d6fa6d0"}},"type":"qubo","submitted_on":"2025-08-28T02:38:28.547655Z","label":null}]'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '215'
+      Content-Type:
+      - application/vnd.dwave.sapi.problems+json; version=3.0.0; charset=utf-8
+      Date:
+      - Thu, 28 Aug 2025 02:38:28 GMT
+      Server:
+      - nginx/1.22.1
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      VARY:
+      - ACCEPT
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/vnd.dwave.sapi.problems+json; version=3.0.0
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - dwave-cloud-client/0.14.0rc1 python/3.13.0 CPython/3.13.0-64bit machine/x86_64
+        system/Linux platform/Linux-4.15.0-213-generic-x86_64-with-glibc2.27
+    method: GET
+    uri: https://cloud.dwavesys.com/sapi/problems/?id=0f54e5a8-d375-43d5-828d-c8002336ff02
+  response:
+    body:
+      string: '[{"status":"COMPLETED","id":"0f54e5a8-d375-43d5-828d-c8002336ff02","solver":{"name":"Advantage2_system1.5","version":{"graph_id":"018d6fa6d0"}},"type":"qubo","submitted_on":"2025-08-28T02:38:28.547655Z","label":null,"solved_on":"2025-08-28T02:38:28.702208Z"}]'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '259'
+      Content-Type:
+      - application/vnd.dwave.sapi.problems+json; version=3.0.0; charset=utf-8
+      Date:
+      - Thu, 28 Aug 2025 02:38:29 GMT
+      Server:
+      - nginx/1.22.1
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      VARY:
+      - ACCEPT
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/vnd.dwave.sapi.problem+json; version=3.0.0
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - dwave-cloud-client/0.14.0rc1 python/3.13.0 CPython/3.13.0-64bit machine/x86_64
+        system/Linux platform/Linux-4.15.0-213-generic-x86_64-with-glibc2.27
+    method: GET
+    uri: https://cloud.dwavesys.com/sapi/problems/0f54e5a8-d375-43d5-828d-c8002336ff02/
+  response:
+    body:
+      string: '{"status":"COMPLETED","id":"0f54e5a8-d375-43d5-828d-c8002336ff02","solver":{"name":"Advantage2_system1.5","version":{"graph_id":"018d6fa6d0"}},"type":"qubo","submitted_on":"2025-08-28T02:38:28.547655Z","label":null,"solved_on":"2025-08-28T02:38:28.702208Z","answer":{"solutions":"QAAggA==","energies":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","timing":{"qpu_sampling_time":11454.0,"qpu_anneal_time_per_sample":20.0,"qpu_readout_time_per_sample":33.97,"qpu_access_time":46043.6,"qpu_access_overhead_time":7638.4,"qpu_programming_time":34589.6,"qpu_delay_time_per_sample":60.57,"total_post_processing_time":1.0,"post_processing_overhead_time":1.0},"num_occurrences":"EgAAABMAAAAdAAAAIgAAAA==","format":"qp","active_variables":"AAAAAAEAAAAMAAAA","num_variables":4800}}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '770'
+      Content-Type:
+      - application/vnd.dwave.sapi.problem+json; version=3.0.0; charset=utf-8
+      Date:
+      - Thu, 28 Aug 2025 02:38:30 GMT
+      Server:
+      - nginx/1.22.1
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      VARY:
+      - ACCEPT
+    status:
+      code: 200
+      message: OK
+version: 1
