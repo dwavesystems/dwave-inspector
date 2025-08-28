@@ -65,16 +65,6 @@ def BrickedClient(**kwargs):
     # prefer a zephyr qpu by default
     kwargs.setdefault('defaults', dict(solver=dict(topology__type='zephyr')))
 
-    # currently, this is the only way to skip on-disk caching (we do not want
-    # the client to use the existing cache during tests -- that way we can control
-    # the SAPI endpoint returned from the Metadata API)
-    # TODO: replace with cache-control when dwave-cloud-client#503 is implemented.
-    if hasattr(Client, '_fetch_available_regions'):
-        Client._fetch_available_regions._cached.cache = {}
-    else:
-        # in `dwave-cloud-client < 0.9.2` there's no cache we need to mock
-        pass
-
     # we can use a fake token because requests are replayed anyway
     client = Client(token='fake', **kwargs)
 
