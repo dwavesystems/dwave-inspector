@@ -29,7 +29,7 @@ class TestStorage(unittest.TestCase):
 
         # get real solver
         with BrickedClient() as client:
-            solver = client.get_solver(qpu=True)
+            solver = client.get_solver()
 
         # cripple it
         del solver.properties['topology']

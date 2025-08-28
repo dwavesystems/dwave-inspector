@@ -64,8 +64,8 @@ class TestProblemOpen(unittest.TestCase, RunTimeAssertionMixin):
     def setUpClass(cls):
         # sample
         with BrickedClient() as client:
-            solver = client.get_solver(qpu=True)
-            cls.response = solver.sample_ising({}, {(0, 4): 1, (0, 5): 1, (4, 1): 1, (1, 5): -1})
+            solver = client.get_solver()
+            cls.response = solver.sample_ising({}, {(0, 1): 1, (1, 12): 1, (12, 0): 1})
             cls.problem_id = cls.response.wait_id()
             cls.response.wait()
 
@@ -160,20 +160,18 @@ class TestSerialization(unittest.TestCase):
         # model and embedding use variables with numpy types
         h = {}
         J = {
-            (np.int8(0), np.int16(4)): np.int32(1),
-            (np.int32(0), np.int64(5)): np.int64(1),
-            (4, np.int32(1)): np.float32(1),
-            (np.int32(1), 5): np.float64(-1),
+            (np.int8(0), np.int16(1)): np.int32(1),
+            (np.int32(0), np.int64(12)): np.float32(1),
+            (np.int64(1), np.int32(12)): np.float64(1),
         }
         embedding = {
             np.int8(0): [np.int8(0)],
             np.int32(1): [np.int32(1)],
-            np.int16(4): [np.int16(4)],
-            np.int64(5): [np.int64(5)],
+            np.int64(12): [np.int64(12)],
         }
 
         # sample
-        qpu = DWaveSampler()
+        qpu = DWaveSampler(solver=dict(topology__type='zephyr'))
         sampler = FixedEmbeddingComposite(qpu, embedding)
         sampleset = sampler.sample_ising(h, J, return_embedding=True)
         problem_id = sampleset.info['problem_id']

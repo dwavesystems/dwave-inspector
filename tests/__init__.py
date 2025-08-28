@@ -62,6 +62,9 @@ class RunTimeAssertionMixin:
 
 # client factory that turns off on-disk caching and removes the token requirement
 def BrickedClient(**kwargs):
+    # prefer a zephyr qpu by default
+    kwargs.setdefault('defaults', dict(solver=dict(topology__type='zephyr')))
+
     # currently, this is the only way to skip on-disk caching (we do not want
     # the client to use the existing cache during tests -- that way we can control
     # the SAPI endpoint returned from the Metadata API)
