@@ -21,8 +21,9 @@ from fractions import Fraction
 import numpy
 
 import dimod
-from dwave.cloud.solver import UnstructuredSolver
+from dwave.cloud.solver import BQMSolver
 from dwave.cloud.utils.qubo import reformat_qubo_as_ising
+from dwave.cloud.testing.mocks import hybrid_bqm_solver_data
 from dwave.embedding import embed_bqm
 from dwave.embedding.utils import edgelist_to_adjacency
 from dwave.system import DWaveSampler, FixedEmbeddingComposite
@@ -33,13 +34,6 @@ from dwave.inspector.adapters import (
     _validated_embedding)
 
 from tests import BrickedClient, sapi_vcr as rec
-
-
-# minimal mock of an unstructured solver
-unstructured_solver_mock = UnstructuredSolver(
-    client=None,
-    data={'id': 'mock',
-          'properties': {'supported_problem_types': ['bqm']}})
 
 
 @mock.patch('dwave.system.samplers.dwave_sampler.Client.from_config', BrickedClient)
@@ -379,7 +373,7 @@ class TestAdapters(unittest.TestCase):
             response.result()
 
         # change solver to unstructured to test solver validation
-        response.solver = unstructured_solver_mock
+        response.solver = BQMSolver(client=None, data=hybrid_bqm_solver_data())
 
         # ensure `from_qmi_response` adapter fails on unstructured solver
         with self.assertRaises(TypeError):
@@ -402,7 +396,7 @@ class TestAdapters(unittest.TestCase):
         # resolve it before we mangle with it
         sampleset.info['problem_id']
         # change solver to unstructured to test solver validation
-        sampler.child.solver = unstructured_solver_mock
+        sampler.child.solver = BQMSolver(client=None, data=hybrid_bqm_solver_data())
 
         # ensure `from_bqm_sampleset` adapter fails on unstructured solver
         with self.assertRaises(TypeError):
