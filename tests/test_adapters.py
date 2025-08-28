@@ -31,7 +31,7 @@ from dwave.system.testing import MockDWaveSampler
 
 from dwave.inspector.adapters import (
     from_qmi_response, from_bqm_response, from_bqm_sampleset, from_objects,
-    _validated_embedding)
+    _validated_embedding, _get_solver_id)
 
 from tests import BrickedClient, sapi_vcr as rec
 
@@ -82,7 +82,7 @@ class TestAdapters(unittest.TestCase):
         # .details
         self.assertIn('id', data['details'])
         self.assertIn('label', data['details'])
-        self.assertEqual(data['details']['solver'], solver.id)
+        self.assertEqual(data['details']['solver'], _get_solver_id(solver))
 
         # .problem
         self.assertEqual(data['data']['type'], response.problem_type)
@@ -495,7 +495,7 @@ class TestAdapters(unittest.TestCase):
 
         # in addition to `topology` missing, remove "structure", so Chimera
         # can't be implied
-        delattr(solver, 'edges')
+        del solver.properties['couplers']
 
         # ensure `from_qmi_response` adapter fails on unstructured old solver
         with self.assertRaises(TypeError):

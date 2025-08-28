@@ -93,7 +93,7 @@ def _get_solver_topology(solver, default=None):
         return topology
 
     except KeyError:
-        if hasattr(solver, 'edges') and hasattr(solver, 'nodes'):
+        if solver.properties.get('qubits') and solver.properties.get('couplers'):
             return {'type': 'chimera', 'shape': [16, 16, 4]}
 
     return default
