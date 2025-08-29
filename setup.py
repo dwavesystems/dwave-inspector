@@ -14,7 +14,7 @@ with open(package_info_path, encoding='utf-8') as f:
 install_requires = [
     'dimod>=0.10.0',
     'dwave-system>=1.3.0',
-    'dwave-cloud-client>=0.12.0,<0.14.0',
+    'dwave-cloud-client>=0.13.0,<0.15.0',
     'Flask>=2.2,<4',
     'numpy',
     'orjson>=3.10.0',

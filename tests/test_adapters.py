@@ -17,14 +17,13 @@ import unittest
 from unittest import mock
 from decimal import Decimal
 from fractions import Fraction
-from functools import partial
 
-import vcr
 import numpy
 
 import dimod
-from dwave.cloud.solver import UnstructuredSolver
+from dwave.cloud.solver import BQMSolver
 from dwave.cloud.utils.qubo import reformat_qubo_as_ising
+from dwave.cloud.testing.mocks import hybrid_bqm_solver_data
 from dwave.embedding import embed_bqm
 from dwave.embedding.utils import edgelist_to_adjacency
 from dwave.system import DWaveSampler, FixedEmbeddingComposite
@@ -32,25 +31,9 @@ from dwave.system.testing import MockDWaveSampler
 
 from dwave.inspector.adapters import (
     from_qmi_response, from_bqm_response, from_bqm_sampleset, from_objects,
-    _validated_embedding)
+    _validated_embedding, _get_solver_id)
 
-from tests import BrickedClient
-
-
-rec = vcr.VCR(
-    serializer='yaml',
-    cassette_library_dir='tests/fixtures/cassettes',
-    record_mode='none',
-    match_on=['uri', 'method'],
-    filter_headers=['x-auth-token'],
-    filter_query_parameters=['timeout'],
-)
-
-# minimal mock of an unstructured solver
-unstructured_solver_mock = UnstructuredSolver(
-    client=None,
-    data={'id': 'mock',
-          'properties': {'supported_problem_types': ['bqm']}})
+from tests import BrickedClient, sapi_vcr as rec
 
 
 @mock.patch('dwave.system.samplers.dwave_sampler.Client.from_config', BrickedClient)
@@ -60,16 +43,17 @@ class TestAdapters(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         with BrickedClient() as client:
-            cls.solver = client.get_solver(qpu=True)
+            cls.solver = client.get_solver()
 
+            # we used a zephyr qpu (Advantage2_system1.5) when recording the fixture
             cls.ising = ({}, {'ab': 1, 'bc': 1, 'ca': 1})
             cls.bqm = dimod.BQM.from_ising(*cls.ising)
-            cls.embedding = {'a': [0], 'b': [4], 'c': [1, 5]}
+            cls.embedding = {'a': [0], 'b': [1], 'c': [12]}
             cls.chain_strength = 1.0
             cls.embedding_context = dict(embedding=cls.embedding,
                                          chain_strength=cls.chain_strength)
 
-            target_edgelist = [[0, 4], [0, 5], [1, 4], [1, 5]]
+            target_edgelist = [[0, 1], [0, 12], [1, 12]]
             target_adjacency = edgelist_to_adjacency(target_edgelist)
             cls.bqm_embedded = embed_bqm(cls.bqm, cls.embedding, target_adjacency,
                                          chain_strength=cls.chain_strength)
@@ -98,7 +82,7 @@ class TestAdapters(unittest.TestCase):
         # .details
         self.assertIn('id', data['details'])
         self.assertIn('label', data['details'])
-        self.assertEqual(data['details']['solver'], solver.id)
+        self.assertEqual(data['details']['solver'], _get_solver_id(solver))
 
         # .problem
         self.assertEqual(data['data']['type'], response.problem_type)
@@ -151,7 +135,7 @@ class TestAdapters(unittest.TestCase):
 
         # sample
         with BrickedClient() as client:
-            solver = client.get_solver(qpu=True)
+            solver = client.get_solver()
             response = solver.sample_ising(*self.problem, **self.params)
             response.wait()
 
@@ -170,7 +154,7 @@ class TestAdapters(unittest.TestCase):
 
         # sample
         with BrickedClient() as client:
-            solver = client.get_solver(qpu=True)
+            solver = client.get_solver()
             response = solver.sample_ising(*problem, **self.params)
             response.wait()
 
@@ -185,18 +169,15 @@ class TestAdapters(unittest.TestCase):
     def test_from_qmi_response__qubo(self):
         """Inspector data is correctly encoded for a simple QUBO triangle problem."""
 
-        # vars = (0, 1, 4, 5)
-        # h = {}, J = {(0, 4): 1, (0, 5): 1, (1, 5): -1, (4, 1): 1}
+        # vars = (0, 1, 12)
+        # h = {}, J = {(0, 1): 1, (0, 12): 1, (1, 12): 1}
         problem = {
-            (0, 4): 0.5, (0, 5): 0.5,
-            (1, 4): 0.5, (1, 5): -0.5,
-            (4, 0): 0.5, (4, 1): 0.5,
-            (5, 0): 0.5, (5, 1): -0.5,
+            (0, 1): 1, (0, 12): 1, (1, 12): 1
         }
 
         # sample
         with BrickedClient() as client:
-            solver = client.get_solver(qpu=True)
+            solver = client.get_solver()
             response = solver.sample_qubo(problem, **self.params)
             response.wait()
 
@@ -215,7 +196,7 @@ class TestAdapters(unittest.TestCase):
 
         # sample
         with BrickedClient() as client:
-            solver = client.get_solver(qpu=True)
+            solver = client.get_solver()
             response = solver.sample_ising(*problem, **self.params)
             response.wait()
 
@@ -234,7 +215,7 @@ class TestAdapters(unittest.TestCase):
 
         # sample
         with BrickedClient() as client:
-            solver = client.get_solver(qpu=True)
+            solver = client.get_solver()
             response = solver.sample_ising(*problem, **self.params)
             response.wait()
 
@@ -250,26 +231,24 @@ class TestAdapters(unittest.TestCase):
         """Problem data is serialized even when it uses non-standard types (like numpy.int64)."""
 
         # `self.problem` == (
-        #   {0: 0.0, 4: 0.0, 1: 0.0, 5: 0.0},
-        #   {(0, 4): 1.0, (0, 5): 1.0, (4, 1): 1.0, (1, 5): -1.0}
+        #   {0: 0.0, 1: 0.0, 12: 0.0},
+        #   {(0, 1): 1, (0, 12): 1, (1, 12): 1}
         # )
         h = {
             0: numpy.int64(0),
-            4: numpy.double(0),
-            1: numpy.int8(0),
-            5: Decimal('0'),
+            1: numpy.double(0),
+            12: numpy.int8(0),
         }
         J = {
-            (0, 4): numpy.float16(1),
-            (0, 5): Decimal('1'),
-            (4, 1): Fraction(2, 2),
-            (1, 5): numpy.int32(-1),
+            (0, 1): numpy.float16(1),
+            (0, 12): Decimal('1'),
+            (1, 12): Fraction(2, 2),
         }
         problem = (h, J)
 
         # sample
         with BrickedClient() as client:
-            solver = client.get_solver(qpu=True)
+            solver = client.get_solver()
             response = solver.sample_ising(*problem, **self.params)
             response.wait()
 
@@ -284,7 +263,7 @@ class TestAdapters(unittest.TestCase):
     def _test_from_bqm_response(self, bqm):
         # sample
         with BrickedClient() as client:
-            solver = client.get_solver(qpu=True)
+            solver = client.get_solver()
             response = solver.sample_ising(*self.problem, **self.params)
             response.wait()
 
@@ -310,7 +289,7 @@ class TestAdapters(unittest.TestCase):
     @rec.use_cassette('triangle-ising.yaml')
     def _test_from_bqm_sampleset(self, bqm):
         # sample
-        qpu = DWaveSampler()
+        qpu = DWaveSampler(solver=dict(topology__type='zephyr'))
         sampler = FixedEmbeddingComposite(qpu, self.embedding)
         sampleset = sampler.sample(
             bqm, return_embedding=True, chain_strength=self.chain_strength,
@@ -387,14 +366,14 @@ class TestAdapters(unittest.TestCase):
 
         # sample
         with BrickedClient() as client:
-            solver = client.get_solver(qpu=True)
+            solver = client.get_solver()
             response = solver.sample_ising(*self.problem, **self.params)
 
             # resolve it before we mangle with it
             response.result()
 
         # change solver to unstructured to test solver validation
-        response.solver = unstructured_solver_mock
+        response.solver = BQMSolver(client=None, data=hybrid_bqm_solver_data())
 
         # ensure `from_qmi_response` adapter fails on unstructured solver
         with self.assertRaises(TypeError):
@@ -410,14 +389,14 @@ class TestAdapters(unittest.TestCase):
         """All data adapters should fail on non-StructuredSolvers."""
 
         # sample
-        qpu = DWaveSampler()
+        qpu = DWaveSampler(solver=dict(topology__type='zephyr'))
         sampler = FixedEmbeddingComposite(qpu, self.embedding)
         sampleset = sampler.sample(self.bqm, return_embedding=True, **self.params)
 
         # resolve it before we mangle with it
         sampleset.info['problem_id']
         # change solver to unstructured to test solver validation
-        sampler.child.solver = unstructured_solver_mock
+        sampler.child.solver = BQMSolver(client=None, data=hybrid_bqm_solver_data())
 
         # ensure `from_bqm_sampleset` adapter fails on unstructured solver
         with self.assertRaises(TypeError):
@@ -429,7 +408,7 @@ class TestAdapters(unittest.TestCase):
 
         # sample
         with BrickedClient() as client:
-            solver = client.get_solver(qpu=True)
+            solver = client.get_solver()
             response = solver.sample_ising(*self.problem, **self.params)
 
             # resolve it before we mangle with it
@@ -452,7 +431,7 @@ class TestAdapters(unittest.TestCase):
         """All data adapters should fail on non-Chimera/Pegasus solvers."""
 
         # sample
-        qpu = DWaveSampler()
+        qpu = DWaveSampler(solver=dict(topology__type='zephyr'))
         sampler = FixedEmbeddingComposite(qpu, self.embedding)
         sampleset = sampler.sample(self.bqm, return_embedding=True, **self.params)
 
@@ -471,7 +450,7 @@ class TestAdapters(unittest.TestCase):
 
         # sample ising -> response
         with BrickedClient() as client:
-            solver = client.get_solver(qpu=True)
+            solver = client.get_solver()
             response = solver.sample_ising(*self.problem, label=self.label, **self.params)
             response.wait()
 
@@ -488,7 +467,7 @@ class TestAdapters(unittest.TestCase):
         """All data adapters should propagate problem label."""
 
         # sample bqm -> sampleset
-        qpu = DWaveSampler()
+        qpu = DWaveSampler(solver=dict(topology__type='zephyr'))
         sampler = FixedEmbeddingComposite(qpu, self.embedding)
         sampleset = sampler.sample(self.bqm, label=self.label, **self.params)
 
@@ -502,7 +481,7 @@ class TestAdapters(unittest.TestCase):
 
         # sample
         with BrickedClient() as client:
-            solver = client.get_solver(qpu=True)
+            solver = client.get_solver()
             response = solver.sample_ising(*self.problem, **self.params)
             response.wait()
 
@@ -516,7 +495,7 @@ class TestAdapters(unittest.TestCase):
 
         # in addition to `topology` missing, remove "structure", so Chimera
         # can't be implied
-        delattr(solver, 'edges')
+        del solver.properties['couplers']
 
         # ensure `from_qmi_response` adapter fails on unstructured old solver
         with self.assertRaises(TypeError):

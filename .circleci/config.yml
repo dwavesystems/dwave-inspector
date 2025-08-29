@@ -76,7 +76,7 @@ jobs:
                 command: |
                   . env/bin/activate
                   pip uninstall -y dwave-system dwave-cloud-client pydantic
-                  pip install << parameters.system-client-version >>
+                  pip install -U << parameters.system-client-version >>
 
       - run: &install-package
           name: Install package
@@ -317,9 +317,9 @@ workflows:
             parameters:
               python-version: *python-versions
               system-client-version:
-                - "dwave-system~=1.0 dwave-cloud-client~=0.12.0"
-                - "dwave-system~=1.0 dwave-cloud-client~=0.13.0"
                 - "dwave-system~=1.0"
+                - "dwave-system~=1.0 dwave-cloud-client~=0.13.0"
+                - "dwave-system~=1.0 dwave-cloud-client~=0.14.0rc --pre"
           context: *ctx-build
 
       - test-macos:

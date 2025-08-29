@@ -93,10 +93,23 @@ def _get_solver_topology(solver, default=None):
         return topology
 
     except KeyError:
-        if hasattr(solver, 'edges') and hasattr(solver, 'nodes'):
+        if solver.properties.get('qubits') and solver.properties.get('couplers'):
             return {'type': 'chimera', 'shape': [16, 16, 4]}
 
     return default
+
+
+def _get_solver_id(solver: StructuredSolver) -> str:
+    """Return a unique solver string identifier, derived from solver's name or
+    solver's identity (if available)."""
+
+    # only available in cloud-client>=0.14
+    if hasattr(solver, 'identity'):
+        return str(solver.identity)
+
+    # used until cloud-client==0.14, deprecated since
+    return solver.id
+
 
 def solver_data_postprocessed(solver, inplace=False):
     """Returns (possibly an old) solver's updated `data` that includes the
@@ -148,7 +161,7 @@ def _unembedded_answer_dict(sampleset):
 
 def _problem_dict(solver_id, problem_type, problem_data, params=None, stats=None):
     return {
-        "solver": solver_id,
+        "solver": solver_id,    # note: it's identity dict in sapi v3, but the app uses old format
         "type": problem_type,
         "params": params if params is not None else {},
         "data": _validated_problem_data(problem_data),
@@ -329,7 +342,7 @@ def _details_dict(response):
         "id": response.id,
         "label": response.label,
         "status": response.remote_status,
-        "solver": response.solver.id,
+        "solver": _get_solver_id(response.solver),
         "type": response.problem_type,
         "submitted_on": response.time_received.isoformat(),
         "solved_on": response.time_solved.isoformat()
@@ -404,7 +417,7 @@ def from_qmi_response(problem, response, embedding_context=None, warnings=None,
     if topology['type'] not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
         raise TypeError("unsupported solver topology type")
 
-    solver_id = solver.id
+    solver_id = _get_solver_id(solver)
     problem_type = response.problem_type
 
     variables = list(response.variables)
@@ -509,7 +522,7 @@ def from_bqm_response(bqm, embedding_context, response, warnings=None,
     if topology['type'] not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
         raise TypeError("unsupported solver topology type")
 
-    solver_id = solver.id
+    solver_id = _get_solver_id(solver)
     problem_type = response.problem_type
 
     active_variables = response['active_variables']
@@ -670,7 +683,7 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
     if topology['type'] not in SUPPORTED_SOLVER_TOPOLOGY_TYPES:
         raise TypeError("unsupported solver topology type")
 
-    solver_id = solver.id
+    solver_id = _get_solver_id(solver)
     problem_type = "ising" if sampleset.vartype is dimod.SPIN else "qubo"
 
     # bqm vartype must match sampleset vartype
@@ -751,7 +764,7 @@ def from_bqm_sampleset(bqm, sampleset, sampler, embedding_context=None,
         "details": {
             "id": problem_id,
             "type": problem_type,
-            "solver": solver.id,
+            "solver": solver_id,
             "label": sampleset.info.get('problem_label'),
         },
         "data": _problem_dict(solver_id, problem_type, problem_data, params, problem_stats),
