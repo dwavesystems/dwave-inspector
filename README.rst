@@ -68,17 +68,16 @@ and then install the closed-source dependency with:
     pip install dwave-inspectorapp --extra-index=https://pypi.dwavesys.com/simple
 
 Please note this closed-source dependency is released under the
-`D-Wave EULA <https://docs.dwavequantum.com/en/latest/licenses.html>`_
+`D-Wave EULA <https://docs.dwavequantum.com/en/latest/licenses.html#dwave-inspector>`_
 license.
 
-Alternatively, clone and build from source:
+Alternatively, clone and install from source:
 
 .. code-block:: bash
 
     git clone https://github.com/dwavesystems/dwave-inspector.git
     cd dwave-inspector
-    pip install -r requirements.txt
-    python setup.py install
+    pip install .
 
 When building from source, the closed-source component still needs to be
 installed as above.
@@ -90,7 +89,7 @@ License
 Released under the Apache License 2.0. See LICENSE file.
 
 Visualization component released under the
-`D-Wave EULA <https://docs.dwavequantum.com/en/latest/licenses.html>`_.
+`D-Wave EULA <https://docs.dwavequantum.com/en/latest/licenses.html#dwave-inspector>`_.
 
 
 Contributing
@@ -98,23 +97,3 @@ Contributing
 
 Ocean's `contributing guide <https://docs.dwavequantum.com/en/latest/ocean/contribute.html>`_
 has guidelines for contributing to Ocean packages.
-
-Release Notes
--------------
-
-D-Wave Inspector uses `reno <https://docs.openstack.org/reno/>`_ to manage
-its release notes.
-
-When making a contribution to D-Wave Inspector that will affect users, create
-a new release note file by running:
-
-.. code-block:: bash
-
-    reno new your-short-descriptor-here
-
-You can then edit the file created under ``releasenotes/notes/``.
-Remove any sections not relevant to your changes.
-Commit the file along with your changes.
-
-See reno's `user guide <https://docs.openstack.org/reno/latest/user/usage.html>`_
-for details.
